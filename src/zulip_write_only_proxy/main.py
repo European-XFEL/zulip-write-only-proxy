@@ -40,7 +40,7 @@ def send_message(
 
         result = client.upload_image(f)
 
-        content += f" []({result['uri']})"
+        content += f"\n[]({result['uri']})"
 
     return client.send_message(content)
 
