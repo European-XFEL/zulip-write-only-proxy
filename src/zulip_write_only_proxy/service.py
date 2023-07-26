@@ -8,8 +8,10 @@ from .repository import JSONRepository
 REPOSITORY = JSONRepository(path=Path(__file__).parent / "clients.json")
 
 
-def create_client(proposal_no: int) -> ScopedClient:
-    client = ScopedClient.create(proposal_no)
+def create_client(
+    proposal_no: int, stream: str | None = None, topic: str | None = None
+) -> ScopedClient:
+    client = ScopedClient.create(proposal_no, stream, topic)
     REPOSITORY.put(client)
     return client
 
