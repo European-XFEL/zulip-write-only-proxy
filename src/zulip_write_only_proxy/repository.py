@@ -3,24 +3,24 @@ from pathlib import Path
 import orjson
 from pydantic import BaseModel, field_validator
 
-from .model import Proposal
+from .model import ScopedClient
 
 
-class ProposalRepository(BaseModel):
-    """A basic file/JSON-based repository for storing proposal entries."""
+class JSONRepository(BaseModel):
+    """A basic file/JSON-based repository for storing client entries."""
 
     path: Path
 
-    def get(self, token: str) -> Proposal:
+    def get(self, token: str) -> ScopedClient:
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return Proposal(token=token, **data[token])
+            return ScopedClient(token=token, **data[token])
 
-    def put(self, proposal: Proposal) -> None:
+    def put(self, proposal: ScopedClient) -> None:
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
             if proposal.proposal_no in data.values():
-                raise ValueError("Proposal already exists")
+                raise ValueError("Client already exists")
 
             data[proposal.token] = proposal.model_dump(exclude={"token"})
 
@@ -30,7 +30,7 @@ class ProposalRepository(BaseModel):
     def list(self):
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return [Proposal(token=token, **entry) for entry, token in data.items()]
+            return [ScopedClient(token=token, **entry) for entry, token in data.items()]
 
     @field_validator("path")
     @classmethod
