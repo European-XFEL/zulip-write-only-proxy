@@ -2,26 +2,30 @@ import secrets
 from typing import IO, Any, Self
 
 import zulip
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ScopedClient(BaseModel):
-    token: str
+    key: str
+
     proposal_no: int
     stream: str
     topic: str
 
-    _client: zulip.Client = Field(
-        init_var=None, default=None
-    )  # Injected by service.setup
+    _client: zulip.Client = None  # type: ignore
 
     @classmethod
-    def create(cls, proposal_no: int) -> Self:
+    def create(
+        cls,
+        proposal_no: int,
+        stream: str | None = None,
+        topic: str | None = None,
+    ) -> Self:
         return cls(
-            token=secrets.token_urlsafe(),
+            key=secrets.token_urlsafe(),
             proposal_no=proposal_no,
-            stream=f"some-pattern-{proposal_no}",
-            topic=f"some-pattern-{proposal_no}",
+            stream=stream or f"some-pattern-{proposal_no}",
+            topic=topic or f"some-pattern-{proposal_no}",
         )
 
     def upload_image(self, image: IO[Any]):
