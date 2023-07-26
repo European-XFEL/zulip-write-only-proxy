@@ -5,7 +5,7 @@ import zulip
 from .model import ScopedClient
 from .repository import JSONRepository
 
-REPOSITORY = JSONRepository(path=Path(__file__).parent / "clients.json")
+REPOSITORY = JSONRepository(path=Path.cwd() / "clients.json")
 
 
 def create_client(
@@ -29,5 +29,5 @@ def setup():
         print("Client already set up")
         return
 
-    zulip_client = zulip.Client(config_file=str(Path(__file__).parent / "zuliprc"))
+    zulip_client = zulip.Client(config_file=str(Path.cwd() / "zuliprc"))
     ScopedClient._client = zulip_client
