@@ -1,7 +1,7 @@
 import typer
 import uvicorn
 
-from . import service, main
+from . import service
 
 app = typer.Typer()
 

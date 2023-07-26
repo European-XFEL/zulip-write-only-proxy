@@ -5,7 +5,7 @@ import fastapi
 import uvicorn
 import zulip
 
-from . import zulip_client, service
+from . import service, zulip_client
 
 
 @asynccontextmanager

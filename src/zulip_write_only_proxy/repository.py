@@ -1,7 +1,8 @@
 from pathlib import Path
-from pydantic import BaseModel, field_validator
 
 import orjson
+from pydantic import BaseModel, field_validator
+
 from .model import Proposal
 
 
