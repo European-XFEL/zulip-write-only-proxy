@@ -1,7 +1,5 @@
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
 from tempfile import SpooledTemporaryFile
-from typing import NamedTuple
 
 import fastapi
 from pydantic import BaseModel

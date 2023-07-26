@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import secrets
-from typing import IO, Any, Self
+from typing import IO, Any
 
 import zulip
 from pydantic import BaseModel, PrivateAttr
+from typing_extensions import Self
 
 
 class ScopedClient(BaseModel):
