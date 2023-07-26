@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from tempfile import SpooledTemporaryFile
+from typing import NamedTuple
 
 import fastapi
+from pydantic import BaseModel
 import uvicorn
 from fastapi.security import APIKeyHeader
 
@@ -43,6 +46,24 @@ def send_message(
         content += f"\n[]({result['uri']})"
 
     return client.send_message(content)
+
+
+# This should not be here
+class UploadImageResponse(BaseModel):
+    uri: str
+    msg: str
+    result: str = "success"
+
+
+@app.post("/upload_image", tags=["User"], response_model=UploadImageResponse)
+def upload_image(
+    client=fastapi.Depends(get_client),
+    image: fastapi.UploadFile = fastapi.File(None),
+):
+    f: SpooledTemporaryFile = image.file  # type: ignore
+    f._file.name = image.filename  # type: ignore
+
+    return client.upload_image(f)
 
 
 if __name__ == "__main__":
