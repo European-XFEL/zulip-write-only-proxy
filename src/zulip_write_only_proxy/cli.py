@@ -1,3 +1,5 @@
+from typing import Annotated, Optional
+
 import typer
 import uvicorn
 
@@ -7,9 +9,13 @@ app = typer.Typer()
 
 
 @app.command()
-def create(proposal_no: int):
+def create(
+    proposal_no: Annotated[int, typer.Argument()],
+    stream: Annotated[Optional[str], typer.Argument()] = None,
+    topic: Annotated[Optional[str], typer.Argument()] = None,
+):
     """Create a new scoped client for a proposal."""
-    client = service.create_client(proposal_no)
+    client = service.create_client(proposal_no, stream, topic)
     typer.echo(client)
 
 
