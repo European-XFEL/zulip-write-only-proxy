@@ -1,6 +1,7 @@
 from pathlib import Path
-from .repository import ProposalRepository
+
 from .model import Proposal
+from .repository import ProposalRepository
 
 REPOSITORY = ProposalRepository(path=Path(__file__).parent / "proposals.json")
 
