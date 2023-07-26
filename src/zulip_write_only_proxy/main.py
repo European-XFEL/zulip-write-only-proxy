@@ -3,6 +3,7 @@ from tempfile import SpooledTemporaryFile
 
 import fastapi
 import uvicorn
+from fastapi.security import APIKeyHeader
 
 from . import service
 
@@ -15,10 +16,19 @@ async def lifespan(app: fastapi.FastAPI):
 
 app = fastapi.FastAPI(title="Zulip Write Only Proxy", lifespan=lifespan)
 
+api_key_header = APIKeyHeader(name="X-API-key")
 
-@app.post("/message")
+
+def get_client(key: str = fastapi.Security(api_key_header)) -> service.ScopedClient:
+    try:
+        return service.get_client(key)
+    except KeyError as e:
+        raise fastapi.HTTPException(status_code=404, detail="Key not found") from e
+
+
+@app.post("/message", tags=["User"])
 def send_message(
-    client: service.ScopedClient = fastapi.Depends(service.get_proposal),
+    client=fastapi.Depends(get_client),
     content: str = fastapi.Query(...),
     image: fastapi.UploadFile = fastapi.File(None),
 ):
@@ -36,4 +46,4 @@ def send_message(
 
 
 if __name__ == "__main__":
-    uvicorn.run("zulip_write_only_proxy.main:app")
+    uvicorn.run(app="zulip_write_only_proxy.main:app")
