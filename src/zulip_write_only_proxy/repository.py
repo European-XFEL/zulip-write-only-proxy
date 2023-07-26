@@ -6,6 +6,8 @@ from .model import Proposal
 
 
 class ProposalRepository(BaseModel):
+    """A basic file/JSON-based repository for storing proposal entries."""
+
     path: Path
 
     def get(self, token: str) -> Proposal:

@@ -20,18 +20,17 @@ app = fastapi.FastAPI(title="Zulip Write Only Proxy", lifespan=lifespan)
 @app.post("/message")
 def post_message(
     proposal: service.Proposal = fastapi.Depends(service.get_proposal),
-    content: str = "test message",
+    content: str = fastapi.Query(...),
     client: zulip.Client = fastapi.Depends(zulip_client.get_client),
     image: fastapi.UploadFile = fastapi.File(None),
 ):
     if image:
         # Some screwing around to get the spooled tmp file to act more like a real file
         # since Zulip needs it to have a filename
-
         f: SpooledTemporaryFile = image.file  # type: ignore
         f._file.name = image.filename  # type: ignore
+
         result = client.upload_file(f)
-        print(result)
         content += f" []({result['uri']})"
 
     request = {
@@ -45,6 +44,4 @@ def post_message(
 
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "zulip_write_only_proxy.main:app",
-    )
+    uvicorn.run("zulip_write_only_proxy.main:app")
