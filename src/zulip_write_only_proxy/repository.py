@@ -11,18 +11,18 @@ class JSONRepository(BaseModel):
 
     path: Path
 
-    def get(self, token: str) -> ScopedClient:
+    def get(self, key: str) -> ScopedClient:
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return ScopedClient(token=token, **data[token])
+            return ScopedClient(key=key, **data[key])
 
-    def put(self, proposal: ScopedClient) -> None:
+    def put(self, client: ScopedClient) -> None:
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            if proposal.proposal_no in data.values():
+            if client.proposal_no in data.values():
                 raise ValueError("Client already exists")
 
-            data[proposal.token] = proposal.model_dump(exclude={"token"})
+            data[client.key] = client.model_dump(exclude={"token"})
 
         with self.path.open("wb") as f:
             f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
@@ -30,7 +30,7 @@ class JSONRepository(BaseModel):
     def list(self):
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return [ScopedClient(token=token, **entry) for entry, token in data.items()]
+            return [ScopedClient(key=key, **value) for key, value in data.items()]
 
     @field_validator("path")
     @classmethod

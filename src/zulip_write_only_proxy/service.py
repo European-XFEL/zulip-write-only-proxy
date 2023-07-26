@@ -8,17 +8,17 @@ from .repository import JSONRepository
 REPOSITORY = JSONRepository(path=Path(__file__).parent / "clients.json")
 
 
-def create_proposal(proposal_no: int) -> ScopedClient:
-    proposal = ScopedClient.create(proposal_no)
-    REPOSITORY.put(proposal)
-    return proposal
+def create_client(proposal_no: int) -> ScopedClient:
+    client = ScopedClient.create(proposal_no)
+    REPOSITORY.put(client)
+    return client
 
 
-def get_proposal(token: str) -> ScopedClient:
-    return REPOSITORY.get(token)
+def get_client(key: str) -> ScopedClient:
+    return REPOSITORY.get(key)
 
 
-def list_proposals() -> list[ScopedClient]:
+def list_clients() -> list[ScopedClient]:
     return REPOSITORY.list()
 
 
