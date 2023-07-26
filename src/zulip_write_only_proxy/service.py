@@ -1,20 +1,20 @@
 from pathlib import Path
 
-from .model import Proposal
-from .repository import ProposalRepository
+from .model import ScopedClient
+from .repository import JSONRepository
 
-REPOSITORY = ProposalRepository(path=Path(__file__).parent / "proposals.json")
+REPOSITORY = JSONRepository(path=Path(__file__).parent / "clients.json")
 
 
-def create_proposal(proposal_no: int) -> Proposal:
-    proposal = Proposal.create(proposal_no)
+def create_proposal(proposal_no: int) -> ScopedClient:
+    proposal = ScopedClient.create(proposal_no)
     REPOSITORY.put(proposal)
     return proposal
 
 
-def get_proposal(token: str) -> Proposal:
+def get_proposal(token: str) -> ScopedClient:
     return REPOSITORY.get(token)
 
 
-def list_proposals() -> list[Proposal]:
+def list_proposals() -> list[ScopedClient]:
     return REPOSITORY.list()

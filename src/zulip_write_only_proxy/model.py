@@ -4,7 +4,7 @@ from typing import Self
 from pydantic import BaseModel
 
 
-class Proposal(BaseModel):
+class ScopedClient(BaseModel):
     token: str
     proposal_no: int
     stream: str
