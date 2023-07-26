@@ -2,7 +2,7 @@ import secrets
 from typing import IO, Any, Self
 
 import zulip
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 
 class ScopedClient(BaseModel):
@@ -12,7 +12,7 @@ class ScopedClient(BaseModel):
     stream: str
     topic: str
 
-    _client: zulip.Client = None  # type: ignore
+    _client: zulip.Client = PrivateAttr()
 
     @classmethod
     def create(
