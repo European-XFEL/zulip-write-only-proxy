@@ -5,11 +5,8 @@
 For docker:
 
 ```sh
-# Build image
-docker build . --tag zwop
-
 # Start server in background
-docker run --rm -v ./zuliprc:/app/zuliprc -v ./clients.json:/app/clients.json -p 8080:8000 -d zwop
+docker compose up -d
 ```
 
 For CLI:
