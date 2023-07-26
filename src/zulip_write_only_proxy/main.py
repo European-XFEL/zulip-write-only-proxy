@@ -1,13 +1,11 @@
 from contextlib import asynccontextmanager
-from io import FileIO
 from tempfile import SpooledTemporaryFile
-from typing import Annotated
 
 import fastapi
 import uvicorn
 import zulip
 
-from . import zulip_client
+from . import zulip_client, service
 
 
 @asynccontextmanager
@@ -21,8 +19,7 @@ app = fastapi.FastAPI(title="Zulip Write Only Proxy", lifespan=lifespan)
 
 @app.post("/message")
 def post_message(
-    stream: str = "DAMNIT!",
-    topic: str = "test-read-only-thing",
+    proposal: service.Proposal = fastapi.Depends(service.get_proposal),
     content: str = "test message",
     client: zulip.Client = fastapi.Depends(zulip_client.get_client),
     image: fastapi.UploadFile = fastapi.File(None),
@@ -39,8 +36,8 @@ def post_message(
 
     request = {
         "type": "stream",
-        "to": stream,
-        "topic": topic,
+        "to": proposal.stream,
+        "topic": proposal.topic,
         "content": content,
     }
 
