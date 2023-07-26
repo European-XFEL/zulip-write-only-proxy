@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import zulip
+from pydantic.fields import ModelPrivateAttr
+from pydantic_core import PydanticUndefined
 
 from .model import ScopedClient
 from .repository import JSONRepository
@@ -25,9 +27,11 @@ def list_clients() -> list[ScopedClient]:
 
 
 def setup():
-    if ScopedClient._client is not None:
-        print("Client already set up")
-        return
+    if not isinstance(ScopedClient._client, ModelPrivateAttr):
+        raise RuntimeError("ScopedClient.client is not a ModelPrivateAttr")
 
-    zulip_client = zulip.Client(config_file=str(Path.cwd() / "zuliprc"))
-    ScopedClient._client = zulip_client
+    client_default = ScopedClient._client.default
+
+    if client_default is None or client_default is PydanticUndefined:
+        zulip_client = zulip.Client(config_file=str(Path.cwd() / "zuliprc"))
+        ScopedClient._client.default = zulip_client
