@@ -2,9 +2,9 @@ from contextlib import asynccontextmanager
 from tempfile import SpooledTemporaryFile
 
 import fastapi
-from pydantic import BaseModel
 import uvicorn
 from fastapi.security import APIKeyHeader
+from pydantic import BaseModel
 
 from . import service
 
@@ -27,7 +27,14 @@ def get_client(key: str = fastapi.Security(api_key_header)) -> service.ScopedCli
         raise fastapi.HTTPException(status_code=404, detail="Key not found") from e
 
 
-@app.post("/message", tags=["User"])
+send_message_docs_url = "https://zulip.com/api/send-message#response"
+
+
+@app.post(
+    "/message",
+    tags=["User"],
+    response_description=f"See <a href='{send_message_docs_url}'>{send_message_docs_url}</a>",
+)
 def send_message(
     client=fastapi.Depends(get_client),
     content: str = fastapi.Query(...),
@@ -53,10 +60,17 @@ class UploadImageResponse(BaseModel):
     result: str = "success"
 
 
-@app.post("/upload_image", tags=["User"], response_model=UploadImageResponse)
+upload_file_docs_url = "https://zulip.com/api/upload-file#response"
+
+
+@app.post(
+    "/upload_image",
+    tags=["User"],
+    response_description=f"See <a href='{upload_file_docs_url}'>{upload_file_docs_url}</a>",
+)
 def upload_image(
     client=fastapi.Depends(get_client),
-    image: fastapi.UploadFile = fastapi.File(None),
+    image: fastapi.UploadFile = fastapi.File(...),
 ):
     f: SpooledTemporaryFile = image.file  # type: ignore
     f._file.name = image.filename  # type: ignore
