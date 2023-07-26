@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import zulip
+
 from .model import ScopedClient
 from .repository import JSONRepository
 
@@ -18,3 +20,12 @@ def get_proposal(token: str) -> ScopedClient:
 
 def list_proposals() -> list[ScopedClient]:
     return REPOSITORY.list()
+
+
+def setup():
+    if ScopedClient._client is not None:
+        print("Client already set up")
+        return
+
+    zulip_client = zulip.Client(config_file=str(Path(__file__).parent / "zuliprc"))
+    ScopedClient._client = zulip_client

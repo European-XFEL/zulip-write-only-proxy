@@ -3,14 +3,13 @@ from tempfile import SpooledTemporaryFile
 
 import fastapi
 import uvicorn
-import zulip
 
-from . import service, zulip_client
+from . import service
 
 
 @asynccontextmanager
 async def lifespan(app: fastapi.FastAPI):
-    zulip_client.setup()
+    service.setup()
     yield
 
 
@@ -19,9 +18,8 @@ app = fastapi.FastAPI(title="Zulip Write Only Proxy", lifespan=lifespan)
 
 @app.post("/message")
 def send_message(
-    scoped_client: service.ScopedClient = fastapi.Depends(service.get_proposal),
+    client: service.ScopedClient = fastapi.Depends(service.get_proposal),
     content: str = fastapi.Query(...),
-    zulip_client: zulip.Client = fastapi.Depends(zulip_client.get_client),
     image: fastapi.UploadFile = fastapi.File(None),
 ):
     if image:
@@ -30,17 +28,11 @@ def send_message(
         f: SpooledTemporaryFile = image.file  # type: ignore
         f._file.name = image.filename  # type: ignore
 
-        result = zulip_client.upload_file(f)
+        result = client.upload_image(f)
+
         content += f" []({result['uri']})"
 
-    request = {
-        "type": "stream",
-        "to": scoped_client.stream,
-        "topic": scoped_client.topic,
-        "content": content,
-    }
-
-    return zulip_client.send_message(request)
+    return client.send_message(content)
 
 
 if __name__ == "__main__":

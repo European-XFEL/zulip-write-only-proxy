@@ -1,7 +1,8 @@
 import secrets
-from typing import Self
+from typing import IO, Any, Self
 
-from pydantic import BaseModel
+import zulip
+from pydantic import BaseModel, Field
 
 
 class ScopedClient(BaseModel):
@@ -9,6 +10,10 @@ class ScopedClient(BaseModel):
     proposal_no: int
     stream: str
     topic: str
+
+    _client: zulip.Client = Field(
+        init_var=None, default=None
+    )  # Injected by service.setup
 
     @classmethod
     def create(cls, proposal_no: int) -> Self:
@@ -18,3 +23,16 @@ class ScopedClient(BaseModel):
             stream=f"some-pattern-{proposal_no}",
             topic=f"some-pattern-{proposal_no}",
         )
+
+    def upload_image(self, image: IO[Any]):
+        return self._client.upload_file(image)
+
+    def send_message(self, content: str):
+        request = {
+            "type": "stream",
+            "to": self.stream,
+            "topic": self.topic,
+            "content": content,
+        }
+
+        return self._client.send_message(request)
