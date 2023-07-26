@@ -4,7 +4,10 @@ version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-packages = [{include = "zulip_write_only_proxy", from = "src"}]
+packages = [{ include = "zulip_write_only_proxy", from = "src" }]
+
+[tool.poetry.scripts]
+damnit-zulip = "zulip_write_only_proxy.cli:app"
 
 [tool.poetry.dependencies]
 python = "^3.11"
