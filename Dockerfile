@@ -10,4 +10,4 @@ COPY ./src /app/src
 RUN poetry config virtualenvs.create false --local
 RUN poetry install
 
-CMD ["uvicorn", "zulip_write_only_proxy.main:app", "--host", "0.0.0.0", "--port", "8009"]
+CMD ["uvicorn", "zulip_write_only_proxy.main:app", "--host", "0.0.0.0", "--port", "8000"]
