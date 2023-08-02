@@ -19,6 +19,13 @@ def create(
 
 
 @app.command()
+def create_admin():
+    """Create a new scoped client for a proposal."""
+    client = service.create_admin()
+    typer.echo(client)
+
+
+@app.command()
 def list():
     """List all scoped clients."""
     client = service.list_clients()

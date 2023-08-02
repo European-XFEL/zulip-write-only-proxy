@@ -1,9 +1,12 @@
+import threading
 from pathlib import Path
 
 import orjson
 from pydantic import BaseModel, field_validator
 
-from .model import ScopedClient
+from . import model
+
+file_lock = threading.Lock()
 
 
 class JSONRepository(BaseModel):
@@ -11,27 +14,50 @@ class JSONRepository(BaseModel):
 
     path: Path
 
-    def get(self, key: str) -> ScopedClient:
+    def get(self, key: str) -> model.Client:
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return ScopedClient(key=key, **data[key])
+            client_data = data[key]
 
-    def put(self, client: ScopedClient) -> None:
-        with self.path.open("rb") as f:
-            data = orjson.loads(f.read())
-            proposal_nos = [value["proposal_no"] for value in data.values()]
-            if client.proposal_no in proposal_nos:
-                raise ValueError(f"Client already exists for {client.proposal_no=}")
+            if client_data["admin"]:
+                return model.AdminClient(key=key, **client_data)
 
-            data[client.key] = client.model_dump(exclude={"key"})
+            return model.ScopedClient(key=key, **client_data)
 
-        with self.path.open("wb") as f:
-            f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
+    def put(self, client: model.ScopedClient) -> None:
+        with file_lock:
+            with self.path.open("rb") as f:
+                data = orjson.loads(f.read())
+                proposal_nos = [value.get("proposal_no") for value in data.values()]
+                if client.proposal_no in proposal_nos:
+                    reversed_data = {
+                        value.get("proposal_no"): {"key": key, **value}
+                        for key, value in data.items()
+                    }
+
+                    raise ValueError(
+                        f"Client already exists for {client.proposal_no=}: "
+                        f"{reversed_data[client.proposal_no]}"
+                    )
+
+                data[client.key] = client.model_dump(exclude={"key"})
+
+            with self.path.open("wb") as f:
+                f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
+
+    def put_admin(self, client: model.AdminClient) -> None:
+        with file_lock:
+            with self.path.open("rb") as f:
+                data = orjson.loads(f.read())
+                data[client.key] = client.model_dump(exclude={"key"})
+
+            with self.path.open("wb") as f:
+                f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
     def list(self):
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return [ScopedClient(key=key, **value) for key, value in data.items()]
+            return [model.ScopedClient(key=key, **value) for key, value in data.items()]
 
     @field_validator("path")
     @classmethod

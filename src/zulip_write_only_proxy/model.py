@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import secrets
-from typing import IO, Any
+from typing import IO, Any, Union
 
 import zulip
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, PrivateAttr, validator
 from typing_extensions import Self
 
 
@@ -40,3 +40,21 @@ class ScopedClient(BaseModel):
         }
 
         return self._client.send_message(request)
+
+
+class AdminClient(BaseModel):
+    key: str
+    admin: bool
+
+    @classmethod
+    def create(cls) -> Self:
+        return cls(key=secrets.token_urlsafe(), admin=True)
+
+    @validator("admin")
+    def check_admin(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("Admin client must be admin")
+        return v
+
+
+Client = Union[ScopedClient, AdminClient]
