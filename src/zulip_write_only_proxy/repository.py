@@ -19,7 +19,7 @@ class JSONRepository(BaseModel):
             data = orjson.loads(f.read())
             client_data = data[key]
 
-            if client_data["admin"]:
+            if client_data.get("admin"):
                 return model.AdminClient(key=key, **client_data)
 
             return model.ScopedClient(key=key, **client_data)
