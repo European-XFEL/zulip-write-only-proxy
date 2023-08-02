@@ -24,7 +24,7 @@ def get_client(key: str = fastapi.Security(api_key_header)) -> models.Client:
     try:
         return services.get_client(key)
     except KeyError as e:
-        raise fastapi.HTTPException(status_code=404, detail="Key not found") from e
+        raise fastapi.HTTPException(status_code=401, detail="Unauthorized") from e
 
 
 _docs_url = "https://zulip.com/api/send-message#response"
@@ -99,7 +99,3 @@ def create_client(
         return services.create_client(proposal_no, stream)
     except ValueError as e:
         raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
-
-
-if __name__ == "__main__":
-    uvicorn.run(app="zulip_write_only_proxy.main:app")
