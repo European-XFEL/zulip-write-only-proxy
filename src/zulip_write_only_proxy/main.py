@@ -6,7 +6,7 @@ import uvicorn
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
-from . import service
+from . import service, model
 
 
 @asynccontextmanager
@@ -36,7 +36,8 @@ send_message_docs_url = "https://zulip.com/api/send-message#response"
     response_description=f"See <a href='{send_message_docs_url}'>{send_message_docs_url}</a>",
 )
 def send_message(
-    client=fastapi.Depends(get_client),
+    client: model.ScopedClient = fastapi.Depends(get_client),
+    topic: str = fastapi.Query(...),
     content: str = fastapi.Query(...),
     image: fastapi.UploadFile = fastapi.File(None),
 ):
@@ -50,7 +51,7 @@ def send_message(
 
         content += f"\n[]({result['uri']})"
 
-    return client.send_message(content)
+    return client.send_message(topic, content)
 
 
 # This should not be here

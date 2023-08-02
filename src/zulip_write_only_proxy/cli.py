@@ -12,10 +12,9 @@ app = typer.Typer()
 def create(
     proposal_no: Annotated[int, typer.Argument()],
     stream: Annotated[Optional[str], typer.Argument()] = None,
-    topic: Annotated[Optional[str], typer.Argument()] = None,
 ):
     """Create a new scoped client for a proposal."""
-    client = service.create_client(proposal_no, stream, topic)
+    client = service.create_client(proposal_no, stream)
     typer.echo(client)
 
 
