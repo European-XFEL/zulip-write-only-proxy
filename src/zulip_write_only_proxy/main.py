@@ -5,7 +5,6 @@ from typing import Union
 import fastapi
 import uvicorn
 from fastapi.security import APIKeyHeader
-from pydantic import BaseModel
 
 from . import models, services
 
@@ -53,13 +52,6 @@ def send_message(
         content += f"\n[]({result['uri']})"
 
     return client.send_message(topic, content)
-
-
-# This should not be here
-class UploadImageResponse(BaseModel):
-    uri: str
-    msg: str
-    result: str = "success"
 
 
 _docs_url = "https://zulip.com/api/upload-file#response"
