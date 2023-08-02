@@ -31,6 +31,16 @@ class ScopedClient(BaseModel):
     def upload_image(self, image: IO[Any]):
         return self._client.upload_file(image)
 
+    def list_topics(self):
+        stream = self._client.get_stream_id(self.stream)
+        if stream["result"] != "success":
+            raise RuntimeError(
+                f"Failed to get stream id for {self.stream}. Is bot added to stream?\n"
+                f"Response was {stream}"
+            )
+        stream_id = stream["stream_id"]
+        return self._client.get_stream_topics(stream_id)
+
     def send_message(self, topic: str, content: str):
         request = {
             "type": "stream",
