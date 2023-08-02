@@ -5,5 +5,4 @@ services:
     ports:
       - "${PORT:-8000}:8000"
     volumes:
-      - ./clients.json:/app/clients.json
-      - ./zuliprc:/app/zuliprc
+      - ./config:/app/config

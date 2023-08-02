@@ -8,7 +8,7 @@ from pydantic_core import PydanticUndefined
 
 from . import models, repositories
 
-REPOSITORY = repositories.JSONRepository(path=Path.cwd() / "clients.json")
+REPOSITORY = repositories.JSONRepository(path=Path.cwd() / "config" / "clients.json")
 
 
 def create_client(proposal_no: int, stream: str | None = None) -> models.ScopedClient:
@@ -38,5 +38,5 @@ def setup():
     client_default = models.ScopedClient._client.default
 
     if client_default is None or client_default is PydanticUndefined:
-        zulip_client = zulip.Client(config_file=str(Path.cwd() / "zuliprc"))
+        zulip_client = zulip.Client(config_file=str(Path.cwd() / "config" / "zuliprc"))
         models.ScopedClient._client.default = zulip_client
