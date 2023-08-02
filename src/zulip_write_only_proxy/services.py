@@ -27,7 +27,7 @@ def get_client(key: str) -> models.Client:
     return REPOSITORY.get(key)
 
 
-def list_clients() -> list[models.ScopedClient]:
+def list_clients() -> list[models.Client]:
     return REPOSITORY.list()
 
 

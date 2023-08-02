@@ -54,12 +54,23 @@ class JSONRepository(BaseModel):
             with self.path.open("wb") as f:
                 f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
-    def list(self):
+    def list(self) -> list[models.Client]:
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return [
-                models.ScopedClient(key=key, **value) for key, value in data.items()
+
+            clients = [
+                models.ScopedClient(key=key, **value)
+                for key, value in data.items()
+                if not value.get("admin")
             ]
+
+            admins = [
+                models.AdminClient(key=key, **value)
+                for key, value in data.items()
+                if value.get("admin")
+            ]
+
+            return clients + admins
 
     @field_validator("path")
     @classmethod
