@@ -22,11 +22,15 @@ class ScopedClient(BaseModel):
         proposal_no: int,
         stream: str | None = None,
     ) -> Self:
-        return cls(
+        self = cls(
             key=secrets.token_urlsafe(),
             proposal_no=proposal_no,
             stream=stream or f"some-pattern-{proposal_no}",
         )
+
+        self._client.add_subscriptions(streams=[{"name": self.stream}])
+
+        return self
 
     def upload_image(self, image: IO[Any]):
         return self._client.upload_file(image)
