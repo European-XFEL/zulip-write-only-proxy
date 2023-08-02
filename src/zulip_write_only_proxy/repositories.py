@@ -4,7 +4,7 @@ from pathlib import Path
 import orjson
 from pydantic import BaseModel, field_validator
 
-from . import model
+from . import models
 
 file_lock = threading.Lock()
 
@@ -14,17 +14,17 @@ class JSONRepository(BaseModel):
 
     path: Path
 
-    def get(self, key: str) -> model.Client:
+    def get(self, key: str) -> models.Client:
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
             client_data = data[key]
 
             if client_data.get("admin"):
-                return model.AdminClient(key=key, **client_data)
+                return models.AdminClient(key=key, **client_data)
 
-            return model.ScopedClient(key=key, **client_data)
+            return models.ScopedClient(key=key, **client_data)
 
-    def put(self, client: model.ScopedClient) -> None:
+    def put(self, client: models.ScopedClient) -> None:
         with file_lock:
             with self.path.open("rb") as f:
                 data = orjson.loads(f.read())
@@ -45,7 +45,7 @@ class JSONRepository(BaseModel):
             with self.path.open("wb") as f:
                 f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
-    def put_admin(self, client: model.AdminClient) -> None:
+    def put_admin(self, client: models.AdminClient) -> None:
         with file_lock:
             with self.path.open("rb") as f:
                 data = orjson.loads(f.read())
@@ -57,7 +57,7 @@ class JSONRepository(BaseModel):
     def list(self):
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return [model.ScopedClient(key=key, **value) for key, value in data.items()]
+            return [models.ScopedClient(key=key, **value) for key, value in data.items()]
 
     @field_validator("path")
     @classmethod
