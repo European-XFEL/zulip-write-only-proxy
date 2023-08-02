@@ -4,7 +4,7 @@ import secrets
 from typing import IO, Any, Union
 
 import zulip
-from pydantic import BaseModel, PrivateAttr, validator
+from pydantic import BaseModel, PrivateAttr, field_validator
 from typing_extensions import Self
 
 
@@ -60,7 +60,7 @@ class AdminClient(BaseModel):
     def create(cls) -> Self:
         return cls(key=secrets.token_urlsafe(), admin=True)
 
-    @validator("admin")
+    @field_validator("admin")
     def check_admin(cls, v: bool) -> bool:
         if not v:
             raise ValueError("Admin client must be admin")
