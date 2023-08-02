@@ -29,7 +29,7 @@ poethepoet = "^0.21.1"
 
 [tool.poe.tasks]
 test = "python3 -m slipcover --source src -m pytest"
-serve.script = "my_app.service:run(debug=True)"
+serve = "uvicorn zulip_write_only_proxy.main:app --reload"
 
 [build-system]
 requires = ["poetry-core"]

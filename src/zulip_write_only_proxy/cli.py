@@ -1,7 +1,6 @@
 from typing import Annotated, Optional
 
 import typer
-import uvicorn
 
 from . import services
 
