@@ -80,6 +80,23 @@ def upload_image(
     return client.upload_image(f)
 
 
+get_topics_docs_url = "https://zulip.com/api/get-stream-topics#response"
+
+
+@app.get(
+    "/get_topics",
+    tags=["User"],
+    response_description=f"See <a href='{get_topics_docs_url}'>{get_topics_docs_url}</a>",
+)
+def get_topics(
+    client: model.ScopedClient = fastapi.Depends(get_client),
+):
+    try:
+        return client.list_topics()
+    except RuntimeError as e:
+        raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
+
+
 @app.post("/create_client", tags=["Admin"])
 def create_client(
     admin_client: model.AdminClient = fastapi.Depends(get_client),
