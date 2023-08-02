@@ -28,13 +28,13 @@ def get_client(key: str = fastapi.Security(api_key_header)) -> models.Client:
         raise fastapi.HTTPException(status_code=404, detail="Key not found") from e
 
 
-send_msg_docs_url = "https://zulip.com/api/send-message#response"
+_docs_url = "https://zulip.com/api/send-message#response"
 
 
 @app.post(
     "/message",
     tags=["User"],
-    response_description=f"See <a href='{send_msg_docs_url}'>{send_msg_docs_url}</a>",
+    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
 def send_message(
     client: models.ScopedClient = fastapi.Depends(get_client),
@@ -62,13 +62,13 @@ class UploadImageResponse(BaseModel):
     result: str = "success"
 
 
-upload_f_docs_url = "https://zulip.com/api/upload-file#response"
+_docs_url = "https://zulip.com/api/upload-file#response"
 
 
 @app.post(
     "/upload_image",
     tags=["User"],
-    response_description=f"See <a href='{upload_f_docs_url}'>{upload_f_docs_url}</a>",
+    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
 def upload_image(
     client: models.ScopedClient = fastapi.Depends(get_client),
@@ -80,13 +80,13 @@ def upload_image(
     return client.upload_image(f)
 
 
-get_topics_docs_url = "https://zulip.com/api/get-stream-topics#response"
+_docs_url = "https://zulip.com/api/get-stream-topics#response"
 
 
 @app.get(
     "/get_topics",
     tags=["User"],
-    response_description=f"See <a href='{get_topics_docs_url}'>{get_topics_docs_url}</a>",
+    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
 def get_topics(
     client: models.ScopedClient = fastapi.Depends(get_client),
