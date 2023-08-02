@@ -10,7 +10,7 @@ packages = [{ include = "zulip_write_only_proxy", from = "src" }]
 damnit-zulip = "zulip_write_only_proxy.cli:app"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.12"
 fastapi = "^0.100.0"
 uvicorn = "^0.23.1"
 zulip = "^0.8.2"
@@ -19,9 +19,17 @@ orjson = "^3.9.2"
 pydantic = "^2.1.1"
 typer = "^0.9.0"
 
+[tool.poetry.group.test.dependencies]
+slipcover = "^0.3.2"
+pytest = "^7.4.0"
+httpx = "^0.24.1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
+poethepoet = "^0.21.1"
+
+[tool.poe.tasks]
+test = "python3 -m slipcover --source src -m pytest"
+serve.script = "my_app.service:run(debug=True)"
 
 [build-system]
 requires = ["poetry-core"]
