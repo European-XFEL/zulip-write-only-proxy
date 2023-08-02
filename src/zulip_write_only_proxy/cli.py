@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 import typer
 import uvicorn
 
-from . import service
+from . import services
 
 app = typer.Typer()
 
@@ -14,21 +14,21 @@ def create(
     stream: Annotated[Optional[str], typer.Argument()] = None,
 ):
     """Create a new scoped client for a proposal."""
-    client = service.create_client(proposal_no, stream)
+    client = services.create_client(proposal_no, stream)
     typer.echo(client)
 
 
 @app.command()
 def create_admin():
     """Create a new scoped client for a proposal."""
-    client = service.create_admin()
+    client = services.create_admin()
     typer.echo(client)
 
 
 @app.command()
 def list():
     """List all scoped clients."""
-    client = service.list_clients()
+    client = services.list_clients()
     typer.echo(client)
 
 

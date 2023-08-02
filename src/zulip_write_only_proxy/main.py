@@ -7,12 +7,12 @@ import uvicorn
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
-from . import model, service
+from . import models, services
 
 
 @asynccontextmanager
 async def lifespan(app: fastapi.FastAPI):
-    service.setup()
+    services.setup()
     yield
 
 
@@ -21,9 +21,9 @@ app = fastapi.FastAPI(title="Zulip Write Only Proxy", lifespan=lifespan)
 api_key_header = APIKeyHeader(name="X-API-key")
 
 
-def get_client(key: str = fastapi.Security(api_key_header)) -> model.Client:
+def get_client(key: str = fastapi.Security(api_key_header)) -> models.Client:
     try:
-        return service.get_client(key)
+        return services.get_client(key)
     except KeyError as e:
         raise fastapi.HTTPException(status_code=404, detail="Key not found") from e
 
@@ -37,7 +37,7 @@ send_msg_docs_url = "https://zulip.com/api/send-message#response"
     response_description=f"See <a href='{send_msg_docs_url}'>{send_msg_docs_url}</a>",
 )
 def send_message(
-    client: model.ScopedClient = fastapi.Depends(get_client),
+    client: models.ScopedClient = fastapi.Depends(get_client),
     topic: str = fastapi.Query(...),
     content: str = fastapi.Query(...),
     image: fastapi.UploadFile = fastapi.File(None),
@@ -71,7 +71,7 @@ upload_f_docs_url = "https://zulip.com/api/upload-file#response"
     response_description=f"See <a href='{upload_f_docs_url}'>{upload_f_docs_url}</a>",
 )
 def upload_image(
-    client: model.ScopedClient = fastapi.Depends(get_client),
+    client: models.ScopedClient = fastapi.Depends(get_client),
     image: fastapi.UploadFile = fastapi.File(...),
 ):
     f: SpooledTemporaryFile = image.file  # type: ignore
@@ -89,7 +89,7 @@ get_topics_docs_url = "https://zulip.com/api/get-stream-topics#response"
     response_description=f"See <a href='{get_topics_docs_url}'>{get_topics_docs_url}</a>",
 )
 def get_topics(
-    client: model.ScopedClient = fastapi.Depends(get_client),
+    client: models.ScopedClient = fastapi.Depends(get_client),
 ):
     try:
         return client.list_topics()
@@ -99,12 +99,12 @@ def get_topics(
 
 @app.post("/create_client", tags=["Admin"])
 def create_client(
-    admin_client: model.AdminClient = fastapi.Depends(get_client),
+    admin_client: models.AdminClient = fastapi.Depends(get_client),
     proposal_no: int = fastapi.Query(...),
     stream: Union[str, None] = fastapi.Query(None),
 ):
     try:
-        return service.create_client(proposal_no, stream)
+        return services.create_client(proposal_no, stream)
     except ValueError as e:
         raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
 

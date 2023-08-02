@@ -1,0 +1,42 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import zulip
+from pydantic.fields import ModelPrivateAttr
+from pydantic_core import PydanticUndefined
+
+from . import models, repositories
+
+REPOSITORY = repositories.JSONRepository(path=Path.cwd() / "clients.json")
+
+
+def create_client(proposal_no: int, stream: str | None = None) -> models.ScopedClient:
+    client = models.ScopedClient.create(proposal_no, stream)
+    REPOSITORY.put(client)
+    return client
+
+
+def create_admin() -> models.AdminClient:
+    client = models.AdminClient.create()
+    REPOSITORY.put_admin(client)
+    return client
+
+
+def get_client(key: str) -> models.Client:
+    return REPOSITORY.get(key)
+
+
+def list_clients() -> list[models.ScopedClient]:
+    return REPOSITORY.list()
+
+
+def setup():
+    if not isinstance(models.ScopedClient._client, ModelPrivateAttr):
+        raise RuntimeError("ScopedClient.client is not a ModelPrivateAttr")
+
+    client_default = models.ScopedClient._client.default
+
+    if client_default is None or client_default is PydanticUndefined:
+        zulip_client = zulip.Client(config_file=str(Path.cwd() / "zuliprc"))
+        models.ScopedClient._client.default = zulip_client
