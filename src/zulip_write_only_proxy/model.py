@@ -13,7 +13,6 @@ class ScopedClient(BaseModel):
 
     proposal_no: int
     stream: str
-    topic: str
 
     _client: zulip.Client = PrivateAttr()
 
@@ -22,23 +21,21 @@ class ScopedClient(BaseModel):
         cls,
         proposal_no: int,
         stream: str | None = None,
-        topic: str | None = None,
     ) -> Self:
         return cls(
             key=secrets.token_urlsafe(),
             proposal_no=proposal_no,
             stream=stream or f"some-pattern-{proposal_no}",
-            topic=topic or f"some-pattern-{proposal_no}",
         )
 
     def upload_image(self, image: IO[Any]):
         return self._client.upload_file(image)
 
-    def send_message(self, content: str):
+    def send_message(self, topic: str, content: str):
         request = {
             "type": "stream",
             "to": self.stream,
-            "topic": self.topic,
+            "topic": topic,
             "content": content,
         }
 
