@@ -6,7 +6,7 @@ import zulip
 from pydantic.fields import ModelPrivateAttr
 from pydantic_core import PydanticUndefined
 
-from .model import ScopedClient
+from .model import AdminClient, Client, ScopedClient
 from .repository import JSONRepository
 
 REPOSITORY = JSONRepository(path=Path.cwd() / "clients.json")
@@ -18,7 +18,13 @@ def create_client(proposal_no: int, stream: str | None = None) -> ScopedClient:
     return client
 
 
-def get_client(key: str) -> ScopedClient:
+def create_admin() -> AdminClient:
+    client = AdminClient.create()
+    REPOSITORY.put_admin(client)
+    return client
+
+
+def get_client(key: str) -> Client:
     return REPOSITORY.get(key)
 
 
