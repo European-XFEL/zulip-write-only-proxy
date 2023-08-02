@@ -39,4 +39,4 @@ def setup():
 
     if client_default is None or client_default is PydanticUndefined:
         zulip_client = zulip.Client(config_file=str(Path.cwd() / "config" / "zuliprc"))
-        models.ScopedClient._client.default = zulip_client
+        models.ScopedClient._client.default_factory = lambda: zulip_client
