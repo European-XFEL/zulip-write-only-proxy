@@ -57,7 +57,9 @@ class JSONRepository(BaseModel):
     def list(self):
         with self.path.open("rb") as f:
             data = orjson.loads(f.read())
-            return [models.ScopedClient(key=key, **value) for key, value in data.items()]
+            return [
+                models.ScopedClient(key=key, **value) for key, value in data.items()
+            ]
 
     @field_validator("path")
     @classmethod
