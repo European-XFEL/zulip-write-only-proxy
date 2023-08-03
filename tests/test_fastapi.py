@@ -1,7 +1,7 @@
 import io
 from unittest.mock import MagicMock
 
-from zulip_write_only_proxy import models, services
+from zulip_write_only_proxy import services
 
 
 def test_send_message(fastapi_client, zulip_client):

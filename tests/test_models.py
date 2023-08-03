@@ -68,9 +68,9 @@ def test_admin_client_create():
 
 
 def test_admin_client_init():
-    result = AdminClient(key="", admin=True)
+    result = AdminClient(key="", admin=True)  # type: ignore[assignment]
 
     assert result.admin
 
     with pytest.raises(ValueError):
-        AdminClient(key="", admin=False)
+        AdminClient(key="", admin=False)  # type: ignore[assignment]

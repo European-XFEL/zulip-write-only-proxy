@@ -53,7 +53,7 @@ def zulip_client():
 
 @pytest.fixture
 def fastapi_client(repository, zulip_client):
-    from zulip_write_only_proxy import services, main
+    from zulip_write_only_proxy import main, services
 
     services.setup()
 
