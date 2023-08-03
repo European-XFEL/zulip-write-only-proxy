@@ -5,7 +5,8 @@ from zulip_write_only_proxy import models, services
 
 
 def test_send_message(fastapi_client, zulip_client):
-    zulip_client.send_message = MagicMock(return_value={"result": "success"})
+    zulip_response = {"id": 42, "msg": "", "result": "success"}
+    zulip_client.send_message = MagicMock(return_value=zulip_response)
 
     response = fastapi_client.post(
         "/message",
@@ -13,7 +14,7 @@ def test_send_message(fastapi_client, zulip_client):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"result": "success"}
+    assert response.json() == zulip_response
 
     # Check that the zulip client was called with the expected arguments
     zulip_request = {
@@ -25,111 +26,124 @@ def test_send_message(fastapi_client, zulip_client):
     zulip_client.send_message.assert_called_once_with(zulip_request)
 
 
-def test_send_message_invalid_key(fastapi_client):
-    # Call the API endpoint with an invalid key
+def test_send_message_unauthorised(fastapi_client):
     response = fastapi_client.post(
         "/message",
         headers={"X-API-key": "invalid_key"},
         params={"topic": "Test Topic", "content": "Test Content"},
     )
 
-    # Check that the response has a 404 status code and the expected error message
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Key not found"}
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Unauthorised"}
 
 
-def test_send_message_with_image(fastapi_client):
-    # Mock the services module
-    services.send_message = MagicMock(return_value={"result": "success"})
+def test_send_message_with_image(fastapi_client, zulip_client):
+    zulip_response_msg = {"id": 42, "msg": "", "result": "success"}
+    zulip_response_file = {
+        "msg": "",
+        "result": "success",
+        "uri": "/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/zulip.txt",
+    }
 
-    # Call the API endpoint with valid data and an image
+    zulip_client.send_message = MagicMock(return_value=zulip_response_msg)
+    zulip_client.upload_file = MagicMock(return_value=zulip_response_file)
+
     image = io.BytesIO(b"test image data")
     response = fastapi_client.post(
         "/message",
-        headers={"X-API-key": "test_key"},
         params={"topic": "Test Topic", "content": "Test Content"},
         files={"image": ("test.jpg", image)},
     )
 
-    # Check that the response has a 200 status code and the expected result
     assert response.status_code == 200
-    assert response.json() == {"result": "success"}
+    assert response.json() == zulip_response_msg
 
-    # Check that the services module was called with the expected arguments
-    services.send_message.assert_called_once_with(
-        models.ScopedClient.create("test_key"), "Test Topic", "Test Content", image
-    )
+    # Check that the zulip client was called with the expected arguments
+    zulip_request_msg = {
+        "type": "stream",
+        "to": "Test Stream 1",
+        "topic": "Test Topic",
+        "content": f"Test Content\n[]({zulip_response_file['uri']})",
+    }
+    zulip_client.send_message.assert_called_once_with(zulip_request_msg)
+
+    zulip_client.upload_file.assert_called_once()  # Call is made with spooled temp file object
+    uploaded_image = zulip_client.upload_file.call_args.args[0]
+    assert uploaded_image.name == "test.jpg"
 
 
-def test_upload_image(fastapi_client):
-    # Mock the services module
-    services.upload_image = MagicMock(return_value={"uri": "/foo/bar.jpg"})
+def test_upload_image(fastapi_client, zulip_client):
+    zulip_response_file = {
+        "msg": "",
+        "result": "success",
+        "uri": "/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/zulip.txt",
+    }
+    zulip_client.upload_file = MagicMock(return_value=zulip_response_file)
 
-    # Call the API endpoint with valid data
     image = io.BytesIO(b"test image data")
     response = fastapi_client.post(
         "/upload_image",
-        headers={"X-API-key": "test_key"},
         files={"image": ("test.jpg", image)},
     )
 
-    # Check that the response has a 200 status code and the expected result
     assert response.status_code == 200
-    assert response.json() == {"uri": "/foo/bar.jpg"}
+    assert response.json() == zulip_response_file
 
-    # Check that the services module was called with the expected arguments
-    services.upload_image.assert_called_once_with(
-        models.ScopedClient.create("test_key"), image
-    )
+    zulip_client.upload_file.assert_called_once()  # Call is made with spooled temp file object
+    uploaded_image = zulip_client.upload_file.call_args.args[0]
+    assert uploaded_image.name == "test.jpg"
 
 
-def test_get_topics(fastapi_client):
-    # Mock the services module
-    services.list_topics = MagicMock(return_value=["Topic 1", "Topic 2"])
+def test_get_topics(fastapi_client, zulip_client):
+    zulip_response_id = {"msg": "", "result": "success", "stream_id": 15}
+    zulip_response_topics = {
+        "msg": "",
+        "result": "success",
+        "topics": [
+            {"max_id": 26, "name": "Denmark3"},
+            {"max_id": 23, "name": "Denmark1"},
+            {"max_id": 6, "name": "Denmark2"},
+        ],
+    }
+    zulip_client.get_stream_id = MagicMock(return_value=zulip_response_id)
+    zulip_client.get_stream_topics = MagicMock(return_value=zulip_response_topics)
 
-    # Call the API endpoint with valid data
-    response = fastapi_client.get("/get_topics", headers={"X-API-key": "test_key"})
+    response = fastapi_client.get("/get_topics")
 
-    # Check that the response has a 200 status code and the expected result
     assert response.status_code == 200
-    assert response.json() == ["Topic 1", "Topic 2"]
-
-    # Check that the services module was called with the expected arguments
-    services.list_topics.assert_called_once_with(models.ScopedClient.create("test_key"))
+    assert response.json() == zulip_response_topics
 
 
-def test_get_topics_error(fastapi_client):
-    # Mock the services module to raise an error
-    services.list_topics = MagicMock(side_effect=RuntimeError("Test Error"))
+def test_get_topics_error(fastapi_client, zulip_client):
+    zulip_response_id = {"result": "error"}
+    zulip_client.get_stream_id = MagicMock(return_value=zulip_response_id)
 
-    # Call the API endpoint with valid data
-    response = fastapi_client.get("/get_topics", headers={"X-API-key": "test_key"})
+    response = fastapi_client.get("/get_topics")
 
-    # Check that the response has a 400 status code and the expected error message
     assert response.status_code == 400
-    assert response.json() == {"detail": "Test Error"}
+    assert response.json() == {
+        "detail": (
+            "Failed to get stream id for Test Stream 1. Is bot added to stream?\n"
+            f"Response was {zulip_response_id}"
+        )
+    }
 
-    # Check that the services module was called with the expected arguments
-    services.list_topics.assert_called_once_with(models.ScopedClient.create("test_key"))
 
+def test_create_client(fastapi_client, zulip_client):
+    zulip_client.create_client = MagicMock(return_value={"result": "success"})
 
-def test_create_client(fastapi_client):
-    # Mock the services module
-    services.create_client = MagicMock(return_value={"result": "success"})
-
-    # Call the API endpoint with valid data
     response = fastapi_client.post(
         "/create_client",
-        headers={"X-API-key": "admin_key"},
+        headers={"X-API-key": "admin1"},
         params={"proposal_no": 1234, "stream": "Test Stream"},
     )
 
-    # Check that the response has a 200 status code and the expected result
     assert response.status_code == 200
-    assert response.json() == {"result": "success"}
-
-    # Check that the services module was called with the expected arguments
-    services.create_client.assert_called_once_with(1234, "Test Stream")
+    assert response.json() == {
+        "key": "**********",
+        "proposal_no": 1234,
+        "stream": "Test Stream",
+    }
 
 
 def test_create_client_error(fastapi_client):
@@ -139,7 +153,7 @@ def test_create_client_error(fastapi_client):
     # Call the API endpoint with invalid data
     response = fastapi_client.post(
         "/create_client",
-        headers={"X-API-key": "admin_key"},
+        headers={"X-API-key": "admin1"},
         params={"proposal_no": 1234, "stream": "Test Stream"},
     )
 
