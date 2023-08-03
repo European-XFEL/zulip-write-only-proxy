@@ -40,7 +40,7 @@ def test_get_admin_client(repository: JSONRepository):
 
 def test_put_scoped_client(repository: JSONRepository):
     client = ScopedClient(
-        key="client3",  # type: ignore
+        key="client3",  # type: ignore[arg-type]
         stream="Test Stream 3",
         proposal_no=3,
     )
@@ -58,7 +58,7 @@ def test_put_scoped_client(repository: JSONRepository):
 
 
 def test_put_admin_client(repository: JSONRepository):
-    client = AdminClient(key="admin2", admin=True)  # type: ignore
+    client = AdminClient(key="admin2", admin=True)  # type: ignore[arg-type]
 
     repository.put_admin(client)
 
