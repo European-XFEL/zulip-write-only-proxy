@@ -20,9 +20,9 @@ pydantic = "^2.1.1"
 typer = "^0.9.0"
 
 [tool.poetry.group.test.dependencies]
-slipcover = "^0.3.2"
 pytest = "^7.4.0"
 httpx = "^0.24.1"
+pytest-cov = "^4.1.0"
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.21.1"
@@ -58,7 +58,7 @@ max-complexity = 10
 known-first-party = ["zulip_write_only_proxy"]
 
 [tool.poe.tasks]
-test = "python3 -m slipcover --source src -m pytest"
+test = "python3 -m pytest --cov=zulip_write_only_proxy --cov-report=term-missing --cov-report xml --cov-branch"
 serve = "uvicorn zulip_write_only_proxy.main:app --reload"
 lint = [
     { cmd = "ruff check ./src ./tests" },
