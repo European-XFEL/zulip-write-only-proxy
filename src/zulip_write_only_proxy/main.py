@@ -3,7 +3,6 @@ from tempfile import SpooledTemporaryFile
 from typing import Union
 
 import fastapi
-import uvicorn
 from fastapi.security import APIKeyHeader
 
 from . import models, services
@@ -24,7 +23,7 @@ def get_client(key: str = fastapi.Security(api_key_header)) -> models.Client:
     try:
         return services.get_client(key)
     except KeyError as e:
-        raise fastapi.HTTPException(status_code=401, detail="Unauthorized") from e
+        raise fastapi.HTTPException(status_code=401, detail="Unauthorised") from e
 
 
 _docs_url = "https://zulip.com/api/send-message#response"
@@ -87,6 +86,13 @@ def get_topics(
         return client.list_topics()
     except RuntimeError as e:
         raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
+
+
+@app.get("/me", tags=["User"])
+def get_me(
+    client: models.ScopedClient = fastapi.Depends(get_client),
+) -> models.ScopedClient:
+    return client
 
 
 @app.post("/create_client", tags=["Admin"])
