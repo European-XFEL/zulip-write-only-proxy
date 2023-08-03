@@ -38,7 +38,7 @@ def send_message(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
     topic: Annotated[str, fastapi.Query(...)],
     content: Annotated[str, fastapi.Query(...)],
-    image: Annotated[fastapi.UploadFile, fastapi.File(None)],
+    image: Annotated[Union[fastapi.UploadFile, None], fastapi.File()] = None,
 ):
     if image:
         # Some screwing around to get the spooled tmp file to act more like a real file
@@ -99,7 +99,7 @@ def get_me(
 def create_client(
     admin_client: Annotated[models.AdminClient, fastapi.Depends(get_client)],
     proposal_no: Annotated[int, fastapi.Query(...)],
-    stream: Annotated[Union[str, None], fastapi.Query(None)],
+    stream: Annotated[Union[str, None], fastapi.Query()] = None,
 ):
     try:
         return services.create_client(proposal_no, stream)
