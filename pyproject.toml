@@ -58,13 +58,14 @@ max-complexity = 10
 known-first-party = ["zulip_write_only_proxy"]
 
 [tool.poe.tasks]
-test = "python3 -m pytest --cov=zulip_write_only_proxy --cov-report=term-missing --cov-report xml --cov-branch"
 serve = "uvicorn zulip_write_only_proxy.main:app --reload"
-lint = [
-    { cmd = "ruff check ./src ./tests" },
-    { cmd = "mypy ./src ./tests" },
-    { cmd = "pyright ./src ./tests" },
-]
+
+test = "python3 -m pytest --cov=zulip_write_only_proxy --cov-report=term-missing --cov-report xml --cov-branch"
+
+lint = ["ruff", "mypy", "pyright"]
+ruff = "ruff check ./src ./tests"
+mypy = "mypy ./src ./tests"
+pyright = "pyright ./src ./tests"
 
 [build-system]
 requires = ["poetry-core"]
