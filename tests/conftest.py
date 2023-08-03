@@ -44,7 +44,7 @@ def scoped_client():
     return ScopedClient.create(1234, stream="Test Stream")
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def zulip_client():
     with patch("zulip.Client", new_callable=MagicMock) as mock_class:
         mock_class.return_value = mock_class
