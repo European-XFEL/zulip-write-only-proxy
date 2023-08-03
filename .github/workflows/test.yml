@@ -1,4 +1,4 @@
-name: Lint
+name: CI
 
 on:
   push:
@@ -10,11 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.9", "3.11", "3.12-dev"]
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
@@ -41,10 +41,4 @@ jobs:
           poetry --no-ansi --no-interaction install
 
       - name: Lint - ruff
-        run: poetry run poe ruff
-
-      - name: Lint - mypy
-        run: poetry run poe mypy
-
-      - name: Lint - pyright
-        run: poetry run poe pyright
+        run: poetry run poe test
