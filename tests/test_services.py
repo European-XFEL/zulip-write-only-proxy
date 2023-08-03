@@ -2,9 +2,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from zulip_write_only_proxy import services
 from zulip_write_only_proxy.models import AdminClient, ScopedClient
 from zulip_write_only_proxy.repositories import JSONRepository
-from zulip_write_only_proxy import services
 
 
 def test_create_client(repository: JSONRepository):
