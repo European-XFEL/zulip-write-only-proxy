@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from tempfile import SpooledTemporaryFile
-from typing import Union
+from typing import Annotated, Union
 
 import fastapi
 from fastapi.security import APIKeyHeader
@@ -19,7 +19,7 @@ app = fastapi.FastAPI(title="Zulip Write Only Proxy", lifespan=lifespan)
 api_key_header = APIKeyHeader(name="X-API-key")
 
 
-def get_client(key: str = fastapi.Security(api_key_header)) -> models.Client:
+def get_client(key: Annotated[str, fastapi.Security(api_key_header)]) -> models.Client:
     try:
         return services.get_client(key)
     except KeyError as e:
@@ -35,16 +35,16 @@ _docs_url = "https://zulip.com/api/send-message#response"
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
 def send_message(
-    client: models.ScopedClient = fastapi.Depends(get_client),
-    topic: str = fastapi.Query(...),
-    content: str = fastapi.Query(...),
-    image: fastapi.UploadFile = fastapi.File(None),
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    topic: Annotated[str, fastapi.Query(...)],
+    content: Annotated[str, fastapi.Query(...)],
+    image: Annotated[fastapi.UploadFile, fastapi.File(None)],
 ):
     if image:
         # Some screwing around to get the spooled tmp file to act more like a real file
         # since Zulip needs it to have a filename
-        f: SpooledTemporaryFile = image.file  # type: ignore
-        f._file.name = image.filename  # type: ignore
+        f: SpooledTemporaryFile = image.file  # type: ignore[assignment]
+        f._file.name = image.filename  # type: ignore[attr-defined]
 
         result = client.upload_image(f)
 
@@ -62,11 +62,11 @@ _docs_url = "https://zulip.com/api/upload-file#response"
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
 def upload_image(
-    client: models.ScopedClient = fastapi.Depends(get_client),
-    image: fastapi.UploadFile = fastapi.File(...),
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    image: Annotated[fastapi.UploadFile, fastapi.File(...)],
 ):
-    f: SpooledTemporaryFile = image.file  # type: ignore
-    f._file.name = image.filename  # type: ignore
+    f: SpooledTemporaryFile = image.file  # type: ignore[assignment]
+    f._file.name = image.filename  # type: ignore[attr-defined]
 
     return client.upload_image(f)
 
@@ -80,7 +80,7 @@ _docs_url = "https://zulip.com/api/get-stream-topics#response"
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
 def get_topics(
-    client: models.ScopedClient = fastapi.Depends(get_client),
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
 ):
     try:
         return client.list_topics()
@@ -90,16 +90,16 @@ def get_topics(
 
 @app.get("/me", tags=["User"])
 def get_me(
-    client: models.ScopedClient = fastapi.Depends(get_client),
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
 ) -> models.ScopedClient:
     return client
 
 
 @app.post("/create_client", tags=["Admin"])
 def create_client(
-    admin_client: models.AdminClient = fastapi.Depends(get_client),
-    proposal_no: int = fastapi.Query(...),
-    stream: Union[str, None] = fastapi.Query(None),
+    admin_client: Annotated[models.AdminClient, fastapi.Depends(get_client)],
+    proposal_no: Annotated[int, fastapi.Query(...)],
+    stream: Annotated[Union[str, None], fastapi.Query(None)],
 ):
     try:
         return services.create_client(proposal_no, stream)
