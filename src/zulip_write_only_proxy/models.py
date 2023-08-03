@@ -4,12 +4,12 @@ import secrets
 from typing import IO, Any, Union
 
 import zulip
-from pydantic import BaseModel, PrivateAttr, field_validator
+from pydantic import BaseModel, PrivateAttr, SecretStr, field_validator
 from typing_extensions import Self
 
 
 class ScopedClient(BaseModel):
-    key: str
+    key: SecretStr
 
     proposal_no: int
     stream: str
@@ -23,7 +23,7 @@ class ScopedClient(BaseModel):
         stream: str | None = None,
     ) -> Self:
         self = cls(
-            key=secrets.token_urlsafe(),
+            key=SecretStr(secrets.token_urlsafe()),
             proposal_no=proposal_no,
             stream=stream or f"some-pattern-{proposal_no}",
         )
@@ -57,12 +57,12 @@ class ScopedClient(BaseModel):
 
 
 class AdminClient(BaseModel):
-    key: str
+    key: SecretStr
     admin: bool
 
     @classmethod
     def create(cls) -> Self:
-        return cls(key=secrets.token_urlsafe(), admin=True)
+        return cls(key=SecretStr(secrets.token_urlsafe()), admin=True)
 
     @field_validator("admin")
     def check_admin(cls, v: bool) -> bool:
