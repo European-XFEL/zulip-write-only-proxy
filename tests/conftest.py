@@ -39,11 +39,9 @@ def repository():
     path.unlink()
 
 
-# @pytest.fixture
-# def scoped_client():
-#     client = ScopedClient.create(1234, stream="Test Stream")
-#     client._client = MagicMock()
-#     return client
+@pytest.fixture
+def scoped_client():
+    return ScopedClient.create(1234, stream="Test Stream")
 
 
 @pytest.fixture

@@ -45,10 +45,13 @@ def test_setup(zulip_client):
     with patch.object(ScopedClient, "_client", ModelPrivateAttr()):
         assert isinstance(ScopedClient._client, ModelPrivateAttr)
         assert isinstance(ScopedClient._client.default, PydanticUndefinedType)
+        assert ScopedClient._client.default_factory is None
 
         setup()
 
-        assert not isinstance(ScopedClient._client.default, PydanticUndefinedType)
+        assert not isinstance(
+            ScopedClient._client.default_factory, PydanticUndefinedType
+        )
 
 
 def test_setup_raises(zulip_client):
