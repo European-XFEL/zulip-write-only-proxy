@@ -30,6 +30,7 @@ poethepoet = "^0.21.1"
 [tool.poetry.group.lint.dependencies]
 ruff = "^0.0.282"
 mypy = "^1.4.1"
+pyright = "^1.1.320"
 
 [tool.black]
 line-length = 120
@@ -59,7 +60,11 @@ known-first-party = ["zulip_write_only_proxy"]
 [tool.poe.tasks]
 test = "python3 -m slipcover --source src -m pytest"
 serve = "uvicorn zulip_write_only_proxy.main:app --reload"
-lint = "ruff check ./src ./tests"
+lint = [
+    { cmd = "ruff check ./src ./tests" },
+    { cmd = "mypy ./src ./tests" },
+    { cmd = "pyright ./src ./tests" },
+]
 
 [build-system]
 requires = ["poetry-core"]
