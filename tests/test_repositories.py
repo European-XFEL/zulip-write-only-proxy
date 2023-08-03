@@ -20,7 +20,7 @@ def test_file_creation():
         assert len(repository.list()) == 0
 
 
-def test_get_scoped_client(repository):
+def test_get_scoped_client(repository: JSONRepository):
     result = repository.get("client1")
 
     assert isinstance(result, ScopedClient)
@@ -31,23 +31,23 @@ def test_get_scoped_client(repository):
         repository.get("invalid")
 
 
-def test_get_admin_client(repository):
+def test_get_admin_client(repository: JSONRepository):
     result = repository.get("admin1")
 
     assert isinstance(result, AdminClient)
     assert result.admin is True
 
 
-def test_put_scoped_client(repository):
+def test_put_scoped_client(repository: JSONRepository):
     client = ScopedClient(
-        key="client3",
+        key="client3",  # type: ignore
         stream="Test Stream 3",
         proposal_no=3,
     )
 
     repository.put(client)
 
-    result = repository.get(client.key)
+    result = repository.get(client.key.get_secret_value())
 
     assert isinstance(result, ScopedClient)
     assert result.stream == "Test Stream 3"
@@ -57,18 +57,18 @@ def test_put_scoped_client(repository):
         repository.put(client)
 
 
-def test_put_admin_client(repository):
-    client = AdminClient(key="admin2", admin=True)
+def test_put_admin_client(repository: JSONRepository):
+    client = AdminClient(key="admin2", admin=True)  # type: ignore
 
     repository.put_admin(client)
 
-    result = repository.get(client.key)
+    result = repository.get(client.key.get_secret_value())
 
     assert isinstance(result, AdminClient)
     assert result.admin is True
 
 
-def test_list_clients(repository):
+def test_list_clients(repository: JSONRepository):
     result = repository.list()
 
     assert len(result) == 3
@@ -82,5 +82,5 @@ def test_list_clients(repository):
     assert result[1].proposal_no == 2
 
     assert isinstance(result[2], AdminClient)
-    assert result[2].key == "admin1"
+    assert result[2].key.get_secret_value() == "admin1"
     assert result[2].admin is True
