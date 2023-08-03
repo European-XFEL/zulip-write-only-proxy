@@ -1,5 +1,5 @@
 import io
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from zulip_write_only_proxy import services
 
@@ -147,19 +147,16 @@ def test_create_client(fastapi_client, zulip_client):
 
 
 def test_create_client_error(fastapi_client):
-    # Mock the services module to raise an error
-    services.create_client = MagicMock(side_effect=ValueError("Test Error"))
+    with patch("zulip_write_only_proxy.services.create_client", MagicMock(side_effect=ValueError("Test Error"))):
+        # Call the API endpoint with invalid data
+        response = fastapi_client.post(
+            "/create_client",
+            headers={"X-API-key": "admin1"},
+            params={"proposal_no": 1234, "stream": "Test Stream"},
+        )
 
-    # Call the API endpoint with invalid data
-    response = fastapi_client.post(
-        "/create_client",
-        headers={"X-API-key": "admin1"},
-        params={"proposal_no": 1234, "stream": "Test Stream"},
-    )
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Test Error"}
 
-    # Check that the response has a 400 status code and the expected error message
-    assert response.status_code == 400
-    assert response.json() == {"detail": "Test Error"}
-
-    # Check that the services module was called with the expected arguments
-    services.create_client.assert_called_once_with(1234, "Test Stream")
+        # Check that the services module was called with the expected arguments
+        services.create_client.assert_called_once_with(1234, "Test Stream")
