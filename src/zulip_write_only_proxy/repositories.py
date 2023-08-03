@@ -2,7 +2,7 @@ import threading
 from pathlib import Path
 
 import orjson
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, SecretStr, field_validator
 
 from . import models
 
@@ -20,14 +20,14 @@ class JSONRepository(BaseModel):
             client_data = data[key]
 
             if client_data.get("admin"):
-                return models.AdminClient(key=key, **client_data)
+                return models.AdminClient(key=SecretStr(key), **client_data)
 
-            return models.ScopedClient(key=key, **client_data)
+            return models.ScopedClient(key=SecretStr(key), **client_data)
 
     def put(self, client: models.ScopedClient) -> None:
         with file_lock:
             with self.path.open("rb") as f:
-                data = orjson.loads(f.read())
+                data: dict[str, dict] = orjson.loads(f.read())
                 proposal_nos = [value.get("proposal_no") for value in data.values()]
                 if client.proposal_no in proposal_nos:
                     reversed_data = {
@@ -40,7 +40,7 @@ class JSONRepository(BaseModel):
                         f"{reversed_data[client.proposal_no]}"
                     )
 
-                data[client.key] = client.model_dump(exclude={"key"})
+                data[client.key.get_secret_value()] = client.model_dump(exclude={"key"})
 
             with self.path.open("wb") as f:
                 f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
@@ -48,8 +48,8 @@ class JSONRepository(BaseModel):
     def put_admin(self, client: models.AdminClient) -> None:
         with file_lock:
             with self.path.open("rb") as f:
-                data = orjson.loads(f.read())
-                data[client.key] = client.model_dump(exclude={"key"})
+                data: dict[str, dict] = orjson.loads(f.read())
+                data[client.key.get_secret_value()] = client.model_dump(exclude={"key"})
 
             with self.path.open("wb") as f:
                 f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
