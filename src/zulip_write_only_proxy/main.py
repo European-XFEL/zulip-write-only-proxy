@@ -94,6 +94,10 @@ def get_me(
 ) -> models.ScopedClient:
     return client
 
+@app.get("/health")
+def healthcheck():
+    return "OK"
+
 
 @app.post("/create_client", tags=["Admin"])
 def create_client(

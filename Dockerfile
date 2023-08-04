@@ -14,3 +14,5 @@ RUN --mount=type=cache,target=/root/.cache\
     poetry install
 
 CMD ["uvicorn", "zulip_write_only_proxy.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+HEALTHCHECK CMD curl --fail http://localhost:8000/health || exit 1
