@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
 
   zwop:
@@ -7,14 +9,10 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
-        order: start-first
         monitor: 1s
         failure_action: pause
     volumes:
       - ./config:/app/config
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-      - "com.centurylinklabs.watchtower.scope=zwop"
 
   nginx:
     image: nginx:latest
@@ -22,9 +20,3 @@ services:
       - "${PORT:-8000}:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-
-  watchtower:
-    image: containrrr/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 60 --label-enable --scope zwop --rolling-restart
