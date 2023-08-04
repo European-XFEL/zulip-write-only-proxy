@@ -82,7 +82,7 @@ async with httpx.AsyncClient() as client:
     response = await client.post(url, headers=headers, params=params, files=files)
 ```
 
-## Server Setup and Development
+## Development Setup
 
 For docker:
 
@@ -125,3 +125,17 @@ Default configuration is something like:
 ```
 
 Stream/topic can be edited manually in the JSON file or set via CLI at creation time.
+
+## Deployment Setup
+
+Deployment is similar to development with `docker compose`, but instead a docker stack is used to allow for better scaling and update configuration.
+
+Deployment is done with:
+
+```sh
+docker stack deploy -c docker-compose.yml zwop
+```
+
+To update the stack, use the same command. This will pull in the latest image and perform a rolling restart of the service, which will first start the new container, wait for a successful health check, and then stop the old container.
+
+A cron job runs the deployment command every minute to check for updates.
