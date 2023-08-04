@@ -1,8 +1,30 @@
 services:
 
   zwop:
-    build: ./
-    ports:
-      - "${PORT:-8000}:8000"
+    image: ghcr.io/robertrosca/zulip-write-only-proxy:feat-initial-dev
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        monitor: 1s
+        failure_action: pause
     volumes:
       - ./config:/app/config
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=zwop"
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "${PORT:-8000}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 60 --label-enable --scope zwop --rolling-restart
