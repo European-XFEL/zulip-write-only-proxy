@@ -9,8 +9,10 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
-        monitor: 1s
-        failure_action: pause
+        failure_action: rollback
+        order: start-first
+        monitor: 5s
+        max_failure_ratio: 0
     volumes:
       - ./config:/app/config
 
