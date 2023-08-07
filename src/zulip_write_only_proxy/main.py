@@ -94,6 +94,7 @@ def get_me(
 ) -> models.ScopedClient:
     return client
 
+
 @app.get("/health")
 def healthcheck():
     return "OK"

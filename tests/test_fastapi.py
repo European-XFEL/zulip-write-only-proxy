@@ -67,7 +67,8 @@ def test_send_message_with_image(fastapi_client, zulip_client):
     }
     zulip_client.send_message.assert_called_once_with(zulip_request_msg)
 
-    zulip_client.upload_file.assert_called_once()  # Call is made with spooled temp file object
+    # Call is made with spooled temp file object
+    zulip_client.upload_file.assert_called_once()
     uploaded_image = zulip_client.upload_file.call_args.args[0]
     assert uploaded_image.name == "test.jpg"
 
@@ -89,7 +90,8 @@ def test_upload_image(fastapi_client, zulip_client):
     assert response.status_code == 200
     assert response.json() == zulip_response_file
 
-    zulip_client.upload_file.assert_called_once()  # Call is made with spooled temp file object
+    # Call is made with spooled temp file object
+    zulip_client.upload_file.assert_called_once()
     uploaded_image = zulip_client.upload_file.call_args.args[0]
     assert uploaded_image.name == "test.jpg"
 
@@ -147,7 +149,10 @@ def test_create_client(fastapi_client, zulip_client):
 
 
 def test_create_client_error(fastapi_client):
-    with patch("zulip_write_only_proxy.services.create_client", MagicMock(side_effect=ValueError("Test Error"))):
+    with patch(
+        "zulip_write_only_proxy.services.create_client",
+        MagicMock(side_effect=ValueError("Test Error")),
+    ):
         # Call the API endpoint with invalid data
         response = fastapi_client.post(
             "/create_client",
