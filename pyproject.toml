@@ -35,7 +35,7 @@ pyright = "^1.1.320"
 
 [tool.black]
 line-length = 120
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311"]
 
 [tool.ruff]
 line-length = 120
@@ -63,11 +63,12 @@ serve = "uvicorn zulip_write_only_proxy.main:app --reload"
 
 test = "python3 -m pytest --cov=zulip_write_only_proxy --cov-report=term-missing --cov-report xml --cov-branch"
 
-lint = ["ruff", "mypy", "pyright"]
+lint = ["ruff", "black --check", "mypy", "pyright"]
+format = ["ruff --fix", "black"]
 ruff = "ruff check ./src ./tests"
+black = "black ./src ./tests"
 mypy = "mypy ./src ./tests"
 pyright = "pyright ./src ./tests"
-
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -76,6 +77,7 @@ version_scheme = "pep440"
 version_provider = "poetry"
 update_changelog_on_bump = true
 major_version_zero = true
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
