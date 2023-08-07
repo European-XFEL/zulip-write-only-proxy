@@ -32,6 +32,7 @@ commitizen = "^3.6.0"
 ruff = "^0.0.282"
 mypy = "^1.4.1"
 pyright = "^1.1.320"
+black = "^23.7.0"
 
 [tool.black]
 line-length = 120
