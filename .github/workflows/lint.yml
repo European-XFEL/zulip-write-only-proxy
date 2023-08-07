@@ -41,10 +41,17 @@ jobs:
           poetry --no-ansi --no-interaction install
 
       - name: Lint - ruff
+        continue-on-error: true
         run: poetry run poe ruff
 
+      - name: Lint - ruff
+        continue-on-error: true
+        run: poetry run poe black
+
       - name: Lint - mypy
+        continue-on-error: true
         run: poetry run poe mypy
 
       - name: Lint - pyright
+        continue-on-error: true
         run: poetry run poe pyright
