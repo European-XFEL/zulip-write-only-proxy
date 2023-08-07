@@ -44,9 +44,9 @@ jobs:
         if: always()
         run: poetry run poe ruff
 
-      - name: Lint - ruff
+      - name: Lint - black
         if: always()
-        run: poetry run poe black
+        run: poetry run poe black --check
 
       - name: Lint - mypy
         if: always()
