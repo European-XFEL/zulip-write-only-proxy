@@ -81,10 +81,10 @@ def test_upload_file(fastapi_client, zulip_client):
     }
     zulip_client.upload_file = MagicMock(return_value=zulip_response_file)
 
-    image = io.BytesIO(b"test image data")
+    file = io.BytesIO(b"test file data")
     response = fastapi_client.post(
         "/upload_file",
-        files={"image": ("test.jpg", image)},
+        files={"file": ("test.jpg", file)},
     )
 
     assert response.status_code == 200
@@ -92,8 +92,8 @@ def test_upload_file(fastapi_client, zulip_client):
 
     # Call is made with spooled temp file object
     zulip_client.upload_file.assert_called_once()
-    uploaded_image = zulip_client.upload_file.call_args.args[0]
-    assert uploaded_image.name == "test.jpg"
+    uploaded_file = zulip_client.upload_file.call_args.args[0]
+    assert uploaded_file.name == "test.jpg"
 
 
 def test_get_topics(fastapi_client, zulip_client):
