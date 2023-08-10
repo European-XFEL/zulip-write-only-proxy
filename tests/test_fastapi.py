@@ -73,7 +73,7 @@ def test_send_message_with_image(fastapi_client, zulip_client):
     assert uploaded_image.name == "test.jpg"
 
 
-def test_upload_image(fastapi_client, zulip_client):
+def test_upload_file(fastapi_client, zulip_client):
     zulip_response_file = {
         "msg": "",
         "result": "success",
@@ -83,7 +83,7 @@ def test_upload_image(fastapi_client, zulip_client):
 
     image = io.BytesIO(b"test image data")
     response = fastapi_client.post(
-        "/upload_image",
+        "/upload_file",
         files={"image": ("test.jpg", image)},
     )
 
