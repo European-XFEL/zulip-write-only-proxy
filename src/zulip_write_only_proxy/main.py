@@ -71,19 +71,6 @@ def upload_file(
     return client.upload_file(f)
 
 
-@app.post(
-    "/upload_image",
-    tags=["User"],
-    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
-    deprecated=True,
-)
-def upload_image(
-    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
-    image: Annotated[fastapi.UploadFile, fastapi.File(...)],
-):
-    return upload_file(client, image)
-
-
 _docs_url = "https://zulip.com/api/get-stream-topics#response"
 
 
