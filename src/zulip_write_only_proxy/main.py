@@ -46,7 +46,7 @@ def send_message(
         f: SpooledTemporaryFile = image.file  # type: ignore[assignment]
         f._file.name = image.filename  # type: ignore[attr-defined]
 
-        result = client.upload_image(f)
+        result = client.upload_file(f)
 
         content += f"\n[]({result['uri']})"
 
@@ -57,18 +57,31 @@ _docs_url = "https://zulip.com/api/upload-file#response"
 
 
 @app.post(
+    "/upload_file",
+    tags=["User"],
+    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+)
+def upload_file(
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    file: Annotated[fastapi.UploadFile, fastapi.File(...)],
+):
+    f: SpooledTemporaryFile = file.file  # type: ignore[assignment]
+    f._file.name = file.filename  # type: ignore[attr-defined]
+
+    return client.upload_file(f)
+
+
+@app.post(
     "/upload_image",
     tags=["User"],
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+    deprecated=True,
 )
 def upload_image(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
     image: Annotated[fastapi.UploadFile, fastapi.File(...)],
 ):
-    f: SpooledTemporaryFile = image.file  # type: ignore[assignment]
-    f._file.name = image.filename  # type: ignore[attr-defined]
-
-    return client.upload_image(f)
+    return upload_file(client, image)
 
 
 _docs_url = "https://zulip.com/api/get-stream-topics#response"

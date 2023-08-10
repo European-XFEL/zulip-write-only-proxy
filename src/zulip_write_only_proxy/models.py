@@ -32,8 +32,8 @@ class ScopedClient(BaseModel):
 
         return self
 
-    def upload_image(self, image: IO[Any]):
-        return self._client.upload_file(image)
+    def upload_file(self, file: IO[Any]):
+        return self._client.upload_file(file)
 
     def list_topics(self):
         stream = self._client.get_stream_id(self.stream)
