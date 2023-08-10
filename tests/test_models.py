@@ -9,11 +9,11 @@ from zulip_write_only_proxy.models import AdminClient
 def test_upload_file(scoped_client):
     scoped_client._client.upload_file = MagicMock(return_value={"uri": "/foo/bar.jpg"})
 
-    image = io.BytesIO(b"test image data")
+    file = io.BytesIO(b"test file data")
 
-    result = scoped_client.upload_file(image)
+    result = scoped_client.upload_file(file)
 
-    scoped_client._client.upload_file.assert_called_once_with(image)
+    scoped_client._client.upload_file.assert_called_once_with(file)
 
     assert result == {"uri": "/foo/bar.jpg"}
 
