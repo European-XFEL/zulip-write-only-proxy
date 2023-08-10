@@ -130,12 +130,16 @@ Stream/topic can be edited manually in the JSON file or set via CLI at creation 
 
 Deployment is similar to development with `docker compose`, but instead a docker stack is used to allow for better scaling and update configuration.
 
-Deployment is done with:
+To quickly bring the service up or down run `make up` or `make down`.
+
+Bringing up the service runs:
 
 ```sh
-docker stack deploy -c docker-compose.yml zwop
+docker compose config | docker stack deploy -c - zwop
 ```
 
 To update the stack, use the same command. This will pull in the latest image and perform a rolling restart of the service, which will first start the new container, wait for a successful health check, and then stop the old container.
 
 A cron job runs the deployment command every minute to check for updates.
+
+NB: There is an outstanding issue with `docker stack deploy` where it [does not load `.env` files](https://github.com/moby/moby/issues/29133) in the same way that `docker compose up` does. This is solved by running `docker compose config` to generate a compose-compliant file (with env vars subsituted) and piping that to `docker stack deploy`.
