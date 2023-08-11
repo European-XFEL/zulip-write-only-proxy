@@ -11,5 +11,6 @@ jobs:
     steps:
       - run: |
           echo "Deploying to ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} environment"
+          echo "ID: ${{ github.context.payload.deployment.id }}"
           sleep 60
           exit 1
