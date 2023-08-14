@@ -30,7 +30,7 @@ _docs_url = "https://zulip.com/api/send-message#response"
 
 
 @app.post(
-    "/message",
+    "/send_message",
     tags=["User"],
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
@@ -51,6 +51,16 @@ def send_message(
         content += f"\n[]({result['uri']})"
 
     return client.send_message(topic, content)
+
+
+@app.post(
+    "/message",
+    tags=["User"],
+    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+    deprecated=True,
+)
+def message(res: Annotated[dict, fastapi.Depends(send_message)]):
+    return res
 
 
 _docs_url = "https://zulip.com/api/upload-file#response"
