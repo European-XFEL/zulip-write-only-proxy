@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   zwop:
-    image: ghcr.io/robertrosca/zulip-write-only-proxy:feat-initial-dev
+    image: ghcr.io/robertrosca/zulip-write-only-proxy:pr-1
     deploy:
       replicas: 2
       update_config:
