@@ -41,6 +41,8 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
+        env:
+          DOCKER_METADATA_PR_HEAD_SHA: true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
