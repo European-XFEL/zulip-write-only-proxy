@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import enum
 import secrets
 from typing import IO, Any, Union
 
 import zulip
 from pydantic import BaseModel, PrivateAttr, SecretStr, field_validator
 from typing_extensions import Self
+
+
+class PropagateMode(str, enum.Enum):
+    change_one = "change_one"
+    change_all = "change_all"
+    change_later = "change_later"
 
 
 class ScopedClient(BaseModel):
@@ -54,6 +61,22 @@ class ScopedClient(BaseModel):
         }
 
         return self._client.send_message(request)
+
+    def update_message(
+        self,
+        message_id: int,
+        topic: str,
+        propagate_mode: PropagateMode,
+        content: str,
+    ):
+        request = {
+            "message_id": message_id,
+            "topic": topic,
+            "propagate_mode": propagate_mode.value,
+            "content": content,
+        }
+
+        return self._client.update_message(request)
 
 
 class AdminClient(BaseModel):

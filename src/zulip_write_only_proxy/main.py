@@ -63,6 +63,24 @@ def message(res: Annotated[dict, fastapi.Depends(send_message)]):
     return res
 
 
+_docs_url = "https://zulip.com/api/update-message#response"
+
+
+@app.patch(
+    "/update_message",
+    tags=["User"],
+    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+)
+def update_message(
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    message_id: Annotated[int, fastapi.Query(...)],
+    topic: Annotated[str, fastapi.Query(...)],
+    propagate_mode: Annotated[models.PropagateMode, fastapi.Query(...)],
+    content: Annotated[str, fastapi.Query(...)],
+):
+    return client.update_message(message_id, topic, propagate_mode, content)
+
+
 _docs_url = "https://zulip.com/api/upload-file#response"
 
 
