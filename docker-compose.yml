@@ -19,7 +19,7 @@ services:
   nginx:
     image: nginx:1.25.1
     ports:
-      - ${PORT:-8000}:80
+      - ${PORT:?err}:80
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     healthcheck:
