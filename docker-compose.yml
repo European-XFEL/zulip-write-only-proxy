@@ -5,7 +5,6 @@ services:
   zwop:
     image: ghcr.io/european-xfel/zulip-write-only-proxy:pr-1
     deploy:
-      replicas: 2
       update_config:
         parallelism: 1
         delay: 10s
