@@ -53,16 +53,6 @@ def send_message(
     return client.send_message(topic, content)
 
 
-@app.post(
-    "/message",
-    tags=["User"],
-    response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
-    deprecated=True,
-)
-def message(res: Annotated[dict, fastapi.Depends(send_message)]):
-    return res
-
-
 _docs_url = "https://zulip.com/api/update-message#response"
 
 
