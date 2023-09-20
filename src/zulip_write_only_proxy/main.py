@@ -37,7 +37,7 @@ _docs_url = "https://zulip.com/api/send-message#response"
 def send_message(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
     topic: Annotated[str, fastapi.Query(...)],
-    content: Annotated[str, fastapi.Query(...)],
+    content: Annotated[str, fastapi.Body(...)],
     image: Annotated[Union[fastapi.UploadFile, None], fastapi.File()] = None,
 ):
     if image:
@@ -66,7 +66,7 @@ def update_message(
     message_id: Annotated[int, fastapi.Query(...)],
     topic: Annotated[str, fastapi.Query(...)],
     propagate_mode: Annotated[models.PropagateMode, fastapi.Query(...)],
-    content: Annotated[str, fastapi.Query(...)],
+    content: Annotated[str, fastapi.Body(...)],
 ):
     return client.update_message(message_id, topic, propagate_mode, content)
 
