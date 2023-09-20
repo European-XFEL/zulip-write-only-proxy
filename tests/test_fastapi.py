@@ -13,7 +13,7 @@ def test_send_message(fastapi_client: "TestClient", zulip_client):
     zulip_client.send_message = MagicMock(return_value=zulip_response)
 
     response = fastapi_client.post(
-        "/message",
+        "/send_message",
         params={"topic": "Test Topic"},
         data={"content": "Test Content"},
     )
@@ -33,7 +33,7 @@ def test_send_message(fastapi_client: "TestClient", zulip_client):
 
 def test_send_message_unauthorised(fastapi_client):
     response = fastapi_client.post(
-        "/message",
+        "/send_message",
         headers={"X-API-key": "invalid_key"},
         params={"topic": "Test Topic"},
         data={"content": "Test Content"},
@@ -56,7 +56,7 @@ def test_send_message_with_image(fastapi_client, zulip_client):
 
     image = io.BytesIO(b"test image data")
     response = fastapi_client.post(
-        "/message",
+        "/send_message",
         params={"topic": "Test Topic"},
         files={"image": ("test.jpg", image)},
         data={"content": "Test Content"},
