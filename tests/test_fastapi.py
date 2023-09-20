@@ -1,16 +1,21 @@
 import io
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 from zulip_write_only_proxy import services
 
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
 
-def test_send_message(fastapi_client, zulip_client):
+
+def test_send_message(fastapi_client: "TestClient", zulip_client):
     zulip_response = {"id": 42, "msg": "", "result": "success"}
     zulip_client.send_message = MagicMock(return_value=zulip_response)
 
     response = fastapi_client.post(
         "/message",
-        params={"topic": "Test Topic", "content": "Test Content"},
+        params={"topic": "Test Topic"},
+        data={"content": "Test Content"},
     )
 
     assert response.status_code == 200
@@ -30,7 +35,8 @@ def test_send_message_unauthorised(fastapi_client):
     response = fastapi_client.post(
         "/message",
         headers={"X-API-key": "invalid_key"},
-        params={"topic": "Test Topic", "content": "Test Content"},
+        params={"topic": "Test Topic"},
+        data={"content": "Test Content"},
     )
 
     assert response.status_code == 401
@@ -51,8 +57,9 @@ def test_send_message_with_image(fastapi_client, zulip_client):
     image = io.BytesIO(b"test image data")
     response = fastapi_client.post(
         "/message",
-        params={"topic": "Test Topic", "content": "Test Content"},
+        params={"topic": "Test Topic"},
         files={"image": ("test.jpg", image)},
+        data={"content": "Test Content"},
     )
 
     assert response.status_code == 200
