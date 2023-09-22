@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import enum
+import logging
 import secrets
 from typing import IO, Any, Union
 
 import zulip
 from pydantic import BaseModel, PrivateAttr, SecretStr, field_validator
 from typing_extensions import Self
+
+log = logging.getLogger(__name__)
 
 
 class PropagateMode(str, enum.Enum):
@@ -45,10 +48,8 @@ class ScopedClient(BaseModel):
     def get_stream_topics(self):
         stream = self._client.get_stream_id(self.stream)
         if stream["result"] != "success":
-            raise RuntimeError(
-                f"Failed to get stream id for {self.stream}. Is bot added to stream?\n"
-                f"Response was {stream}"
-            )
+            log.error(f"failed to get stream id for {self.stream}", extra=stream)
+            return stream
         stream_id = stream["stream_id"]
         return self._client.get_stream_topics(stream_id)
 

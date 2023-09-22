@@ -35,11 +35,13 @@ def test_get_stream_topics(scoped_client):
     assert result == ["Topic 1", "Topic 2"]
 
 
-def test_get_stream_topics_raises(scoped_client):
+def test_get_stream_topics_log(scoped_client, caplog: pytest.LogCaptureFixture):
     scoped_client._client.get_stream_id = MagicMock(return_value={"result": "failure"})
 
-    with pytest.raises(RuntimeError):
-        scoped_client.get_stream_topics()
+    scoped_client.get_stream_topics()
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == "failed to get stream id for Test Stream"
 
 
 def test_send_message(scoped_client):
