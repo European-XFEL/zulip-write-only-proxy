@@ -97,11 +97,11 @@ _docs_url = "https://zulip.com/api/get-stream-topics#response"
     tags=["User"],
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
-def get_topics(
+def get_stream_topics(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
 ):
     try:
-        return client.list_topics()
+        return client.get_stream_topics()
     except RuntimeError as e:
         raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
 
