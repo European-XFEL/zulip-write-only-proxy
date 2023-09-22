@@ -82,7 +82,9 @@ async with httpx.AsyncClient() as client:
     response = await client.post(url, headers=headers, params=params, files=files)
 ```
 
-## Development Setup
+## Development
+
+### Setup
 
 For docker:
 
@@ -104,7 +106,8 @@ python3 -m pip install .
 poetry install
 poetry shell
 
-damnit-zulip --help
+# Start the server:
+poe serve
 ```
 
 To create a client for proposal 2222:
@@ -125,6 +128,38 @@ Default configuration is something like:
 ```
 
 Stream/topic can be edited manually in the JSON file or set via CLI at creation time.
+
+### Tasks
+
+This project uses `poe` as a task runner for various commands (see [Poe the Poet](https://github.com/nat-n/poethepoet)).
+
+List available commands with `poe`:
+
+```sh
+$ poe
+
+CONFIGURED TASKS
+  serve
+  test
+  lint
+  format
+  ruff
+  black
+  mypy
+  pyright
+```
+
+Run a task with `poe <task>`:
+
+```sh
+poe lint  # Run linters - only checks, no code changes
+
+poe format  # Run formatters - changes files in place
+
+poe test  # Run tests
+
+poe serve  # Run the server
+```
 
 ## Deployment Setup
 
