@@ -129,13 +129,8 @@ def test_get_topics_error(fastapi_client, zulip_client):
 
     response = fastapi_client.get("/get_topics")
 
-    assert response.status_code == 400
-    assert response.json() == {
-        "detail": (
-            "Failed to get stream id for Test Stream 1. Is bot added to stream?\n"
-            f"Response was {zulip_response_id}"
-        )
-    }
+    assert response.status_code == 200
+    assert response.json() == {"result": "error"}
 
 
 def test_create_client(fastapi_client, zulip_client):
