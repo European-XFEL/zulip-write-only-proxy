@@ -42,7 +42,7 @@ class ScopedClient(BaseModel):
     def upload_file(self, file: IO[Any]):
         return self._client.upload_file(file)
 
-    def list_topics(self):
+    def get_stream_topics(self):
         stream = self._client.get_stream_id(self.stream)
         if stream["result"] != "success":
             raise RuntimeError(

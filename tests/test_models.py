@@ -18,7 +18,7 @@ def test_upload_file(scoped_client):
     assert result == {"uri": "/foo/bar.jpg"}
 
 
-def test_list_topics(scoped_client):
+def test_get_stream_topics(scoped_client):
     scoped_client._client.get_stream_id = MagicMock(
         return_value={"result": "success", "stream_id": 123}
     )
@@ -26,7 +26,7 @@ def test_list_topics(scoped_client):
         return_value=["Topic 1", "Topic 2"]
     )
 
-    result = scoped_client.list_topics()
+    result = scoped_client.get_stream_topics()
 
     scoped_client._client.get_stream_id.assert_called_once_with("Test Stream")
 
@@ -35,11 +35,11 @@ def test_list_topics(scoped_client):
     assert result == ["Topic 1", "Topic 2"]
 
 
-def test_list_topics_raises(scoped_client):
+def test_get_stream_topics_raises(scoped_client):
     scoped_client._client.get_stream_id = MagicMock(return_value={"result": "failure"})
 
     with pytest.raises(RuntimeError):
-        scoped_client.list_topics()
+        scoped_client.get_stream_topics()
 
 
 def test_send_message(scoped_client):
