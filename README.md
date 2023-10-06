@@ -2,25 +2,18 @@
 
 ## Usage
 
-### Text Only
+### Client
+
+Recommended clients are `requests` for synchronous code and `httpx` for asynchronous code.
 
 Using requests (synchronous):
 
 ```python
 import requests
 
-url = "http://exfldadev01.desy.de:8089/message"
-params = {
-    "topic": "test-read-only-thing-2",
-    "content": "I recommend muting this topic."
-}
-headers = {
-    "accept": "application/json",
-    "X-API-key": "GXXQoc8YlXJv2VDksX2Y7NzQAWdkdNeZ5fFvBLrCe6A",
-    "Content-Type": "multipart/form-data"
-}
+base_url = "http://exfldadev01.desy.de:8089"
 
-response = requests.post(url, params=params, headers=headers)
+response = requests.post(f"{base_url}/endpoint", data=data, ...)
 ```
 
 Using httpx (async):
@@ -28,58 +21,58 @@ Using httpx (async):
 ```python
 import httpx
 
-url = "http://exfldadev01.desy.de:8089/message"
-params = {
-    "topic": "test-read-only-thing-2",
-    "content": "I recommend muting this topic."
-}
+base_url = "http://exfldadev01.desy.de:8089"
+
+async with httpx.AsyncClient() as client:
+    response = await client.post(f"{base_url}/endpoint", ...)
+```
+
+### Authentication
+
+Authentication is done by including the token in the header, for example:
+
+```python
 headers = {
     "accept": "application/json",
-    "X-API-key": "GXXQoc8YlXJv2VDksX2Y7NzQAWdkdNeZ5fFvBLrCe6A",
+    "X-API-key": "token",
     "Content-Type": "multipart/form-data"
 }
-
-async with httpx.AsyncClient() as client:
-    response = await client.post(url, params=params, headers=headers)
 ```
 
-### Image/File Upload
-
-Using requests (synchronous):
+This header should be included in all requests. You can create a client which always has the header with:
 
 ```python
-import requests
+import requests  # or httpx
 
-url = 'http://exfldadev01.desy.de:8089/message'
-headers = {
-    'accept': 'application/json',
-    'X-API-key': 'DQBMXmA6wmxsQLq4A27GErqD2pARI4IooOciNcmq3ng',
-}
-params = {
-    'content': f'Bonk bonk',
-}
-files = {'image': open('./downloads/recursion.jpg', 'rb')}
-
-response = requests.post(url, headers=headers, params=params, files=files)
+client = requests.Session()
+client.headers.update({"X-API-key": "token"})
 ```
 
-Using httpx (async):
+### Endpoints
+
+Full API documentation is available by going to the `/docs` page (e.g. <https://exfldadev01.desy.de:8089/docs>). A few examples of basic usage are provided below.
+
+#### Sending a message with text
 
 ```python
-import httpx
+response = client.post(
+    f"{base_url}/send_message",
+    params={"topic": "test-read-only-thing-2"}
+    data={"content": "I recommend muting this topic."},
+)
+```
 
-url = 'http://exfldadev01.desy.de:8089/message'
-headers = {
-    'accept': 'application/json',
-    'X-API-key': 'DQBMXmA6wmxsQLq4A27GErqD2pARI4IooOciNcmq3ng',
-}
-params = {
-    'content': f'Bonk bonk',
-}
-files = {'image': open('./downloads/recursion.jpg', 'rb')}
+#### Sending a message with text and an image
 
-async with httpx.AsyncClient() as client:
-    response = await client.post(url, headers=headers, params=params, files=files)
+`/send_message` supports sending a file with a message. An inline link to the file will be included at the end of the text message.
+
+```python
+response = client.post(
+    f"{base_url}/send_message",
+    params={"topic": "test-read-only-thing-2"}
+    data={'content': f'Interesting plot!'},
+    files={'image': open('./downloads/recursion.jpg', 'rb')},
+)
 ```
 
 ## Development
@@ -161,7 +154,7 @@ poe test  # Run tests
 poe serve  # Run the server
 ```
 
-## Deployment Setup
+## Deployment
 
 Deployment is similar to development with `docker compose`, but instead a docker stack is used to allow for better scaling and update configuration.
 
