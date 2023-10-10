@@ -48,7 +48,10 @@ class ScopedClient(BaseModel):
     def get_stream_topics(self):
         stream = self._client.get_stream_id(self.stream)
         if stream["result"] != "success":
-            log.error(f"failed to get stream id for {self.stream}", extra=stream)
+            log.error(
+                f"failed to get stream id for {self.stream}, "
+                f"zulip api response: {stream}"
+            )
             return stream
         stream_id = stream["stream_id"]
         return self._client.get_stream_topics(stream_id)

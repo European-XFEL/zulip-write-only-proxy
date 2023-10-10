@@ -36,12 +36,21 @@ def test_get_stream_topics(scoped_client):
 
 
 def test_get_stream_topics_log(scoped_client, caplog: pytest.LogCaptureFixture):
-    scoped_client._client.get_stream_id = MagicMock(return_value={"result": "failure"})
+    scoped_client._client.get_stream_id = MagicMock(
+        return_value={
+            "code": "BAD_REQUEST",
+            "msg": "Invalid stream name 'nonexistent'",
+            "result": "error",
+        }
+    )
 
     scoped_client.get_stream_topics()
 
     assert len(caplog.records) == 1
-    assert caplog.records[0].message == "failed to get stream id for Test Stream"
+    assert caplog.records[0].message == (
+        "failed to get stream id for Test Stream, zulip api response: "
+        f"{scoped_client._client.get_stream_id.return_value}"
+    )
 
 
 def test_send_message(scoped_client):
