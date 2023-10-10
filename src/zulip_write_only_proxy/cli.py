@@ -13,6 +13,7 @@ def create(
     stream: Annotated[Optional[str], typer.Argument()] = None,
 ):
     """Create a new scoped client for a proposal."""
+    services.setup()
     client = services.create_client(proposal_no, stream)
     typer.echo(client)
 
