@@ -103,7 +103,7 @@ def test_upload_file(fastapi_client, zulip_client):
     assert uploaded_file.name == "test.jpg"
 
 
-def test_get_topics(fastapi_client, zulip_client):
+def test_get_stream_topics(fastapi_client, zulip_client):
     zulip_response_id = {"msg": "", "result": "success", "stream_id": 15}
     zulip_response_topics = {
         "msg": "",
@@ -117,17 +117,17 @@ def test_get_topics(fastapi_client, zulip_client):
     zulip_client.get_stream_id = MagicMock(return_value=zulip_response_id)
     zulip_client.get_stream_topics = MagicMock(return_value=zulip_response_topics)
 
-    response = fastapi_client.get("/get_topics")
+    response = fastapi_client.get("/get_stream_topics")
 
     assert response.status_code == 200
     assert response.json() == zulip_response_topics
 
 
-def test_get_topics_error(fastapi_client, zulip_client):
+def test_get_stream_topics_error(fastapi_client, zulip_client):
     zulip_response_id = {"result": "error"}
     zulip_client.get_stream_id = MagicMock(return_value=zulip_response_id)
 
-    response = fastapi_client.get("/get_topics")
+    response = fastapi_client.get("/get_stream_topics")
 
     assert response.status_code == 200
     assert response.json() == {"result": "error"}
