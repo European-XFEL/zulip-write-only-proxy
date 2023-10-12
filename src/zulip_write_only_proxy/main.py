@@ -93,7 +93,7 @@ _docs_url = "https://zulip.com/api/get-stream-topics#response"
 
 
 @app.get(
-    "/get_topics",
+    "/get_stream_topics",
     tags=["User"],
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
 )
