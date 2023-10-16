@@ -71,6 +71,10 @@ black = "black ./src ./tests"
 mypy = "mypy ./src ./tests"
 pyright = "pyright ./src ./tests"
 
+[tool.coverage.run]
+# Exclude CLI from coverage as it is not really required anymore
+omit = ["src/zulip_write_only_proxy/cli.py"]
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "v$version"
