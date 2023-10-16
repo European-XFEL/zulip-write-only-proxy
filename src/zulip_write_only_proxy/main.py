@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
 from tempfile import SpooledTemporaryFile
 from typing import Annotated, Union
