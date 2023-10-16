@@ -68,17 +68,21 @@ class ScopedClient(BaseModel):
 
     def update_message(
         self,
+        topic: str | None,
+        content: str | None,
         message_id: int,
-        topic: str,
         propagate_mode: PropagateMode,
-        content: str,
     ):
         request = {
             "message_id": message_id,
-            "topic": topic,
             "propagate_mode": propagate_mode.value,
-            "content": content,
         }
+
+        if topic:
+            request["topic"] = topic
+
+        if content:
+            request["content"] = content
 
         return self._client.update_message(request)
 
