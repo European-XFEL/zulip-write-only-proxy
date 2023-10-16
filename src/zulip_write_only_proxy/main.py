@@ -64,11 +64,20 @@ _docs_url = "https://zulip.com/api/update-message#response"
 def update_message(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
     message_id: Annotated[int, fastapi.Query(...)],
-    topic: Annotated[str, fastapi.Query(...)],
     propagate_mode: Annotated[models.PropagateMode, fastapi.Query(...)],
-    content: Annotated[str, fastapi.Body(...)],
+    content: Annotated[str | None, fastapi.Body(media_type="text/plain")] = None,
+    topic: Annotated[str | None, fastapi.Query()] = None,
 ):
-    return client.update_message(message_id, topic, propagate_mode, content)
+    if content or topic:
+        return client.update_message(topic, content, message_id, propagate_mode)
+    else:
+        raise fastapi.HTTPException(
+            status_code=400,
+            detail=(
+                "Either content (update message text) or topic (rename message topic) "
+                "must be provided"
+            ),
+        )
 
 
 _docs_url = "https://zulip.com/api/upload-file#response"

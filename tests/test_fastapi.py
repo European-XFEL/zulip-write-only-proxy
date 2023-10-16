@@ -80,6 +80,66 @@ def test_send_message_with_image(fastapi_client, zulip_client):
     assert uploaded_image.name == "test.jpg"
 
 
+def test_update_message_move_topic(fastapi_client: "TestClient", zulip_client):
+    zulip_response = {"msg": "", "result": "success"}
+    zulip_client.update_message = MagicMock(return_value=zulip_response)
+
+    response = fastapi_client.patch(
+        "/update_message",
+        params={"message_id": 42, "propagate_mode": "change_one", "topic": "New Topic"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == zulip_response
+
+    # Check that the zulip client was called with the expected arguments
+    zulip_request = {
+        "message_id": 42,
+        "propagate_mode": "change_one",
+        "topic": "New Topic",
+    }
+    zulip_client.update_message.assert_called_once_with(zulip_request)
+
+
+def test_update_message_content(fastapi_client: "TestClient", zulip_client):
+    zulip_response = {"msg": "", "result": "success"}
+    zulip_client.update_message = MagicMock(return_value=zulip_response)
+
+    response = fastapi_client.patch(
+        "/update_message",
+        params={"message_id": 42, "propagate_mode": "change_one"},
+        headers={"Content-Type": "text/plain"},
+        content="Test Content",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == zulip_response
+
+    # Check that the zulip client was called with the expected arguments
+    zulip_request = {
+        "message_id": 42,
+        "propagate_mode": "change_one",
+        "content": "Test Content",
+    }
+    zulip_client.update_message.assert_called_once_with(zulip_request)
+
+
+def test_update_message_missing_args(fastapi_client: "TestClient", zulip_client):
+    response = fastapi_client.patch(
+        "/update_message",
+        params={"message_id": 42, "propagate_mode": "change_one"},
+        headers={"Content-Type": "text/plain"},
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": (
+            "Either content (update message text) or topic (rename message topic) must "
+            "be provided"
+        )
+    }
+
+
 def test_upload_file(fastapi_client, zulip_client):
     zulip_response_file = {
         "msg": "",
