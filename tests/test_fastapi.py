@@ -2,7 +2,9 @@ import io
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-from zulip_write_only_proxy import services
+import pytest
+
+from zulip_write_only_proxy import models, services
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -227,3 +229,22 @@ def test_create_client_error(fastapi_client):
 
         # Check that the services module was called with the expected arguments
         services.create_client.assert_called_once_with(1234, "Test Stream")
+
+
+@pytest.mark.parametrize(
+    "client_type,kwargs",
+    [(models.AdminClient, {}), (models.ScopedClient, {"proposal_no": 0})],
+)
+def test_get_me(client_type, kwargs, fastapi_client, zulip_client):
+    client = client_type.create(**kwargs)
+
+    with patch(
+        "zulip_write_only_proxy.services.get_client",
+        MagicMock(return_value=client),
+    ):
+        response = fastapi_client.get(
+            "/me",
+            headers={"X-API-key": client.key.get_secret_value()},
+        )
+
+        assert response.status_code == 200
