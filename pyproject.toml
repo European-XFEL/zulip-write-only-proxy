@@ -10,13 +10,13 @@ packages = [{ include = "zulip_write_only_proxy", from = "src" }]
 damnit-zulip = "zulip_write_only_proxy.cli:app"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
-fastapi = "^0.100.0"
+python = ">=3.11,<3.12"
+fastapi = "^0.104"
 uvicorn = "^0.23.1"
 zulip = "^0.8.2"
 python-multipart = "^0.0.6"
 orjson = "^3.9.2"
-pydantic = "^2.1.1"
+pydantic = "^2.4.2"
 typer = "^0.9.0"
 
 [tool.poetry.group.test.dependencies]
@@ -29,14 +29,14 @@ poethepoet = "^0.21.1"
 commitizen = "^3.6.0"
 
 [tool.poetry.group.lint.dependencies]
-ruff = "^0.0.282"
+ruff = "^0.1.0"
 mypy = "^1.4.1"
 pyright = "^1.1.320"
 black = "^23.7.0"
 
 [tool.black]
 line-length = 88
-target-version = ["py39", "py310", "py311"]
+target-version = ["py311", "py312"]
 
 [tool.ruff]
 line-length = 88
@@ -51,7 +51,7 @@ extend-select = [
 ]
 extend-ignore = ["B018", "B019"]
 src = ["src"]
-target-version = "py39"
+target-version = "py311"
 
 [tool.ruff.mccabe]
 max-complexity = 10
