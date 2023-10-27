@@ -198,15 +198,19 @@ def test_get_stream_topics_error(fastapi_client, zulip_client):
 def test_create_client(fastapi_client, zulip_client):
     zulip_client.create_client = MagicMock(return_value={"result": "success"})
 
-    response = fastapi_client.post(
-        "/create_client",
-        headers={"X-API-key": "admin1"},
-        params={"proposal_no": 1234, "stream": "Test Stream"},
-    )
+    with patch(
+        "secrets.token_urlsafe",
+        MagicMock(return_value="exposed-secret"),
+    ):
+        response = fastapi_client.post(
+            "/create_client",
+            headers={"X-API-key": "admin1"},
+            params={"proposal_no": 1234, "stream": "Test Stream"},
+        )
 
     assert response.status_code == 200
     assert response.json() == {
-        "key": "**********",
+        "key": "exposed-secret",
         "proposal_no": 1234,
         "stream": "Test Stream",
     }
