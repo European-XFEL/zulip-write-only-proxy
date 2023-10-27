@@ -116,8 +116,8 @@ def get_stream_topics(
 
 @app.get("/me", tags=["User"])
 def get_me(
-    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
-) -> models.ScopedClient:
+    client: Annotated[models.Client, fastapi.Depends(get_client)],
+) -> models.Client:
     return client
 
 
