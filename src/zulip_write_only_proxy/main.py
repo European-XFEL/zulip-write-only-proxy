@@ -121,7 +121,7 @@ def get_me(
     return client
 
 
-@app.get("/health")
+@app.get("/health", tags=["Admin"])
 def healthcheck():
     return "OK"
 
