@@ -126,13 +126,20 @@ def healthcheck():
     return "OK"
 
 
+class ScopedClientWithKey(models.ScopedClient):
+    key: str  # type: ignore[assignment]
+
+
 @app.post("/create_client", tags=["Admin"])
 def create_client(
     admin_client: Annotated[models.AdminClient, fastapi.Depends(get_client)],
     proposal_no: Annotated[int, fastapi.Query(...)],
     stream: Annotated[Union[str, None], fastapi.Query()] = None,
-):
+) -> ScopedClientWithKey:
     try:
-        return services.create_client(proposal_no, stream)
+        client = services.create_client(proposal_no, stream)
+        dump = client.model_dump()
+        dump["key"] = client.key.get_secret_value()
+        return ScopedClientWithKey(**dump)
     except ValueError as e:
         raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
