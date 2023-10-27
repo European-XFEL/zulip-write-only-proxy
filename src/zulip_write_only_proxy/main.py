@@ -114,9 +114,9 @@ def get_stream_topics(
     return client.get_stream_topics()
 
 
-@app.get("/me", tags=["User"])
+@app.get("/me", tags=["User"], response_model_exclude={"key"})
 def get_me(
-    client: Annotated[models.Client, fastapi.Depends(get_client)],
+    client: Annotated[models.Client, fastapi.Depends(get_client)]
 ) -> models.Client:
     return client
 
