@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 import logging
+from contextlib import asynccontextmanager
 from tempfile import SpooledTemporaryFile
 from typing import Annotated, Union
 
 import fastapi
 from fastapi.security import APIKeyHeader
 
-from . import models, services, _version, _logging
+from . import _logging, _version, models, services
 
 
 @asynccontextmanager
