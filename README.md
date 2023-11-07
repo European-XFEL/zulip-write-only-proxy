@@ -154,6 +154,14 @@ poe test  # Run tests
 poe serve  # Run the server
 ```
 
+### Todo
+
+Tentative list of things to do in the future:
+
+- [ ] Query MyMdC for the stream name given a proposal number
+- [ ] Query MyMdC for the list of topics and pass that on instead of trying to get them with the Zulip API
+- [ ] Improve logging (structlog/loguru? sentry?)
+
 ## Deployment
 
 Deployment is similar to development with `docker compose`, but instead a docker stack is used to allow for better scaling and update configuration.
