@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   zwop:
-    image: ghcr.io/european-xfel/zulip-write-only-proxy:pr-1
+    image: ${IMAGE:-ghcr.io/european-xfel/zulip-write-only-proxy}:${TAG:?error}
     deploy:
       update_config:
         parallelism: 1
