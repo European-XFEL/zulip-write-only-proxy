@@ -75,6 +75,19 @@ response = client.post(
 )
 ```
 
+#### Creating a Client
+
+If you have an admin token you can create a new client for a proposal and stream. This will create a new token for the client and return it:
+
+```python
+response = client.post(
+    f"{base_url}/create_client",
+    params={"proposal_no": 1234, "stream": "proposal 1234 stream"},
+)
+```
+
+Note that admin tokens can only create clients, they cannot post to a stream as they have no associated stream.
+
 ## Development
 
 ### Setup
