@@ -123,7 +123,13 @@ def get_me(
 
 @app.get("/health", tags=["Admin"])
 def healthcheck():
-    return "OK"
+    return {
+        "status": "OK",
+        "dirty": "dirty" in _version.__version__,
+        "dev": "+" in _version.__version__,
+        "version": _version.__version__,
+        "version_tuple": _version.__version_tuple__,
+    }
 
 
 class ScopedClientWithKey(models.ScopedClient):
