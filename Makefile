@@ -5,3 +5,7 @@ up:
 
 down:
 	docker stack rm zwop
+
+dev-docker:
+	docker build . --tag zwop:dev
+	docker run -it --rm -v $(PWD):/app -p 8080:8080 zwop:dev
