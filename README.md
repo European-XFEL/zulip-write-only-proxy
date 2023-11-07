@@ -120,6 +120,45 @@ poetry shell
 poe serve
 ```
 
+### Debugging
+
+When debugging it can be very useful, especially given the async nature of the API, to do so interactively. If using VSCode this can be done by creating a launch configuration for FastAPI. This will start the server and allow you to set breakpoints and step through the code.
+
+Here is an example configuration, placed in `.vscode/launch.json`:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: FastAPI",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "zulip_write_only_proxy.main:app",
+                "--port",
+                "8080",
+            ],
+            "jinja": true,
+            "justMyCode": false
+        },
+        {
+            "name": "Python: FastAPI - Test Debug",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "jinja": true,
+            "justMyCode": false
+        }
+    ]
+}
+```
+
+This will add two configurations to the debug menu, one for running the server and one for running tests. The `justMyCode` option is set to `false` to allow for debugging/stepping into third party libraries.
+
+See the [VSCode Debugging documentation](https://code.visualstudio.com/docs/editor/debugging) for more information.
+
 ### Client Configuration
 
 The configuration is very basic and is stored in a JSON file. The client token is used as a key and the value is a dictionary containing the proposal number and stream name.
