@@ -174,6 +174,7 @@ Tentative list of things to do in the future:
 - [ ] Query MyMdC for the stream name given a proposal number
 - [ ] Query MyMdC for the list of topics and pass that on instead of trying to get them with the Zulip API
 - [ ] Improve logging (structlog/loguru? sentry?)
+- [ ] Set up dependabot
 
 ## Deployment
 
