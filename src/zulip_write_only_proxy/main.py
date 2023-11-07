@@ -1,18 +1,20 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import logging
 from tempfile import SpooledTemporaryFile
 from typing import Annotated, Union
 
 import fastapi
 from fastapi.security import APIKeyHeader
 
-from . import models, services
+from . import models, services, _version, _logging
 
 
 @asynccontextmanager
 async def lifespan(app: fastapi.FastAPI):
     services.setup()
+    logging.getLogger("uvicorn.access").addFilter(_logging.EndpointFilter())
     yield
 
 
