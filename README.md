@@ -179,16 +179,17 @@ Tentative list of things to do in the future:
 
 Deployment is similar to development with `docker compose`, but instead a docker stack is used to allow for better scaling and update configuration.
 
-To quickly bring the service up or down run `make up` or `make down`.
+There are two required environment variables, the port to run on (`PORT`), and the tag to use for the image (`TAG`). These should be set in an `.env` file:
 
-Bringing up the service runs:
-
-```sh
-docker compose config | docker stack deploy -c - zwop
+```env
+PORT=8089
+TAG=0.1.0
 ```
 
-To update the stack, use the same command. This will pull in the latest image and perform a rolling restart of the service, which will first start the new container, wait for a successful health check, and then stop the old container.
+To quickly bring the service up or down run `make up` or `make down`.
 
-A cron job runs the deployment command every minute to check for updates.
+To update, bump up the tag run `make up` again. This will pull in the latest image and perform a rolling restart of the service, which will first start the new container, wait for a successful health check, and then stop the old container.
 
-NB: There is an outstanding issue with `docker stack deploy` where it [does not load `.env` files](https://github.com/moby/moby/issues/29133) in the same way that `docker compose up` does. This is solved by running `docker compose config` to generate a compose-compliant file (with env vars subsituted) and piping that to `docker stack deploy`.
+For development use there is an additional variable `IMAGE` which can be set to the name of a local image to use instead of pulling from the registry. This is useful for testing changes. If you recently used `make dev-docker` that would have build an image tagged `zwop:dev` which you could then use by setting `IMAGE=zwop:dev` in the `.env` file (note that this will not reflect code changes since the last image build).
+
+NB: There is an outstanding issue with `docker stack deploy` where it [does not load `.env` files](https://github.com/moby/moby/issues/29133) in the same way that `docker compose up` does. This is solved by running `docker compose config` to generate a compose-compliant file (with env vars substituted), making a few changes via `sed`, and piping that to `docker stack deploy -`. Check the `Makefile` to see the exact command.
