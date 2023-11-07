@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zulip-write-only-proxy"
-version = "0.1.0"
+version = "0.0.0"
 description = ""
 authors = ["Robert Rosca"]
 readme = "README.md"
@@ -83,6 +83,24 @@ version_provider = "poetry"
 update_changelog_on_bump = true
 major_version_zero = true
 
+[tool.poetry-dynamic-versioning]
+enable = true
+dirty = true
+style = "semver"
+
+[tool.poetry-dynamic-versioning.substitution]
+folders = [
+  { path = "src" }
+]
+
+[tool.poetry-dynamic-versioning.files."src/zulip_write_only_proxy/_version.py"]
+persistent-substitution = true
+initial-content = """
+  # These version placeholders will be replaced later during substitution.
+  __version__ = "0.0.0"
+  __version_tuple__ = (0, 0, 0)
+"""
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"

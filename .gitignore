@@ -1,6 +1,7 @@
 .env
 zuliprc
 clients.json
+src/zulip_write_only_proxy/_version.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
