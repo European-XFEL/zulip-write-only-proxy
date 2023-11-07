@@ -92,37 +92,35 @@ Note that admin tokens can only create clients, they cannot post to a stream as 
 
 ### Setup
 
+For development you can either use docker or install the package locally via Poetry.
+
 For docker:
 
 ```sh
-# Start server in background
-docker compose up -d
+# Build the image:
+docker build . --tag zwop:dev
+
+# Start the server, with the current directory mounted as a volume:
+docker run -it --rm -v $(PWD):/app -p 8080:8080 zwop:dev
+
+# Or use make, which does the same thing:
+make dev-docker
 ```
 
-For CLI:
+For a direct install with Poetry:
 
 ```sh
-# Normal venv:
-python3 -m venv .venv
-source .venv/bin/activate
-
-python3 -m pip install .
-
-# Poetry:
+# Install and activate
 poetry install
 poetry shell
 
-# Start the server:
+# Start the server using poe, see next section for more details on poe tasks
 poe serve
 ```
 
-To create a client for proposal 2222:
+### Client Configuration
 
-```sh
-damnit-zulip create 2222 "proposal 2222 stream"
-```
-
-Default configuration is something like:
+The configuration is very basic and is stored in a JSON file. The client token is used as a key and the value is a dictionary containing the proposal number and stream name.
 
 ```json
 {
@@ -133,7 +131,7 @@ Default configuration is something like:
 }
 ```
 
-Stream/topic can be edited manually in the JSON file or set via CLI at creation time.
+Stream/topic can be edited manually in the JSON file or set at creation time.
 
 ### Tasks
 
