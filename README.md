@@ -4,16 +4,16 @@
 
 ### Client
 
-Recommended clients are `requests` for synchronous code and `httpx` for asynchronous code.
+Recommended clients are `requests` for synchronous code and `httpx` for asynchronous code. These examples are written for a server running locally at <http://localhost:8080> but the actual URL will depend on the deployment.
 
 Using requests (synchronous):
 
 ```python
 import requests
 
-base_url = "http://exfldadev01.desy.de:8089"
+base_url = "http://localhost:8080"
 
-response = requests.post(f"{base_url}/endpoint", data=data, ...)
+response = requests.post(f"{base_url}/{endpoint}", data=data, ...)
 ```
 
 Using httpx (async):
@@ -21,11 +21,13 @@ Using httpx (async):
 ```python
 import httpx
 
-base_url = "http://exfldadev01.desy.de:8089"
+base_url = "http://localhost:8080"
 
 async with httpx.AsyncClient() as client:
-    response = await client.post(f"{base_url}/endpoint", ...)
+    response = await client.post(f"{base_url}/{endpoint}", ...)
 ```
+
+Replace `endpoint` with the desired endpoint (e.g. `send_message`).
 
 ### Authentication
 
@@ -50,7 +52,7 @@ client.headers.update({"X-API-key": "token"})
 
 ### Endpoints
 
-Full API documentation is available by going to the `/docs` page (e.g. <https://exfldadev01.desy.de:8089/docs>). A few examples of basic usage are provided below.
+Full API documentation is available by going to the `/docs` page (e.g. <http://localhost:8080/docs>). These examples are just intended to show basic usage and may not represent the current state of the API, check the API docs for the latest information.
 
 #### Sending a message with text
 
