@@ -15,4 +15,6 @@ RUN --mount=type=cache,target=/root/.cache\
 
 CMD ["uvicorn", "zulip_write_only_proxy.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
+EXPOSE 8080
+
 HEALTHCHECK CMD curl --fail http://localhost:8080/health || exit 1
