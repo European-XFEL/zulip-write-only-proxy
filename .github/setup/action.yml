@@ -21,6 +21,7 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip poetry
+        poetry self add "poetry-dynamic-versioning[plugin]"
         poetry config virtualenvs.create true --local
         poetry config virtualenvs.in-project true --local
 
