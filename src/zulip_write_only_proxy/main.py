@@ -8,7 +8,7 @@ from typing import Annotated, Union
 import fastapi
 from fastapi.security import APIKeyHeader
 
-from . import _logging, _version, models, services
+from . import __version__, __version_tuple__, _logging, models, services
 
 
 @asynccontextmanager
@@ -127,10 +127,10 @@ def get_me(
 def healthcheck():
     return {
         "status": "OK",
-        "dirty": "dirty" in _version.__version__,
-        "dev": "+" in _version.__version__,
-        "version": _version.__version__,
-        "version_tuple": _version.__version_tuple__,
+        "dirty": "dirty" in __version__,
+        "dev": "+" in __version__,
+        "version": __version__,
+        "version_tuple": __version_tuple__,
     }
 
 
