@@ -77,3 +77,12 @@ class MyMdCClient(httpx.AsyncClient):
 
         super().__init__(auth=auth)
 
+    async def get_zulip_stream_name(self, proposal_no: int) -> str | None:
+        """Get the Zulip stream name for a given proposal number."""
+        # TODO: should use `/proposals/{number}/logbook`, but this responds with 403
+        res = await self.get(
+            f"https://in.xfel.eu/metadata/api/proposals/by_number/{proposal_no}"
+        )
+
+        return res.json().get("logbook_info", {}).get("logbook_identifier", None)
+
