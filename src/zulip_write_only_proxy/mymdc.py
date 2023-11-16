@@ -86,3 +86,10 @@ class MyMdCClient(httpx.AsyncClient):
 
         return res.json().get("logbook_info", {}).get("logbook_identifier", None)
 
+
+try:
+    client = MyMdCClient()
+    """Singleton instance of the MyMdC client."""
+except ValidationError as e:
+    print(e)  # TODO: better logging
+    client = None
