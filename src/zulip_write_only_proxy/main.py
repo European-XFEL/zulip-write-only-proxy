@@ -135,7 +135,7 @@ def healthcheck():
 
 
 @app.post("/create_client", tags=["Admin"])
-def create_client(
+async def create_client(
     admin_client: Annotated[models.AdminClient, fastapi.Depends(get_client)],
     client: Annotated[models.ScopedClient, fastapi.Depends(services.create_client)],
 ) -> models.ScopedClientWithKey:

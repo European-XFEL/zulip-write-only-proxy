@@ -8,16 +8,21 @@ import zulip
 from pydantic.fields import ModelPrivateAttr
 from pydantic_core import PydanticUndefined
 
-from . import models, repositories
+from . import models, mymdc, repositories
 
 REPOSITORY = repositories.JSONRepository(path=Path.cwd() / "config" / "clients.json")
 
 
-def create_client(
+async def create_client(
     client: Annotated[models.ScopedClientCreate, fastapi.Depends()]
 ) -> models.ScopedClient:
+    if client.stream is None:
+        client.stream = await mymdc.client.get_zulip_stream_name(client.proposal_no)
+
     client = models.ScopedClient.model_validate(client, from_attributes=True)
+
     REPOSITORY.put(client)
+
     return client
 
 
