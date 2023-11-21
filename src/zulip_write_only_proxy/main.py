@@ -139,15 +139,11 @@ class ScopedClientWithKey(models.ScopedClient):
 
 
 @app.post("/create_client", tags=["Admin"])
-def create_client(
+async def create_client(
     admin_client: Annotated[models.AdminClient, fastapi.Depends(get_client)],
-    proposal_no: Annotated[int, fastapi.Query(...)],
-    stream: Annotated[Union[str, None], fastapi.Query()] = None,
+    client: Annotated[models.ScopedClient, fastapi.Depends(services.create_client)],
 ) -> ScopedClientWithKey:
-    try:
-        client = services.create_client(proposal_no, stream)
-        dump = client.model_dump()
-        dump["key"] = client.key.get_secret_value()
-        return ScopedClientWithKey(**dump)
-    except ValueError as e:
-        raise fastapi.HTTPException(status_code=400, detail=str(e)) from e
+    dump = client.model_dump()
+    dump["key"] = client.key.get_secret_value()
+
+    return ScopedClientWithKey(**dump)
