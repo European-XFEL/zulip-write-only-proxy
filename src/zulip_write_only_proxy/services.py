@@ -25,7 +25,7 @@ async def create_client(
 
 
 def create_admin() -> models.AdminClient:
-    client = models.AdminClient.create()
+    client = models.AdminClient(admin=True)
     REPOSITORY.put(client)
     return client
 

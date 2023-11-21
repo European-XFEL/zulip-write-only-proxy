@@ -41,7 +41,7 @@ def repository():
 
 @pytest.fixture
 def scoped_client():
-    return ScopedClient.create(1234, stream="Test Stream")
+    return ScopedClient(proposal_no=1234, stream="Test Stream")
 
 
 @pytest.fixture(autouse=True)

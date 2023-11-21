@@ -70,14 +70,6 @@ def test_send_message(scoped_client):
     assert result == {"result": "success"}
 
 
-def test_admin_client_create():
-    client = AdminClient.create()
-
-    assert client.key is not None
-
-    assert client.admin is True
-
-
 def test_admin_client_init():
     result = AdminClient(key="", admin=True)  # type: ignore[assignment]
 
