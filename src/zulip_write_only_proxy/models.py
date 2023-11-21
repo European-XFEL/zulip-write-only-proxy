@@ -19,7 +19,7 @@ class PropagateMode(str, enum.Enum):
 
 class ScopedClientCreate(BaseModel):
     proposal_no: int
-    stream: str | None
+    stream: str | None = None
 
 
 class ScopedClient(ScopedClientCreate):
