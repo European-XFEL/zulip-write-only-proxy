@@ -7,7 +7,6 @@ from typing import IO, Any, Union
 
 import zulip
 from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
-from typing_extensions import Self
 
 log = logging.getLogger(__name__)
 
