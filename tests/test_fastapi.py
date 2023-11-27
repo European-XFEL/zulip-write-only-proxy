@@ -1,10 +1,11 @@
 import io
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from zulip_write_only_proxy import models, services
+from zulip_write_only_proxy import models
+from zulip_write_only_proxy.mymdc import NoStreamForProposalError
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -216,31 +217,32 @@ def test_create_client(fastapi_client, zulip_client):
     }
 
 
-def test_create_client_error(fastapi_client):
+@pytest.mark.asyncio
+def test_create_client_mymdc_error(fastapi_client):
     with patch(
-        "zulip_write_only_proxy.services.create_client",
-        MagicMock(side_effect=ValueError("Test Error")),
+        "zulip_write_only_proxy.mymdc.client.get_zulip_stream_name",
+        AsyncMock(side_effect=NoStreamForProposalError(1234)),
     ):
         # Call the API endpoint with invalid data
         response = fastapi_client.post(
             "/create_client",
             headers={"X-API-key": "admin1"},
-            params={"proposal_no": 1234, "stream": "Test Stream"},
+            params={"proposal_no": 1234},
         )
 
-        assert response.status_code == 400
-        assert response.json() == {"detail": "Test Error"}
-
-        # Check that the services module was called with the expected arguments
-        services.create_client.assert_called_once_with(1234, "Test Stream")
+        assert response.status_code == 404
+        assert "No stream name found for proposal" in response.json()["detail"]
 
 
 @pytest.mark.parametrize(
     "client_type,kwargs",
-    [(models.AdminClient, {}), (models.ScopedClient, {"proposal_no": 0})],
+    [
+        (models.AdminClient, {"admin": True}),
+        (models.ScopedClient, {"proposal_no": 0, "stream": "name"}),
+    ],
 )
 def test_get_me(client_type, kwargs, fastapi_client, zulip_client):
-    client = client_type.create(**kwargs)
+    client = client_type(**kwargs)
 
     with patch(
         "zulip_write_only_proxy.services.get_client",

@@ -7,8 +7,9 @@ from zulip_write_only_proxy.models import AdminClient, ScopedClient
 from zulip_write_only_proxy.repositories import JSONRepository
 
 
-def test_create_client(repository: JSONRepository):
-    result = services.create_client(proposal_no=3)
+@pytest.mark.asyncio
+async def test_create_client(repository: JSONRepository):
+    result = await services.create_client(proposal_no=3, stream="stream")
     assert isinstance(result, ScopedClient)
 
 
