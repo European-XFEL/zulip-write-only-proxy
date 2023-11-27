@@ -1,6 +1,6 @@
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import orjson
 import pytest
@@ -47,6 +47,15 @@ def scoped_client():
 @pytest.fixture(autouse=True)
 def zulip_client():
     with patch("zulip.Client", new_callable=MagicMock) as mock_class:
+        mock_class.return_value = mock_class
+        yield mock_class
+
+
+@pytest.fixture(autouse=True)
+def mymdc_client():
+    with patch(
+        "zulip_write_only_proxy.mymdc.client", new_callable=AsyncMock
+    ) as mock_class:
         mock_class.return_value = mock_class
         yield mock_class
 
