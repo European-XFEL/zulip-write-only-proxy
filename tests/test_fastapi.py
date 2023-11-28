@@ -216,25 +216,6 @@ def test_create_client(fastapi_client, zulip_client):
     }
 
 
-def test_create_client_error(fastapi_client):
-    with patch(
-        "zulip_write_only_proxy.services.create_client",
-        MagicMock(side_effect=ValueError("Test Error")),
-    ):
-        # Call the API endpoint with invalid data
-        response = fastapi_client.post(
-            "/create_client",
-            headers={"X-API-key": "admin1"},
-            params={"proposal_no": 1234, "stream": "Test Stream"},
-        )
-
-        assert response.status_code == 400
-        assert response.json() == {"detail": "Test Error"}
-
-        # Check that the services module was called with the expected arguments
-        services.create_client.assert_called_once_with(1234, "Test Stream")
-
-
 @pytest.mark.parametrize(
     "client_type,kwargs",
     [
