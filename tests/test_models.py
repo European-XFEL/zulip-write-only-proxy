@@ -71,7 +71,7 @@ def test_send_message(scoped_client):
 
 
 def test_admin_client_create():
-    client = AdminClient.create()
+    client = AdminClient(admin=True)
 
     assert client.key is not None
 

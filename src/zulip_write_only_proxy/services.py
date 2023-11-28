@@ -11,14 +11,14 @@ from . import models, repositories
 REPOSITORY = repositories.JSONRepository(path=Path.cwd() / "config" / "clients.json")
 
 
-def create_client(proposal_no: int, stream: str | None = None) -> models.ScopedClient:
-    client = models.ScopedClient.create(proposal_no, stream)
+def create_client(client: models.ScopedClientCreate) -> models.ScopedClient:
+    client = models.ScopedClient.model_validate(client, from_attributes=True)
     REPOSITORY.put(client)
     return client
 
 
 def create_admin() -> models.AdminClient:
-    client = models.AdminClient.create()
+    client = models.AdminClient(admin=True)
     REPOSITORY.put(client)
     return client
 
