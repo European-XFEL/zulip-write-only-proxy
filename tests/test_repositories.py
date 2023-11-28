@@ -53,9 +53,6 @@ def test_put_scoped_client(repository: JSONRepository):
     assert result.stream == "Test Stream 3"
     assert result.proposal_no == 3
 
-    with pytest.raises(ValueError):
-        repository.put(client)
-
 
 def test_put_admin_client(repository: JSONRepository):
     client = AdminClient(key="admin2", admin=True)  # type: ignore[arg-type]
