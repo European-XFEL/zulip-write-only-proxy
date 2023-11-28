@@ -75,6 +75,10 @@ class ScopedClient(ScopedClientCreate):
         return self._client.update_message(request)
 
 
+class ScopedClientWithKey(ScopedClient):
+    key: str  # type: ignore[assignment]
+
+
 class AdminClient(BaseModel):
     key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
     admin: bool
