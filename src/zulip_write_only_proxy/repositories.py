@@ -15,41 +15,36 @@ class JSONRepository(BaseModel):
     path: Path
 
     def get(self, key: str) -> models.Client:
-        with self.path.open("rb") as f:
-            data = orjson.loads(f.read())
-            client_data = data[key]
+        data = orjson.loads(self.path.read_bytes())
+        client_data = data[key]
 
-            if client_data.get("admin"):
-                return models.AdminClient(key=SecretStr(key), **client_data)
+        if client_data.get("admin"):
+            return models.AdminClient(key=SecretStr(key), **client_data)
 
-            return models.ScopedClient(key=SecretStr(key), **client_data)
+        return models.ScopedClient(key=SecretStr(key), **client_data)
 
     def put(self, client: models.Client) -> None:
         with file_lock:
-            with self.path.open("rb") as f:
-                data: dict[str, dict] = orjson.loads(f.read())
-                data[client.key.get_secret_value()] = client.model_dump(exclude={"key"})
-
-            with self.path.open("wb") as f:
-                f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
+            data: dict[str, dict] = orjson.loads(self.path.read_bytes())
+            data[client.key.get_secret_value()] = client.model_dump(exclude={"key"})
+            self.path.write_bytes(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
     def list(self) -> list[models.Client]:
-        with self.path.open("rb") as f:
-            data = orjson.loads(f.read())
+        data = orjson.loads(self.path.read_bytes())
 
-            clients = [
-                models.ScopedClient(key=key, **value)
-                for key, value in data.items()
-                if not value.get("admin")
-            ]
+        clients = [
+            models.ScopedClient(key=key, **value)
+            for key, value in data.items()
+            if not value.get("admin")
+        ]
 
-            admins = [
-                models.AdminClient(key=key, **value)
-                for key, value in data.items()
-                if value.get("admin")
-            ]
+        admins = [
+            models.AdminClient(key=key, **value)
+            for key, value in data.items()
+            if value.get("admin")
+        ]
 
-            return clients + admins
+        return clients + admins
 
     @field_validator("path")
     @classmethod
