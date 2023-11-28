@@ -19,7 +19,7 @@ def create_client(proposal_no: int, stream: str | None = None) -> models.ScopedC
 
 def create_admin() -> models.AdminClient:
     client = models.AdminClient.create()
-    REPOSITORY.put_admin(client)
+    REPOSITORY.put(client)
     return client
 
 
