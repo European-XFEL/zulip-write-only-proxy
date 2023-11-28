@@ -17,7 +17,12 @@ class PropagateMode(str, enum.Enum):
     change_later = "change_later"
 
 
-class ScopedClient(BaseModel):
+class ScopedClientCreate(BaseModel):
+    proposal_no: int
+    stream: str | None
+
+
+class ScopedClient(ScopedClientCreate):
     key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     proposal_no: int
