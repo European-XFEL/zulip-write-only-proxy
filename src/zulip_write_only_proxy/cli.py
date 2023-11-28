@@ -2,7 +2,7 @@ from typing import Annotated
 
 import typer
 
-from . import services
+from . import models, services
 
 app = typer.Typer()
 
@@ -14,7 +14,9 @@ def create(
 ):
     """Create a new scoped client for a proposal."""
     services.setup()
-    client = services.create_client(proposal_no=proposal_no, stream=stream)
+    client = services.create_client(
+        models.ScopedClientCreate(proposal_no=proposal_no, stream=stream)
+    )
     typer.echo(client)
 
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Annotated
 
+import fastapi
 import zulip
 from pydantic.fields import ModelPrivateAttr
 from pydantic_core import PydanticUndefined
@@ -11,7 +13,9 @@ from . import models, repositories
 REPOSITORY = repositories.JSONRepository(path=Path.cwd() / "config" / "clients.json")
 
 
-def create_client(client: models.ScopedClientCreate) -> models.ScopedClient:
+def create_client(
+    client: Annotated[models.ScopedClientCreate, fastapi.Depends()]
+) -> models.ScopedClient:
     client = models.ScopedClient.model_validate(client, from_attributes=True)
     REPOSITORY.put(client)
     return client
