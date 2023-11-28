@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from zulip_write_only_proxy import models, services
+from zulip_write_only_proxy import models
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -237,10 +237,13 @@ def test_create_client_error(fastapi_client):
 
 @pytest.mark.parametrize(
     "client_type,kwargs",
-    [(models.AdminClient, {}), (models.ScopedClient, {"proposal_no": 0})],
+    [
+        (models.AdminClient, {"admin": True}),
+        (models.ScopedClient, {"proposal_no": 0, "stream": ""}),
+    ],
 )
 def test_get_me(client_type, kwargs, fastapi_client, zulip_client):
-    client = client_type.create(**kwargs)
+    client = client_type(**kwargs)
 
     with patch(
         "zulip_write_only_proxy.services.get_client",
@@ -252,3 +255,4 @@ def test_get_me(client_type, kwargs, fastapi_client, zulip_client):
         )
 
         assert response.status_code == 200
+        assert response.json() == client.model_dump(exclude="key")

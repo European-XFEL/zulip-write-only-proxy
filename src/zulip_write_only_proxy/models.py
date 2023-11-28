@@ -6,8 +6,7 @@ import secrets
 from typing import IO, Any, Union
 
 import zulip
-from pydantic import BaseModel, PrivateAttr, SecretStr, field_validator
-from typing_extensions import Self
+from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
 
 log = logging.getLogger(__name__)
 
@@ -19,28 +18,12 @@ class PropagateMode(str, enum.Enum):
 
 
 class ScopedClient(BaseModel):
-    key: SecretStr
+    key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     proposal_no: int
     stream: str
 
     _client: zulip.Client = PrivateAttr()
-
-    @classmethod
-    def create(
-        cls,
-        proposal_no: int,
-        stream: str | None = None,
-    ) -> Self:
-        self = cls(
-            key=SecretStr(secrets.token_urlsafe()),
-            proposal_no=proposal_no,
-            stream=stream or f"some-pattern-{proposal_no}",
-        )
-
-        self._client.add_subscriptions(streams=[{"name": self.stream}])
-
-        return self
 
     def upload_file(self, file: IO[Any]):
         return self._client.upload_file(file)
@@ -88,12 +71,8 @@ class ScopedClient(BaseModel):
 
 
 class AdminClient(BaseModel):
-    key: SecretStr
+    key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
     admin: bool
-
-    @classmethod
-    def create(cls) -> Self:
-        return cls(key=SecretStr(secrets.token_urlsafe()), admin=True)
 
     @field_validator("admin")
     def check_admin(cls, v: bool) -> bool:

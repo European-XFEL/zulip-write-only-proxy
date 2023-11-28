@@ -3,12 +3,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from zulip_write_only_proxy import services
-from zulip_write_only_proxy.models import AdminClient, ScopedClient
+from zulip_write_only_proxy.models import AdminClient, ScopedClient, ScopedClientCreate
 from zulip_write_only_proxy.repositories import JSONRepository
 
 
 def test_create_client(repository: JSONRepository):
-    result = services.create_client(proposal_no=3)
+    result = services.create_client(
+        ScopedClientCreate(proposal_no=1234, stream="Test Stream")
+    )
     assert isinstance(result, ScopedClient)
 
 
