@@ -57,7 +57,7 @@ def test_put_scoped_client(repository: JSONRepository):
 def test_put_admin_client(repository: JSONRepository):
     client = AdminClient(key="admin2", admin=True)  # type: ignore[arg-type]
 
-    repository.put_admin(client)
+    repository.put(client)
 
     result = repository.get(client.key.get_secret_value())
 

@@ -24,16 +24,7 @@ class JSONRepository(BaseModel):
 
             return models.ScopedClient(key=SecretStr(key), **client_data)
 
-    def put(self, client: models.ScopedClient) -> None:
-        with file_lock:
-            with self.path.open("rb") as f:
-                data: dict[str, dict] = orjson.loads(f.read())
-                data[client.key.get_secret_value()] = client.model_dump(exclude={"key"})
-
-            with self.path.open("wb") as f:
-                f.write(orjson.dumps(data, option=orjson.OPT_INDENT_2))
-
-    def put_admin(self, client: models.AdminClient) -> None:
+    def put(self, client: models.Client) -> None:
         with file_lock:
             with self.path.open("rb") as f:
                 data: dict[str, dict] = orjson.loads(f.read())
