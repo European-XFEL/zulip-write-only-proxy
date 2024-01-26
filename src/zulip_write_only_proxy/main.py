@@ -51,8 +51,8 @@ def send_message(
         f._file.name = image.filename  # type: ignore[misc, assignment]
 
         result = client.upload_file(f)
-
-        content += f"\n[]({result['uri']})"
+        if result['result'] == 'success':
+            content += f"\n\n[]({result['uri']})"
 
     return client.send_message(topic, content)
 
