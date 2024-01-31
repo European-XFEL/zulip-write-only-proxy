@@ -72,7 +72,7 @@ def test_send_message_with_image(fastapi_client, zulip_client):
         "type": "stream",
         "to": "Test Stream 1",
         "topic": "Test Topic",
-        "content": f"Test Content\n[]({zulip_response_file['uri']})",
+        "content": f"Test Content\n\n[]({zulip_response_file['uri']})",
     }
     zulip_client.send_message.assert_called_once_with(zulip_request_msg)
 
