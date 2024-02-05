@@ -3,7 +3,7 @@ from pathlib import Path
 
 import orjson
 import zulip
-from pydantic import BaseModel, SecretStr, field_validator
+from pydantic import BaseModel, SecretStr, field_validator, validate_call
 
 from . import models
 
@@ -16,11 +16,21 @@ class ZuliprcRepository(BaseModel):
     def get(self, key: str) -> zulip.Client:
         return zulip.Client(config_file=str(self.directory / f"{key}.zuliprc"))
 
-    def put(self, client: models.Bot) -> zulip.Client:
-        (self.directory / f"{client.name}.zuliprc").write_text(
-            f"[api]\nemail={client.email}\nkey={client.key}\nsite={client.site}\n"
+    @validate_call
+    def put(self, name: str, email: str, key: str, site: str) -> zulip.Client:
+        (self.directory / f"{name}.zuliprc").write_text(
+            f"""[api]
+email={email}
+key={key}
+site={site}
+"""
         )
-        return zulip.Client(config_file=str(self.directory / f"{client.name}.zuliprc"))
+        return zulip.Client(config_file=str(self.directory / f"{name}.zuliprc"))
+
+    def list(self):
+        return [
+            self.get(p.stem) for p in self.directory.iterdir() if p.suffix == ".zuliprc"
+        ]
 
 
 class ClientRepository(BaseModel):
