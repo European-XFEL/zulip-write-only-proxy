@@ -13,7 +13,7 @@ def test_file_creation():
 
         assert not path.exists()
 
-        repository = JSONRepository(path=path)
+        repository = JSONRepository(path=path, zuliprc_dir=path.parent)
 
         assert path.exists()
 
