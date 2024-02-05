@@ -9,8 +9,16 @@ from pydantic import SecretStr
 
 from . import models, mymdc, repositories
 
-CLIENT_REPO = repositories.ClientRepository(path=Path.cwd() / "config" / "clients.json")
-ZULIPRC_REPO = repositories.ZuliprcRepository(directory=Path.cwd() / "config")
+CLIENT_REPO: repositories.ClientRepository = None  # type: ignore
+ZULIPRC_REPO: repositories.ZuliprcRepository = None  # type: ignore
+
+
+def setup():
+    global CLIENT_REPO, ZULIPRC_REPO
+    CLIENT_REPO = repositories.ClientRepository(
+        path=Path.cwd() / "config" / "clients.json"
+    )
+    ZULIPRC_REPO = repositories.ZuliprcRepository(directory=Path.cwd() / "config")
 
 
 async def get_or_put_bot(

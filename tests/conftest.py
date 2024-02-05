@@ -10,7 +10,7 @@ from zulip_write_only_proxy.models import ScopedClient
 from zulip_write_only_proxy.repositories import ClientRepository, ZuliprcRepository
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def client_repo():
     with tempfile.NamedTemporaryFile(delete=False) as f:
         data = {
@@ -41,18 +41,18 @@ def client_repo():
     path.unlink()
 
 
-@pytest.fixture
-def zuliprc_repo():
-    with tempfile.NamedTemporaryFile(delete=False) as f:
-        f.write_text("[api]\nemail=email\nkey=key\nsite=site\n")
-        path = Path(f.name)
+@pytest.fixture(autouse=True)
+def zuliprc_repo(tmp_path_factory):
+    directory = tmp_path_factory.mktemp("config")
+    zuliprc = directory / "bot.zuliprc"
+    zuliprc.write_text("[api]\nemail=email\nkey=key\nsite=site\n")
 
-    zuliprc_repo = ZuliprcRepository(directory=path)
+    zuliprc_repo = ZuliprcRepository(directory=directory)
 
     with patch("zulip_write_only_proxy.services.ZULIPRC_REPO", zuliprc_repo):
         yield zuliprc_repo
 
-    path.unlink()
+    zuliprc.unlink()
 
 
 @pytest.fixture
