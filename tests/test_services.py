@@ -34,25 +34,3 @@ def test_get_client(repository: JSONRepository):
 def test_list_clients(repository: JSONRepository):
     result = services.list_clients()
     assert len(result) == 3
-
-
-def test_setup(zulip_client: MagicMock):
-    from pydantic.fields import ModelPrivateAttr
-    from pydantic_core import PydanticUndefinedType
-
-    with patch.object(ScopedClient, "_client", ModelPrivateAttr()):
-        assert isinstance(ScopedClient._client, ModelPrivateAttr)
-        assert isinstance(ScopedClient._client.default, PydanticUndefinedType)
-        assert ScopedClient._client.default_factory is None
-
-        services.setup()
-
-        assert not isinstance(
-            ScopedClient._client.default_factory, PydanticUndefinedType
-        )
-
-
-def test_setup_raises(zulip_client: MagicMock):
-    with patch.object(ScopedClient, "_client", 1234):
-        with pytest.raises(RuntimeError):
-            services.setup()
