@@ -13,7 +13,6 @@ from . import __version__, __version_tuple__, _logging, models, services
 
 @asynccontextmanager
 async def lifespan(app: fastapi.FastAPI):
-    services.setup()
     logging.getLogger("uvicorn.access").addFilter(_logging.EndpointFilter())
     yield
 
