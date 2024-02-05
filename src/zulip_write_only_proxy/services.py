@@ -5,7 +5,6 @@ from typing import Annotated
 
 import fastapi
 import zulip
-from pydantic import SecretStr
 
 from . import models, mymdc, repositories
 
@@ -41,10 +40,7 @@ async def get_or_put_bot(
                     "and key must be provided"
                 ),
             ) from e
-        bot = models.Bot(
-            name=bot_name, email=bot_email, key=SecretStr(bot_key), site=bot_site
-        )
-        client = ZULIPRC_REPO.put(bot)
+        client = ZULIPRC_REPO.put(bot_name, bot_email, bot_key, bot_site)
 
     return client
 

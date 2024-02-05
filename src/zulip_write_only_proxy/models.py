@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 import logging
 import secrets
-from typing import IO, Annotated, Any, Union
+from typing import IO, Any, Union
 
 import zulip
 from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
@@ -15,13 +15,6 @@ class PropagateMode(str, enum.Enum):
     change_one = "change_one"
     change_all = "change_all"
     change_later = "change_later"
-
-
-class Bot(BaseModel):
-    name: Annotated[str, Field(alias="bot_name")]
-    email: Annotated[str, Field(alias="bot_email")]
-    site: Annotated[str, Field(alias="bot_site")]
-    key: Annotated[SecretStr, Field(alias="bot_key")]
 
 
 class ScopedClientCreate(BaseModel):

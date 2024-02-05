@@ -2,6 +2,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from zulip_write_only_proxy.models import AdminClient, ScopedClient
 from zulip_write_only_proxy.repositories import ClientRepository
@@ -83,3 +84,46 @@ def test_list_clients(client_repo: ClientRepository):
     assert isinstance(result[2], AdminClient)
     assert result[2].key.get_secret_value() == "admin1"
     assert result[2].admin is True
+
+
+def test_bot_repository_get(zuliprc_repo):
+    result = zuliprc_repo.get("bot1")
+
+    assert result.call_args[1]["config_file"] == str(
+        zuliprc_repo.directory / "bot1.zuliprc"
+    )
+
+
+def test_bot_repository_put(zuliprc_repo, zulip_client):
+    name = "bot3"
+    key = "bot3"
+    email = "email3"
+    site = "site3"
+
+    zuliprc_repo.put(name, email, key, site)
+
+    client = zuliprc_repo.get(name)
+
+    assert client.call_args[1]["config_file"] == str(
+        zuliprc_repo.directory / f"{name}.zuliprc"
+    )
+
+    text = (zuliprc_repo.directory / f"{name}.zuliprc").read_text()
+
+    assert text == f"[api]\nemail={email}\nkey={key}\nsite={site}\n"
+
+
+@pytest.mark.parametrize("key", ["key", "email", "site"])
+def test_bot_repository_put_error(zuliprc_repo, key):
+    name = "bot3"
+    data = {
+        "name": name,
+        "key": "bot3",
+        "email": "email3",
+        "site": "site3",
+    }
+
+    data.pop(key)
+
+    with pytest.raises(ValidationError):
+        zuliprc_repo.put(**data)
