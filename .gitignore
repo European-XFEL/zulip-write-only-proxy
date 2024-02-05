@@ -1,5 +1,7 @@
+
 .env
 zuliprc
+*.zuliprc
 clients.json
 src/zulip_write_only_proxy/_version.py
 
