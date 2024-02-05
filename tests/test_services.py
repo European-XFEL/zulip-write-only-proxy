@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 from zulip_write_only_proxy import services
@@ -10,7 +8,7 @@ from zulip_write_only_proxy.repositories import JSONRepository
 @pytest.mark.asyncio
 async def test_create_client(repository: JSONRepository):
     result = await services.create_client(
-        ScopedClientCreate(proposal_no=1234, stream="Test Stream")
+        ScopedClientCreate(proposal_no=1234, stream="Test Stream"), _=None
     )
     assert isinstance(result, ScopedClient)
 
