@@ -5,16 +5,15 @@ from typing import Annotated
 
 import fastapi
 import zulip
+from pydantic import SecretStr
 
 from . import models, mymdc, repositories
 
-REPOSITORY = repositories.JSONRepository(
-    path=Path.cwd() / "config" / "clients.json",
-    zuliprc_dir=Path.cwd() / "config",
-)
+CLIENT_REPO = repositories.ClientRepository(path=Path.cwd() / "config" / "clients.json")
+ZULIPRC_REPO = repositories.ZuliprcRepository(directory=Path.cwd() / "config")
 
 
-async def create_or_load_bot(
+async def get_or_put_bot(
     proposal_no: int,
     bot_name: str | None = None,
     bot_email: str | None = None,
@@ -23,9 +22,9 @@ async def create_or_load_bot(
 ) -> zulip.Client:
     bot_name = bot_name or str(proposal_no)
 
-    zuliprc = Path.cwd() / "config" / f"{bot_name}.zuliprc"
-
-    if not zuliprc.exists():
+    try:
+        client = ZULIPRC_REPO.get(bot_name)
+    except zulip.ConfigNotFoundError as e:
         if not bot_name or not bot_key or not bot_email:
             raise fastapi.HTTPException(
                 status_code=422,
@@ -33,17 +32,18 @@ async def create_or_load_bot(
                     f"bot '{bot_name}' does not exist, to create it both the bot email "
                     "and key must be provided"
                 ),
-            )
-        zuliprc.write_text(
-            f"[api]\nemail={bot_email}\nkey={bot_key}\nsite={bot_site}\n"
+            ) from e
+        bot = models.Bot(
+            name=bot_name, email=bot_email, key=SecretStr(bot_key), site=bot_site
         )
+        client = ZULIPRC_REPO.put(bot)
 
-    return zulip.Client(config_file=str(zuliprc))
+    return client
 
 
 async def create_client(
     new_client: Annotated[models.ScopedClientCreate, fastapi.Depends()],
-    _: Annotated[models.Bot, fastapi.Depends(create_or_load_bot)],
+    _: Annotated[zulip.Client, fastapi.Depends(get_or_put_bot)],
 ) -> models.ScopedClient:
     if new_client.stream is None:
         new_client.stream = await mymdc.client.get_zulip_stream_name(
@@ -52,20 +52,25 @@ async def create_client(
 
     client = models.ScopedClient.model_validate(new_client, from_attributes=True)
 
-    REPOSITORY.put(client)
+    CLIENT_REPO.put(client)
 
     return client
 
 
 def create_admin() -> models.AdminClient:
     client = models.AdminClient(admin=True)
-    REPOSITORY.put(client)
+    CLIENT_REPO.put(client)
     return client
 
 
 def get_client(key: str) -> models.Client:
-    return REPOSITORY.get(key)
+    client = CLIENT_REPO.get(key)
+
+    if isinstance(client, models.ScopedClient):
+        client._client = ZULIPRC_REPO.get(client.bot_name)
+
+    return client
 
 
 def list_clients() -> list[models.Client]:
-    return REPOSITORY.list()
+    return CLIENT_REPO.list()
