@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 import logging
 import secrets
-from typing import IO, Any, Union
+from typing import IO, Annotated, Any, Union
 
 import zulip
 from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
@@ -17,16 +17,22 @@ class PropagateMode(str, enum.Enum):
     change_later = "change_later"
 
 
+class Bot(BaseModel):
+    name: Annotated[str, Field(alias="bot_name")]
+    email: Annotated[str, Field(alias="bot_email")]
+    key: Annotated[SecretStr, Field(alias="bot_key")]
+
+
 class ScopedClientCreate(BaseModel):
     proposal_no: int
     stream: str | None = None
+    bot_name: str | None = None
 
 
-class ScopedClient(ScopedClientCreate):
-    key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
-
+class ScopedClient(BaseModel):
     proposal_no: int
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
+    key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     _client: zulip.Client = PrivateAttr()
 
