@@ -2,6 +2,7 @@ import threading
 from pathlib import Path
 
 import orjson
+import zulip
 from pydantic import BaseModel, SecretStr, field_validator
 
 from . import models
@@ -10,9 +11,12 @@ file_lock = threading.Lock()
 
 
 class JSONRepository(BaseModel):
-    """A basic file/JSON-based repository for storing client entries."""
+    """A basic file/JSON-based repository for storing client entries.
+
+    TODO: refactor to handle zuliprc files and clients separately."""
 
     path: Path
+    zuliprc_dir: Path
 
     def get(self, key: str) -> models.Client:
         data = orjson.loads(self.path.read_bytes())
@@ -21,7 +25,11 @@ class JSONRepository(BaseModel):
         if client_data.get("admin"):
             return models.AdminClient(key=SecretStr(key), **client_data)
 
-        return models.ScopedClient(key=SecretStr(key), **client_data)
+        client = models.ScopedClient(key=SecretStr(key), **client_data)
+        client._client = zulip.Client(
+            config_file=str(self.zuliprc_dir / f"{client_data['bot_name']}.zuliprc")
+        )
+        return client
 
     def put(self, client: models.Client) -> None:
         with file_lock:

@@ -10,7 +10,10 @@ from pydantic_core import PydanticUndefined
 
 from . import models, mymdc, repositories
 
-REPOSITORY = repositories.JSONRepository(path=Path.cwd() / "config" / "clients.json")
+REPOSITORY = repositories.JSONRepository(
+    path=Path.cwd() / "config" / "clients.json",
+    zuliprc_dir=Path.cwd() / "config",
+)
 
 
 async def create_client(
