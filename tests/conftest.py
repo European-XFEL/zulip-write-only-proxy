@@ -17,10 +17,12 @@ def repository():
             "client1": {
                 "stream": "Test Stream 1",
                 "proposal_no": 1,
+                "bot_name": 1,
             },
             "client2": {
                 "stream": "Test Stream 2",
                 "proposal_no": 2,
+                "bot_name": 2,
             },
             "admin1": {
                 "admin": True,
@@ -31,7 +33,7 @@ def repository():
 
         path = Path(f.name)
 
-    repository = JSONRepository(path=path)
+    repository = JSONRepository(path=path, zuliprc_dir=path.parent)
 
     with patch("zulip_write_only_proxy.services.REPOSITORY", repository):
         yield repository
@@ -41,7 +43,9 @@ def repository():
 
 @pytest.fixture
 def scoped_client():
-    return ScopedClient(proposal_no=1234, stream="Test Stream")
+    client = ScopedClient(proposal_no=1234, stream="Test Stream")
+    client._client = MagicMock()
+    return client
 
 
 @pytest.fixture(autouse=True)
@@ -62,8 +66,6 @@ def mymdc_client():
 
 @pytest.fixture
 def fastapi_client(repository, zulip_client):
-    from zulip_write_only_proxy import main, services
-
-    services.setup()
+    from zulip_write_only_proxy import main
 
     yield TestClient(main.app, headers={"X-API-key": "client1"})
