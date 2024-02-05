@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from zulip_write_only_proxy.models import AdminClient, ScopedClient
-from zulip_write_only_proxy.repositories import JSONRepository
+from zulip_write_only_proxy.repositories import ClientRepository
 
 
 def test_file_creation():
@@ -13,60 +13,62 @@ def test_file_creation():
 
         assert not path.exists()
 
-        repository = JSONRepository(path=path, zuliprc_dir=path.parent)
+        repository = ClientRepository(path=path)
 
         assert path.exists()
 
         assert len(repository.list()) == 0
 
 
-def test_get_scoped_client(repository: JSONRepository):
-    result = repository.get("client1")
+def test_get_scoped_client(client_repo: ClientRepository):
+    result = client_repo.get("client1")
 
     assert isinstance(result, ScopedClient)
     assert result.stream == "Test Stream 1"
     assert result.proposal_no == 1
 
     with pytest.raises(KeyError):
-        repository.get("invalid")
+        client_repo.get("invalid")
 
 
-def test_get_admin_client(repository: JSONRepository):
-    result = repository.get("admin1")
+def test_get_admin_client(client_repo: ClientRepository):
+    result = client_repo.get("admin1")
 
     assert isinstance(result, AdminClient)
     assert result.admin is True
 
 
-def test_put_scoped_client(repository: JSONRepository):
+def test_put_scoped_client(client_repo: ClientRepository):
     client = ScopedClient(
         key="client3",  # type: ignore[arg-type]
         stream="Test Stream 3",
         proposal_no=3,
+        bot_name="Test Bot 3",
     )
 
-    repository.put(client)
+    client_repo.put(client)
 
-    result = repository.get(client.key.get_secret_value())
+    result = client_repo.get(client.key.get_secret_value())
 
     assert isinstance(result, ScopedClient)
     assert result.stream == "Test Stream 3"
     assert result.proposal_no == 3
+    assert result.bot_name == "Test Bot 3"
 
 
-def test_put_admin_client(repository: JSONRepository):
+def test_put_admin_client(client_repo: ClientRepository):
     client = AdminClient(key="admin2", admin=True)  # type: ignore[arg-type]
 
-    repository.put(client)
+    client_repo.put(client)
 
-    result = repository.get(client.key.get_secret_value())
+    result = client_repo.get(client.key.get_secret_value())
 
     assert isinstance(result, AdminClient)
     assert result.admin is True
 
 
-def test_list_clients(repository: JSONRepository):
-    result = repository.list()
+def test_list_clients(client_repo: ClientRepository):
+    result = client_repo.list()
 
     assert len(result) == 3
 

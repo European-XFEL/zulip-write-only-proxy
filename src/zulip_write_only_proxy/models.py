@@ -20,6 +20,7 @@ class PropagateMode(str, enum.Enum):
 class Bot(BaseModel):
     name: Annotated[str, Field(alias="bot_name")]
     email: Annotated[str, Field(alias="bot_email")]
+    site: Annotated[str, Field(alias="bot_site")]
     key: Annotated[SecretStr, Field(alias="bot_key")]
 
 
@@ -32,6 +33,7 @@ class ScopedClientCreate(BaseModel):
 class ScopedClient(BaseModel):
     proposal_no: int
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
+    bot_name: str
     key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     _client: zulip.Client = PrivateAttr()
