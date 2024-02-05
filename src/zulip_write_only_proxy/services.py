@@ -5,8 +5,6 @@ from typing import Annotated
 
 import fastapi
 import zulip
-from pydantic.fields import ModelPrivateAttr
-from pydantic_core import PydanticUndefined
 
 from . import models, mymdc, repositories
 
@@ -16,13 +14,43 @@ REPOSITORY = repositories.JSONRepository(
 )
 
 
-async def create_client(
-    client: Annotated[models.ScopedClientCreate, fastapi.Depends()]
-) -> models.ScopedClient:
-    if client.stream is None:
-        client.stream = await mymdc.client.get_zulip_stream_name(client.proposal_no)
+async def create_or_load_bot(
+    proposal_no: int,
+    bot_name: str | None = None,
+    bot_email: str | None = None,
+    bot_key: str | None = None,
+    bot_site: str = "https://euxfel-da.zulipchat.com",
+) -> zulip.Client:
+    bot_name = bot_name or str(proposal_no)
 
-    client = models.ScopedClient.model_validate(client, from_attributes=True)
+    zuliprc = Path.cwd() / "config" / f"{bot_name}.zuliprc"
+
+    if not zuliprc.exists():
+        if not bot_name or not bot_key or not bot_email:
+            raise fastapi.HTTPException(
+                status_code=422,
+                detail=(
+                    f"bot '{bot_name}' does not exist, to create it both the bot email "
+                    "and key must be provided"
+                ),
+            )
+        zuliprc.write_text(
+            f"[api]\nemail={bot_email}\nkey={bot_key}\nsite={bot_site}\n"
+        )
+
+    return zulip.Client(config_file=str(zuliprc))
+
+
+async def create_client(
+    new_client: Annotated[models.ScopedClientCreate, fastapi.Depends()],
+    _: Annotated[models.Bot, fastapi.Depends(create_or_load_bot)],
+) -> models.ScopedClient:
+    if new_client.stream is None:
+        new_client.stream = await mymdc.client.get_zulip_stream_name(
+            new_client.proposal_no
+        )
+
+    client = models.ScopedClient.model_validate(new_client, from_attributes=True)
 
     REPOSITORY.put(client)
 
@@ -41,14 +69,3 @@ def get_client(key: str) -> models.Client:
 
 def list_clients() -> list[models.Client]:
     return REPOSITORY.list()
-
-
-def setup():
-    if not isinstance(models.ScopedClient._client, ModelPrivateAttr):
-        raise RuntimeError("ScopedClient.client is not a ModelPrivateAttr")
-
-    client_default = models.ScopedClient._client.default
-
-    if client_default is None or client_default is PydanticUndefined:
-        zulip_client = zulip.Client(config_file=str(Path.cwd() / "config" / "zuliprc"))
-        models.ScopedClient._client.default_factory = lambda: zulip_client
