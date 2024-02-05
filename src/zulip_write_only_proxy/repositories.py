@@ -10,13 +10,23 @@ from . import models
 file_lock = threading.Lock()
 
 
-class JSONRepository(BaseModel):
-    """A basic file/JSON-based repository for storing client entries.
+class ZuliprcRepository(BaseModel):
+    directory: Path
 
-    TODO: refactor to handle zuliprc files and clients separately."""
+    def get(self, key: str) -> zulip.Client:
+        return zulip.Client(config_file=str(self.directory / f"{key}.zuliprc"))
+
+    def put(self, client: models.Bot) -> zulip.Client:
+        (self.directory / f"{client.name}.zuliprc").write_text(
+            f"[api]\nemail={client.email}\nkey={client.key}\nsite={client.site}\n"
+        )
+        return zulip.Client(config_file=str(self.directory / f"{client.name}.zuliprc"))
+
+
+class ClientRepository(BaseModel):
+    """A basic file/JSON-based repository for storing client entries."""
 
     path: Path
-    zuliprc_dir: Path
 
     def get(self, key: str) -> models.Client:
         data = orjson.loads(self.path.read_bytes())
@@ -25,11 +35,7 @@ class JSONRepository(BaseModel):
         if client_data.get("admin"):
             return models.AdminClient(key=SecretStr(key), **client_data)
 
-        client = models.ScopedClient(key=SecretStr(key), **client_data)
-        client._client = zulip.Client(
-            config_file=str(self.zuliprc_dir / f"{client_data['bot_name']}.zuliprc")
-        )
-        return client
+        return models.ScopedClient(key=SecretStr(key), **client_data)
 
     def put(self, client: models.Client) -> None:
         with file_lock:

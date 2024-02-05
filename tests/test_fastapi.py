@@ -206,7 +206,11 @@ def test_create_client(fastapi_client, zulip_client):
         response = fastapi_client.post(
             "/create_client",
             headers={"X-API-key": "admin1"},
-            params={"proposal_no": 1234, "stream": "Test Stream"},
+            params={
+                "proposal_no": 1234,
+                "stream": "Test Stream",
+                "bot_name": "Test Bot",
+            },
         )
 
     assert response.status_code == 200
@@ -214,6 +218,7 @@ def test_create_client(fastapi_client, zulip_client):
         "key": "exposed-secret",
         "proposal_no": 1234,
         "stream": "Test Stream",
+        "bot_name": "Test Bot",
     }
 
 
@@ -238,7 +243,7 @@ def test_create_client_mymdc_error(fastapi_client):
     "client_type,kwargs",
     [
         (models.AdminClient, {"admin": True}),
-        (models.ScopedClient, {"proposal_no": 0, "stream": "name"}),
+        (models.ScopedClient, {"proposal_no": 0, "stream": "name", "bot_name": "name"}),
     ],
 )
 def test_get_me(client_type, kwargs, fastapi_client, zulip_client):
