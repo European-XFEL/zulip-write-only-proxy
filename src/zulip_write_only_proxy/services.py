@@ -4,15 +4,16 @@ from pathlib import Path
 from typing import Annotated
 
 import fastapi
-import zulip
 
 from . import models, mymdc, repositories
 
-CLIENT_REPO: repositories.ClientRepository = None  # type: ignore
-ZULIPRC_REPO: repositories.ZuliprcRepository = None  # type: ignore
+CLIENT_REPO: repositories.ClientRepository = None  # type: ignore[assignment]
+ZULIPRC_REPO: repositories.ZuliprcRepository = None  # type: ignore[assignment]
 
 
 def setup():
+    """Set up the repositories for the services. This should be called before
+    any of the other functions in this module."""
     global CLIENT_REPO, ZULIPRC_REPO
     CLIENT_REPO = repositories.ClientRepository(
         path=Path.cwd() / "config" / "clients.json"
@@ -71,5 +72,5 @@ def get_client(key: str) -> models.Client:
     return client
 
 
-def list_clients() -> list[models.Client]:
+def list_clients() -> list[models.ScopedClient]:
     return CLIENT_REPO.list()
