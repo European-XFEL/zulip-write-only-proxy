@@ -53,22 +53,14 @@ class ClientRepository(BaseModel):
             data[client.key.get_secret_value()] = client.model_dump(exclude={"key"})
             self.path.write_bytes(orjson.dumps(data, option=orjson.OPT_INDENT_2))
 
-    def list(self) -> list[models.Client]:
+    def list(self) -> list[models.ScopedClient]:
         data = orjson.loads(self.path.read_bytes())
 
-        clients = [
+        return [
             models.ScopedClient(key=key, **value)
             for key, value in data.items()
             if not value.get("admin")
         ]
-
-        admins = [
-            models.AdminClient(key=key, **value)
-            for key, value in data.items()
-            if value.get("admin")
-        ]
-
-        return clients + admins
 
     @field_validator("path")
     @classmethod
