@@ -2,6 +2,7 @@
 
 TODO: I've copy-pasted this code across a few different projects, when/if an async HTTPX
 MyMdC client package is created this can be removed and replaced with calls to that."""
+
 import datetime as dt
 from typing import Any, AsyncGenerator
 
@@ -123,6 +124,16 @@ class MyMdCClient(httpx.AsyncClient):
             raise RuntimeError(f"stream name should be string not {type(res)=} {res=}")
 
         return res
+
+    async def get_zulip_bot_credentials(self, proposal_no: int):
+        res = await self.get(f"/api/proposals/{proposal_no}/logbook_bot")
+
+        res = res.json()
+
+        if res is None:
+            raise NoStreamForProposalError(proposal_no)
+
+        return res.get("bot_key", None), res.get("bot_email", None)
 
 
 # crappy "dependency injection"/singleton. Other modules should not instantiate their
