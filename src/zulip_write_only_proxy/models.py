@@ -21,6 +21,9 @@ class ScopedClientCreate(BaseModel):
     proposal_no: int
     stream: str | None = None
     bot_name: str | None = None
+    bot_email: str | None = None
+    bot_key: str | None = None
+    bot_site: str = "https://euxfel-da.zulipchat.com"
 
 
 class ScopedClient(BaseModel):
