@@ -1,0 +1,26 @@
+<div class="navbar">
+  <div class="flex-1">
+    <a class="btn btn-ghost text-xl" href="/">ZWOP</a>
+  </div>
+  <div
+    class="flex-none"
+    hx-target="#content"
+    hx-select="#content"
+    hx-swap="outerHTML"
+  >
+    <ul class="menu menu-horizontal px-1">
+      <li>
+        <a href="/client/list">List</a>
+      </li>
+      <li>
+        <a href="/client/create">Create</a>
+      </li>
+      <li
+        x-data="{token: $persist(), response: null, loginFail: false}"
+        hx-boost="false"
+      >
+        <a href="/" @click="token=''">Logout</a>
+      </li>
+    </ul>
+  </div>
+</div>

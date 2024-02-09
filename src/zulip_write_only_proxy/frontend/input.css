@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.flex-body {
+  @apply flex flex-col gap-4 md:gap-6 px-4 sm:px-6 md:px-8;
+}
