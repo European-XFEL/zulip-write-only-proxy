@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+<!-- Navbar -->
+{% block navbar %}
+<div class="navbar">
+  <div class="flex-1">
+    <a class="btn btn-ghost text-xl" href="/">ZWOP</a>
+  </div>
+</div>
+{% endblock %}
+
+<!-- Content -->
+{% block content %}
+<div
+  x-data="{token: $persist(), response: null, loginFail: false}"
+  class="flex-body"
+  hx-ext="response-targets,client-side-templates"
+>
+  <span class="label label-text">Admin Token:</span>
+  <input
+    type="password"
+    class="input input-bordered w-full"
+    x-model="token"
+    x-text="token"
+  />
+  <button
+    @click="(async () => {
+      response = await fetch('/me', {
+        method: 'GET',
+        headers: {'X-API-Key': token}
+      })
+      if (response.ok) {
+        htmx.on('htmx:configRequest', (e)=> {
+          e.detail.headers['X-API-Key'] = token;
+        })
+        htmx.ajax('GET', '/client/list')
+      }
+      else {
+        loginFail = true
+      }
+    })()"
+    class="btn"
+  >
+    Login
+  </button>
+
+  <template x-if="loginFail">
+    <div role="alert" class="alert alert-error">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="stroke-current shrink-0 h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <span x-text="(await response.json()).detail" />
+    </div>
+  </template>
+</div>
+{% endblock %}
