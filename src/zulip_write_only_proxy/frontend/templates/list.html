@@ -1,53 +1,42 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div hx-ext="client-side-templates">
-  <div
-    hx-get="/list_clients"
-    hx-swap="innerHTML"
-    hx-target="#rows"
-    hx-trigger="load"
-    mustache-array-template="tableTemplate"
-  >
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Proposal</th>
-        <th scope="col">Stream</th>
-        <th scope="col">Name</th>
-        <th scope="col">Key</th>
-      </tr>
-    </thead>
-    <tbody id="rows"> </tbody>
-  </table>
-  </div>
-</div>
-
-<template id="tableTemplate">
-  {% raw %}
-  {{#data}}
+{% extends 'base.html' %} {% block content %}
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Proposal</th>
+      <th scope="col">Stream</th>
+      <th scope="col">Name</th>
+      <th scope="col">Key</th>
+    </tr>
+  </thead>
+  <tbody id="rows">
+    {% for client in clients %}
     <tr class="hover">
-      <td>{{ proposal_no }}</td>
-      <td>{{ stream }}</td>
-      <td>{{ bot_name }}</td>
+      <td>{{ client.proposal_no }}</td>
+      <td>{{ client.stream }}</td>
+      <td>{{ client.bot_name }}</td>
       <td>
-        <button class="btn btn-outline ease-in-out" key="{{ key }}" onclick="copyToClipboard(this)">Copy Key</button>
+        <button
+          class="btn btn-outline ease-in-out"
+          key="{{ client.key }}"
+          onclick="copyToClipboard(this)"
+        >
+          Copy Key
+        </button>
       </td>
     </tr>
-  {{/data}}
-  {% endraw %}
-</template>
-
+    {% endfor %}
+  </tbody>
+</table>
 
 <script>
   function copyToClipboard(element) {
-    key = element.getAttribute("key")
+    let key = element.getAttribute("key");
     navigator.clipboard.writeText(key).then(() => {
       element.classList.add("btn-success");
       setTimeout(() => {
         element.classList.remove("btn-success");
       }, 2000);
-    })
+    });
   }
 </script>
 {% endblock %}

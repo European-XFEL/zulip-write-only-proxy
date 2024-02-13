@@ -1,25 +1,25 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div hx-ext="client-side-templates" class="flex-body">
+{% extends 'base.html' %} {% block content %}
 <form
   id="formCreate"
   class="flex flex-col gap-4 md:gap-6"
-  hx-disabled-elt="this"
-  hx-post="/create_client"
-  hx-target-error="#response"
+  hx-post="{{rel_url('/client/create')}}"
   hx-indicator="#spinner"
   hx-target="#response"
-  hx-swap="innerHTML"
-  mustache-template="foo"
 >
   <div>
     {% for name, field in required.items() %}
     <span class="label label-text"> {{ field['title'] }}:</span>
     <input
-      type="{{ field['type'] }}"
+      {% if field['type'] == 'integer' %}
+        type="number"
+      {% elif field['type'] == 'boolean' %}
+        type="checkbox"
+      {% else %}
+        type="text"
+      {% endif %}
       name="{{ name }}"
       class="input input-bordered w-full"
+      required
     />
     {% endfor %}
   </div>
@@ -30,9 +30,14 @@
       {% for name, field in optional.items() %}
       <div>
         <span class="label label-text">{{ field['title'] }}:</span>
-        <input type="text" name="{{ name }}" {% if field['default'] %}
-        placeholder="{{ field['default'] }}" {% endif %} class="input
-        input-bordered w-full" />
+        <input
+          type="text"
+          name="{{ name }}"
+          {% if field['default'] %}
+            placeholder="{{ field['default'] }}"
+          {% endif %}
+          class="input input-bordered w-full"
+        />
       </div>
       {% endfor %}
     </div>
@@ -43,28 +48,10 @@
   </button>
 </form>
 
-<div id="response"></div>
-</div>
-
-<template id="foo">
-{% raw %}
-{{#detail}}
-<div role="alert" class="alert alert-error">
-  <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-  <span>Error - {{detail}}</span>
-</div>
-{{/detail}}
-{{^detail}}
-<div role="alert" class="alert">
-  <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-  <span>Bot created: <button class="btn btn-outline" onclick="copyToClipboard(this)">{{key}}</button> </span>
-</div>
-{{/detail}}
-{% endraw %}
-</template>
+<div id="response" class="content-center mx-auto"></div>
 
 <script>
-  addEventListener("htmx:configRequest", (event) => {
+  document.addEventListener("htmx:configRequest", (event) => {
     if (event.target.id == "formCreate") {
       event.detail.useUrlParams = true;
       Object.keys(event.detail.parameters).forEach(
@@ -76,13 +63,13 @@
   });
 
   function copyToClipboard(element) {
-    key = element.innerText
+    let key = element.innerText;
     navigator.clipboard.writeText(key).then(() => {
       element.classList.add("btn-success");
       setTimeout(() => {
         element.classList.remove("btn-success");
       }, 2000);
-    })
+    });
   }
 </script>
 {% endblock %}

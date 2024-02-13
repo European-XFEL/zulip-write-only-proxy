@@ -1,25 +1,29 @@
-<div class="navbar">
+<div class="navbar" hx-boost="true">
   <div class="flex-1">
-    <a class="btn btn-ghost text-xl" href="/">ZWOP</a>
+    <a
+      hx-push-url="false"
+      class="btn btn-ghost text-xl"
+      href="{{request.scope.get("root_path")}}"
+      hx-swap="outerHTML"
+      >ZWOP</a
+    >
   </div>
   <div
     class="flex-none"
     hx-target="#content"
     hx-select="#content"
     hx-swap="outerHTML"
+    hx-push-url="false"
   >
     <ul class="menu menu-horizontal px-1">
       <li>
-        <a href="/client/list">List</a>
+        <a href="{{request.scope.get("root_path")}}/client/list">List</a>
       </li>
       <li>
-        <a href="/client/create">Create</a>
+  <a href="{{request.scope.get("root_path")}}/client/create">Create</a>
       </li>
-      <li
-        x-data="{token: $persist(), response: null, loginFail: false}"
-        hx-boost="false"
-      >
-        <a href="/" @click="token=''">Logout</a>
+      <li>
+  <a hx-boost="false" href="{{request.scope.get("root_path")}}/oauth/logout">Logout</a>
       </li>
     </ul>
   </div>
