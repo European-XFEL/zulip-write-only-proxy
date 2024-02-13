@@ -1,14 +1,33 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import fastapi
 from fastapi import Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from .. import exceptions, models, services
+from .. import exceptions, logger, models, services
 
-templates = Jinja2Templates(
-    directory=Path(__file__).parent.parent / "frontend" / "templates",
-)
+if TYPE_CHECKING:
+    from ..settings import Settings
+
+TEMPLATES: Jinja2Templates = None  # type: ignore[assignment]
+
+
+def configure(_: "Settings", app: fastapi.FastAPI):
+    global TEMPLATES
+    frontend_dir = Path(__file__).parent.parent / "frontend"
+
+    static_dir = frontend_dir / "static"
+    templates_dir = frontend_dir / "templates"
+
+    logger.info("Mounting static files", directory=static_dir.relative_to(Path.cwd()))
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+    logger.info(
+        "Setting Jinja2 Templates", directory=templates_dir.relative_to(Path.cwd())
+    )
+    TEMPLATES = Jinja2Templates(directory=templates_dir)
 
 
 class AuthException(exceptions.ZwopException):
@@ -35,7 +54,7 @@ async def check_auth(request: Request):
 
 
 async def auth_redirect(request: Request, exc: AuthException):
-    return templates.TemplateResponse(
+    return TEMPLATES.TemplateResponse(
         "login.html",
         {"request": request, "message": exc.detail},
         headers={
@@ -61,7 +80,7 @@ def root(request: Request):
 def client_list(request: Request):
     clients = services.list_clients()
     clients.reverse()
-    return templates.TemplateResponse(
+    return TEMPLATES.TemplateResponse(
         "list.html",
         {"request": request, "clients": clients},
         headers={
@@ -77,7 +96,7 @@ def client_create(request: Request):
     schema = models.ScopedClientCreate.model_json_schema()
     optional = schema["properties"]
     required = {field: optional.pop(field) for field in schema["required"]}
-    return templates.TemplateResponse(
+    return TEMPLATES.TemplateResponse(
         "create.html",
         {"request": request, "required": required, "optional": optional},
     )
@@ -87,14 +106,14 @@ def client_create(request: Request):
 async def client_create_post(request: Request):
     user = request.session.get("user", {})
     try:
-        new_client = models.ScopedClientCreate(**request.query_params)  # type: ignore
+        new_client = models.ScopedClientCreate(**request.query_params)  # type: ignore[arg-type]
         client = await services.create_client(
             new_client, created_by=user.get("email", "none")
         )
         dump = client.model_dump()
         dump["key"] = client.key.get_secret_value()
         bot = services.get_bot(client.bot_name)
-        return templates.TemplateResponse(
+        return TEMPLATES.TemplateResponse(
             "fragments/create-success.html",
             {
                 "request": request,
@@ -103,7 +122,7 @@ async def client_create_post(request: Request):
             },
         )
     except Exception as e:
-        return templates.TemplateResponse(
+        return TEMPLATES.TemplateResponse(
             "fragments/alert-error.html",
             {"request": request, "message": e.__repr__()},
         )
