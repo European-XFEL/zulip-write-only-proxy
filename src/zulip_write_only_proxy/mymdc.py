@@ -4,30 +4,10 @@ TODO: I've copy-pasted this code across a few different projects, when/if an asy
 MyMdC client package is created this can be removed and replaced with calls to that."""
 
 import datetime as dt
-from typing import Any, AsyncGenerator
+from typing import TYPE_CHECKING, Any, AsyncGenerator
 
 import httpx
-from pydantic import HttpUrl, SecretStr, ValidationError
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from zulip_write_only_proxy.exceptions import ZwopException
-
-
-class MyMdCCredentials(BaseSettings):
-    """MyMdC Credentials. Read from `MYMDC_{key}` environment variables/`.env` file.
-
-    Get from from <https://in.xfel.eu/metadata/oauth/applications>.
-    """
-
-    id: str
-    secret: SecretStr
-    email: str
-    token_url: HttpUrl
-
-    _access_token: str = ""
-    _expires_at: dt.datetime = dt.datetime.fromisocalendar(1970, 1, 1)
-
-    model_config = SettingsConfigDict(env_prefix="mymdc_", env_file=[".env"])
 
 
 class MyMdCAuth(httpx.Auth, MyMdCCredentials):
