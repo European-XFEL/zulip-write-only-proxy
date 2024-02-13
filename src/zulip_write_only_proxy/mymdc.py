@@ -21,6 +21,7 @@ CLIENT: "MyMdCClient" = None  # type: ignore[assignment]
 
 def configure(settings: Settings, _: "FastAPI"):
     global CLIENT
+    logger.info("Configuring MyMdC client", settings=settings.mymdc)
     auth = MyMdCAuth.model_validate(settings.mymdc, from_attributes=True)
     CLIENT = MyMdCClient(auth=auth)
 
@@ -32,8 +33,17 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
 
         Token data stored under `_access_token` and `_expires_at`.
         """
-        if self._access_token and self._expires_at >= dt.datetime.now():
+        expired = self._expires_at <= dt.datetime.now()
+        if self._access_token and not expired:
+            logger.debug("Reusing existing MyMdC token", expires_at=self._expires_at)
             return self._access_token
+
+        logger.info(
+            "Requesting new MyMdC token",
+            access_token_none=not self._access_token,
+            expires_at=self._expires_at,
+            expired=expired,
+        )
 
         async with httpx.AsyncClient() as client:
             data = {
@@ -48,16 +58,21 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
         data = response.json()
 
         if any(k not in data for k in ["access_token", "expires_in"]):
-            print(
+            logger.critical(
                 "Response from MyMdC missing required fields, check webservice `user-id`"
-                f"and `user-secret`. Response: {data=}",
+                "and `user-secret`.",
+                response=response.text,
+                status_code=response.status_code,
             )
-            raise ValueError("Invalid response from MyMdC")
+            raise ValueError(
+                "Invalid response from MyMdC"
+            )  # TODO: custom exception, frontend feedback
 
         expires_in = dt.timedelta(seconds=data["expires_in"])
         self._access_token = data["access_token"]
         self._expires_at = dt.datetime.now() + expires_in
 
+        logger.info("Acquired new MyMdC token", expires_at=self._expires_at)
         return self._access_token
 
     async def async_auth_flow(
@@ -121,9 +136,7 @@ class MyMdCClient(httpx.AsyncClient):
         return res
 
     async def get_zulip_bot_credentials(self, proposal_no: int):
-        res = await self.get(f"/api/proposals/{proposal_no}/logbook_bot")
-
-        res = res.json()
+        res = (await self.get(f"/api/proposals/{proposal_no}/logbook_bot")).json()
 
         if res is None:
             raise NoStreamForProposalError(proposal_no)
