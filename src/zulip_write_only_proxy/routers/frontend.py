@@ -1,0 +1,109 @@
+from pathlib import Path
+
+import fastapi
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+
+from .. import exceptions, models, services
+
+templates = Jinja2Templates(
+    directory=Path(__file__).parent.parent / "frontend" / "templates",
+)
+
+
+class AuthException(exceptions.ZwopException):
+    pass
+
+
+async def check_auth(request: Request):
+    user = request.session.get("user")
+    if not user:
+        raise AuthException(
+            status_code=401,
+            detail=(
+                "Unauthorized - no authentication provided"
+                if request.url.path != "/"
+                else ""
+            ),
+        )
+
+    if "da" not in user.get("groups", []):
+        raise AuthException(
+            status_code=403,
+            detail=f"Forbidden - user `{user.get('preferred_username')}` not allowed access",
+        )
+
+
+async def auth_redirect(request: Request, exc: AuthException):
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "message": exc.detail},
+        headers={
+            "HX-Retarget": "#content",
+            "HX-Reselect": "#content",
+            "HX-Swap": "outerHTML",
+        },
+        status_code=exc.status_code,
+    )
+
+
+router = fastapi.APIRouter(
+    dependencies=[fastapi.Depends(check_auth)], include_in_schema=False
+)
+
+
+@router.get("/")
+def root(request: Request):
+    return client_list(request)
+
+
+@router.get("/client/list")
+def client_list(request: Request):
+    clients = services.list_clients()
+    clients.reverse()
+    return templates.TemplateResponse(
+        "list.html",
+        {"request": request, "clients": clients},
+        headers={
+            "HX-Retarget": "#content",
+            "HX-Reselect": "#content",
+            "HX-Swap": "outerHTML",
+        },
+    )
+
+
+@router.get("/client/create")
+def client_create(request: Request):
+    schema = models.ScopedClientCreate.model_json_schema()
+    optional = schema["properties"]
+    required = {field: optional.pop(field) for field in schema["required"]}
+    return templates.TemplateResponse(
+        "create.html",
+        {"request": request, "required": required, "optional": optional},
+    )
+
+
+@router.post("/client/create")
+async def client_create_post(request: Request):
+    user = request.session.get("user", {})
+    try:
+        new_client = models.ScopedClientCreate(**request.query_params)  # type: ignore
+        client = await services.create_client(
+            new_client, created_by=user.get("email", "none")
+        )
+        dump = client.model_dump()
+        dump["key"] = client.key.get_secret_value()
+        bot = services.get_bot(client.bot_name)
+        return templates.TemplateResponse(
+            "fragments/create-success.html",
+            {
+                "request": request,
+                "client": models.ScopedClientWithKey(**dump),
+                "bot_url": bot.base_url,
+            },
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "fragments/alert-error.html",
+            {"request": request, "message": e.__repr__()},
+        )
