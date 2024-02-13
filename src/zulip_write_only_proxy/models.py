@@ -82,16 +82,3 @@ class ScopedClient(BaseModel):
 class ScopedClientWithKey(ScopedClient):
     key: str  # type: ignore[assignment]
 
-
-class AdminClient(BaseModel):
-    key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
-    admin: bool
-
-    @field_validator("admin")
-    def check_admin(cls, v: bool) -> bool:
-        if not v:
-            raise ValueError("Admin client must be admin")
-        return v
-
-
-Client = Union[ScopedClient, AdminClient]
