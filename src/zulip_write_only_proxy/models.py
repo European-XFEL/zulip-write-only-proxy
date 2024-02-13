@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import datetime
 import enum
 import logging
 import secrets
-from typing import IO, Any, Union
+from typing import IO, Any
 
 import zulip
 from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
@@ -23,7 +24,7 @@ class ScopedClientCreate(BaseModel):
     bot_name: str | None = None
     bot_email: str | None = None
     bot_key: str | None = None
-    bot_site: str = "https://euxfel-da.zulipchat.com"
+    bot_site: str = "https://mylog.connect.xfel.eu/"
 
 
 class ScopedClient(BaseModel):
@@ -31,6 +32,9 @@ class ScopedClient(BaseModel):
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
     bot_name: str
     key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
+
+    created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
+    created_by: str
 
     _client: zulip.Client = PrivateAttr()
 
@@ -82,3 +86,6 @@ class ScopedClient(BaseModel):
 class ScopedClientWithKey(ScopedClient):
     key: str  # type: ignore[assignment]
 
+    @field_validator("key")
+    def _set_key(cls, v: str | SecretStr) -> str:
+        return v.get_secret_value() if isinstance(v, SecretStr) else v
