@@ -1,38 +1,33 @@
-<!doctype html>
-<html lang="en" data-theme="light">
+{% macro rel_url(url, prefix=request.scope.get("root_path")) -%} {# Add prefix
+to relative URLs when behind proxy #} {{[prefix, url] | join('/') |
+replace('//', '/')}} {%- endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <title>ZWOP</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="/static/main.css" rel="stylesheet" type="text/css" />
-    <script defer src="/static/htmx.min.js"></script>
-    <script
-      defer
-      src="https://unpkg.com/htmx.org/dist/ext/alpine-morph.js"
-    ></script>
-    <script defer src="/static/client-side-templates.js"></script>
-    <script defer src="/static/mustache.js"></script>
-    <script defer src="/static/response-targets.js"></script>
-    <script defer src="/static/path-params.js"></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"
-    ></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-    ></script>
-    <meta
-      name="htmx-config"
-      content='{"defaultSwapStyle":"outerHTML", "globalViewTransitions":true, "methodsThatUseUrlParams": ["post"]}'
+    <link
+      href="{{rel_url('/static/main.css')}}"
+      rel="stylesheet"
+      type="text/css"
     />
+    <script defer src="{{rel_url('/static/htmx.min.js')}}"></script>
+    <meta name="htmx-config" content='{"methodsThatUseUrlParams": ["post"]}' />
   </head>
-  <body
-    class="max-w-screen-md mx-auto"
-    hx-boost="true"
-    hx-headers="js:{'X-API-Key': localStorage.getItem('_x_token').slice(1, -1)}"
-  >
+  <body class="max-w-screen-lg mx-auto">
     {% block navbar %} {% include 'fragments/navbar.html' %} {% endblock %}
-    <div id="content">{% block content required %} {% endblock %}</div>
+    <div id="content" class="flex flex-col gap-4 md:gap-6 px-4 sm:px-6 md:px-8">
+      {% block content %} {% endblock %}
+    </div>
+    <script>
+      document.body.addEventListener("htmx:beforeOnLoad", function (evt) {
+        if ([403, 401].includes(evt.detail.xhr.status)) {
+          evt.detail.shouldSwap = true;
+          evt.detail.isError = false;
+        }
+      });
+    </script>
   </body>
 </html>
