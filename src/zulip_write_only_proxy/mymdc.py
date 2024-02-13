@@ -8,6 +8,21 @@ from typing import TYPE_CHECKING, Any, AsyncGenerator
 
 import httpx
 
+from . import logger
+from .exceptions import ZwopException
+from .settings import MyMdCCredentials, Settings
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI
+
+
+CLIENT: "MyMdCClient" = None  # type: ignore[assignment]
+
+
+def configure(settings: Settings, _: "FastAPI"):
+    global CLIENT
+    auth = MyMdCAuth.model_validate(settings.mymdc, from_attributes=True)
+    CLIENT = MyMdCClient(auth=auth)
 
 
 class MyMdCAuth(httpx.Auth, MyMdCCredentials):
@@ -117,13 +132,3 @@ class MyMdCClient(httpx.AsyncClient):
             raise NoStreamForProposalError(proposal_no)
 
         return res.get("bot_key", None), res.get("bot_email", None)
-
-
-# crappy "dependency injection"/singleton. Other modules should not instantiate their
-# own client and should instead import this client instance.
-try:
-    client = MyMdCClient()
-    """Singleton instance of the MyMdC client."""
-except ValidationError as e:
-    print(e)  # TODO: better logging
-    client = None  # type: ignore[assignment]
