@@ -57,13 +57,7 @@ async def create_client(
     return client
 
 
-def create_admin() -> models.AdminClient:
-    client = models.AdminClient(admin=True)
-    CLIENT_REPO.put(client)
-    return client
-
-
-def get_client(key: str) -> models.Client:
+def get_client(key: str) -> models.ScopedClient:
     client = CLIENT_REPO.get(key)
 
     if isinstance(client, models.ScopedClient):
@@ -72,5 +66,5 @@ def get_client(key: str) -> models.Client:
     return client
 
 
-def list_clients() -> list[models.ScopedClient]:
+def list_clients() -> list[models.ScopedClientWithKey]:
     return CLIENT_REPO.list()
