@@ -1,42 +1,43 @@
-{% extends 'base.html' %} {% block content %}
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">Proposal</th>
-      <th scope="col">Stream</th>
-      <th scope="col">Name</th>
-      <th scope="col">Key</th>
-    </tr>
-  </thead>
-  <tbody id="rows">
-    {% for client in clients %}
-    <tr class="hover">
-      <td>{{ client.proposal_no }}</td>
-      <td>{{ client.stream }}</td>
-      <td>{{ client.bot_name }}</td>
-      <td>
-        <button
-          class="btn btn-outline ease-in-out"
-          key="{{ client.key }}"
-          onclick="copyToClipboard(this)"
-        >
-          Copy Key
-        </button>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{% extends 'base.html' %}
+{% block content %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Proposal</th>
+        <th scope="col">Stream</th>
+        <th scope="col">Name</th>
+        <th scope="col">Key</th>
+      </tr>
+    </thead>
+    <tbody id="rows">
+      {% for client in clients %}
+        <tr class="hover">
+          <td>{{ client.proposal_no }}</td>
+          <td>{{ client.stream }}</td>
+          <td>{{ client.bot_name }}</td>
+          <td>
+            <button
+              class="btn btn-outline ease-in-out"
+              key="{{ client.key }}"
+              onclick="copyToClipboard(this)"
+            >
+              Copy Key
+            </button>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-<script>
-  function copyToClipboard(element) {
-    let key = element.getAttribute("key");
-    navigator.clipboard.writeText(key).then(() => {
-      element.classList.add("btn-success");
-      setTimeout(() => {
-        element.classList.remove("btn-success");
-      }, 2000);
-    });
-  }
-</script>
+  <script>
+    function copyToClipboard(element) {
+      let key = element.getAttribute("key");
+      navigator.clipboard.writeText(key).then(() => {
+        element.classList.add("btn-success");
+        setTimeout(() => {
+          element.classList.remove("btn-success");
+        }, 2000);
+      });
+    }
+  </script>
 {% endblock %}

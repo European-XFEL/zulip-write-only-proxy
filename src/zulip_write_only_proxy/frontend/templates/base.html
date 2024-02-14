@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <title>ZWOP</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
-      href="{{url_for('static', path='/main.css')}}"
+      href="{{ url_for('static', path='/main.css') }}"
       rel="stylesheet"
       type="text/css"
     />
-    <script defer src="{{url_for('static', path='/htmx.min.js')}}"></script>
+    <script defer src="{{ url_for('static', path='/htmx.min.js') }}"></script>
     <meta name="htmx-config" content='{"methodsThatUseUrlParams": ["post"]}' />
   </head>
 
-  <body class="max-w-screen-lg mx-auto">
-    {% block navbar %} {% include 'fragments/navbar.html' %} {% endblock %}
-    <div id="content" class="flex flex-col gap-4 md:gap-6 px-4 sm:px-6 md:px-8">
-      {% block content %} {% endblock %}
+  <body class="mx-auto max-w-screen-lg">
+    {% block navbar %}{% include 'fragments/navbar.html' %}{% endblock %}
+    <div id="content" class="flex flex-col gap-4 px-4 sm:px-6 md:gap-6 md:px-8">
+      {% block content %}{% endblock %}
     </div>
     <script>
       document.body.addEventListener("htmx:beforeOnLoad", function (evt) {
