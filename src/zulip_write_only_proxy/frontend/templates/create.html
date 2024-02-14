@@ -2,7 +2,7 @@
 <form
   id="formCreate"
   class="flex flex-col gap-4 md:gap-6"
-  hx-post="{{rel_url('/client/create')}}"
+  hx-post="{{url_for('client/create')}}"
   hx-indicator="#spinner"
   hx-target="#response"
 >
