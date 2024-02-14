@@ -2,5 +2,5 @@
 
 <!-- Content -->
 {% block content %}
-<a hx-boost="false" class="btn" href="{{rel_url('oauth')}}">Login</a>
+<a hx-boost="false" class="btn" href="{{request.root_path + '/oauth'}}">Login</a>
 {% endblock %}
