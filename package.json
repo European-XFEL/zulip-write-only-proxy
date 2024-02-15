@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "daisyui": "^4.6.2",
+    "htmx.org": "^1.9.10",
+    "tailwindcss": "^3.4.1"
+  }
+}
