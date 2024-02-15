@@ -35,6 +35,7 @@ poethepoet = "^0.21.1"
 commitizen = "^3.6.0"
 types-colorama = "^0.4.15.20240205"
 rich = "^13.7.0"
+debugpy = "^1.8.1"
 
 [tool.poetry.group.lint.dependencies]
 ruff = "^0.1.0"
@@ -46,16 +47,18 @@ black = "^23.7.0"
 line-length = 88
 target-version = ["py311", "py312"]
 
+[tool.poe.tasks.dev]
+shell = """
+if [ -z ${debug} ]; then
+  python3 -Xfrozen_modules=off -m debugpy --listen 5678 -m zulip_write_only_proxy.main
+else
+  python3 -m zulip_write_only_proxy.main
+fi
+"""
+args = { debug = { default = "false", type = "boolean" } }
 
 [tool.poe.tasks]
-update-static = [
-  { cwd = "./src/zulip_write_only_proxy/frontend", cmd = "cp ./node_modules/htmx.org/dist/htmx.min.js ./static/htmx.min.js" },
-  { cwd = "./src/zulip_write_only_proxy/frontend", cmd = "pnpx tailwindcss -i ./input.css -o ./static/main.css" },
-]
-
-serve = { cmd = "python3 -m zulip_write_only_proxy.main" }
-dev = ["update-static", "serve --reload"]
-prod = ["serve --host 0.0.0.0"]
+prod = { shell = "python3 -m zulip_write_only_proxy.main", env = { ZWOP_LOG_LEVEL = "info", ZWOP_DEBUG = "False" } }
 
 test = "python3 -m pytest --cov=zulip_write_only_proxy --cov-report=term-missing --cov-report xml --cov-branch"
 
@@ -63,14 +66,14 @@ mypy = "mypy ./src ./tests"
 pyright = "pyright ./src ./tests"
 
 lint = { sequence = [
-  "ruff check ./src ./tests",
-  "mypy",
-  "pyright",
+  { cmd = "ruff check ./src ./tests" },
+  { ref = "mypy" },
+  { ref = "pyright" },
 ], ignore_fail = "return_non_zero" }
 
 format = { sequence = [
-  "ruff check ./src ./tests --fix",
-  "ruff format ./src ./tests",
+  { cmd = "ruff check ./src ./tests --fix" },
+  { cmd = "ruff format ./src ./tests" },
 ], ignore_fail = "return_non_zero" }
 
 [tool.coverage.run]

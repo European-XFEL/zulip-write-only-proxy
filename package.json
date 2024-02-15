@@ -1,7 +1,11 @@
 {
   "dependencies": {
     "daisyui": "^4.6.2",
-    "htmx.org": "^1.9.10",
     "tailwindcss": "^3.4.1"
+  },
+  "scripts": {
+    "htmx": "cd  src/zulip_write_only_proxy/frontend/static/; wget -N https://unpkg.com/browse/htmx.org@1.9.10/dist/htmx.js; wget -N https://unpkg.com/browse/htmx.org@1.9.10/dist/htmx.min.js",
+    "build": "tailwindcss -o src/zulip_write_only_proxy/frontend/static/main.css",
+    "watch": "tailwindcss -o src/zulip_write_only_proxy/frontend/static/main.css --watch"
   }
 }

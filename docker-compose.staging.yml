@@ -15,6 +15,7 @@ services:
       traefik.http.routers.zwop.entryPoints: https
       traefik.http.routers.zwop.rule: PathPrefix(`/zwop-staging`)
       traefik.http.middlewares.zwop-strip-prefix.stripprefix.prefixes: /zwop-staging
+      traefik.docker.network: proxy
     command: !reset null
 
   traefik: !reset null

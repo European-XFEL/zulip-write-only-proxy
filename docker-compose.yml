@@ -6,17 +6,17 @@ services:
     volumes:
       - ./config:/app/config
     environment:
-      - ZWOP_ADDRESS=http://0.0.0.0:8000
+      ZWOP_ADDRESS: http://0.0.0.0:8000
+      ZWOP_PROXY_ROOT: /zwop
     env_file:
       - .env
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy"
-      - "traefik.http.middlewares.zwop.stripprefix.forceSlash=false"
-      - "traefik.http.middlewares.zwop.stripprefix.prefixes=${ZWOP_PROXY_ROOT:?error}"
-      - "traefik.http.routers.zwop.middlewares=zwop"
-      - "traefik.http.routers.zwop.rule=PathPrefix(`${ZWOP_PROXY_ROOT:?error}`)"
-      - "traefik.http.services.zwop.loadbalancer.server.port=8000"
+      traefik.enable: true
+      traefik.http.middlewares.zwop-dev.stripprefix.forceSlash: false
+      traefik.http.middlewares.zwop-dev.stripprefix.prefixes: /zwop
+      traefik.http.routers.zwop-dev.middlewares: zwop-dev
+      traefik.http.routers.zwop-dev.rule: PathPrefix(`/zwop`)
+      traefik.http.services.zwop-dev.loadbalancer.server.port: 8000
     develop:
       watch:
         - action: sync
@@ -24,6 +24,9 @@ services:
           target: /app/src/zulip_write_only_proxy
           ignore:
             - node_modules/
+        - action: sync+restart
+          path: ./docker-compose.yml
+          target: /app/docker-compose.yml
     ports:
       - 5678:5678
     command: [
@@ -42,9 +45,8 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:8000"
-      - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32"
     ports:
-      - "8000:8000"
-      - "8080:8080"
+      - 8000:8000
+      - 8080:8080
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"

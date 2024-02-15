@@ -15,6 +15,7 @@ services:
       traefik.http.routers.zwop.entryPoints: https
       traefik.http.routers.zwop.rule: PathPrefix(`/zwop`)
       traefik.http.middlewares.zwop-strip-prefix.stripprefix.prefixes: /zwop
+      traefik.docker.network: proxy
     command: !reset null
     deploy:
       update_config:

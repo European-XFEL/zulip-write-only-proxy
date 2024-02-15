@@ -8,9 +8,6 @@ dependencies:
   daisyui:
     specifier: ^4.6.2
     version: 4.7.2(postcss@8.4.35)
-  htmx.org:
-    specifier: ^1.9.10
-    version: 1.9.10
   tailwindcss:
     specifier: ^3.4.1
     version: 3.4.1
@@ -326,10 +323,6 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
-    dev: false
-
-  /htmx.org@1.9.10:
-    resolution: {integrity: sha512-UgchasltTCrTuU2DQLom3ohHrBvwr7OqpwyAVJ9VxtNBng4XKkVsqrv0Qr3srqvM9ZNI3f1MmvVQQqK7KW/bTA==}
     dev: false
 
   /is-binary-path@2.1.0:
