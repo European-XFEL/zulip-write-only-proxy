@@ -38,4 +38,5 @@ RUN --mount=type=cache,target=/root/.cache poetry install
 
 EXPOSE 8000
 
-HEALTHCHECK CMD curl --fail http://localhost:8000/health || exit 1
+HEALTHCHECK --start-interval=1s --start-period=30s --interval=60s \
+  CMD curl --fail http://localhost:8000/api/health || exit 1
