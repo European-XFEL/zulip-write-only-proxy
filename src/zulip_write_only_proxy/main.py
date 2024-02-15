@@ -52,21 +52,18 @@ if __name__ == "__main__":
     logger.info(
         "Starting uvicorn",
         app=f"{__package__}.main:app",
-        port=settings.address.port or 8000,
-        log_level=settings.log_level,
         host=settings.address.host or "127.0.0.1",
-        proxy_headers=True,
-        reload=False,
-        root_path=settings.proxy_root_path,
+        port=settings.address.port or 8000,
+        reload=settings.debug,
+        log_level=settings.log_level,
+        root_path=settings.proxy_root,
     )
 
     uvicorn.run(
         app=f"{__package__}.main:app",
-        port=settings.address.port or 8000,
-        log_level=settings.log_level,
         host=settings.address.host or "127.0.0.1",
-        proxy_headers=True,
-        # reload=settings.debug,
-        reload=False,
-        root_path=settings.proxy_root_path,
+        port=settings.address.port or 8000,
+        reload=settings.debug,
+        log_level=settings.log_level,
+        root_path=settings.proxy_root,
     )
