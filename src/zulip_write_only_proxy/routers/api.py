@@ -68,9 +68,7 @@ def update_message(
     content: Annotated[str | None, fastapi.Body(media_type="text/plain")] = None,
     topic: Annotated[str | None, fastapi.Query()] = None,
 ):
-    if content or topic:
-        return client.update_message(topic, content, message_id, propagate_mode)
-    else:
+    if not (content or topic):
         raise fastapi.HTTPException(
             status_code=400,
             detail=(
@@ -78,6 +76,7 @@ def update_message(
                 "must be provided"
             ),
         )
+    return client.update_message(topic, content, message_id, propagate_mode)
 
 
 _docs_url = "https://zulip.com/api/upload-file#response"

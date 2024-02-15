@@ -2,16 +2,15 @@ from __future__ import annotations
 
 import datetime
 import enum
-import logging
 import secrets
 from typing import IO, TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
 
+from zulip_write_only_proxy import logger
+
 if TYPE_CHECKING:
     import zulip
-
-log = logging.getLogger(__name__)
 
 
 class PropagateMode(str, enum.Enum):
@@ -46,9 +45,10 @@ class ScopedClient(BaseModel):
     def get_stream_topics(self):
         stream = self._client.get_stream_id(self.stream)
         if stream["result"] != "success":
-            log.error(
-                f"failed to get stream id for {self.stream}, "
-                f"zulip api response: {stream}"
+            logger.error(
+                "Failed to get stream id",
+                stream=self.stream,
+                response=stream,
             )
             return stream
         stream_id = stream["stream_id"]
@@ -89,5 +89,5 @@ class ScopedClientWithKey(ScopedClient):
     key: str  # type: ignore[assignment]
 
     @field_validator("key")
-    def _set_key(cls, v: str | SecretStr) -> str:
+    def _set_key(self, v: str | SecretStr) -> str:
         return v.get_secret_value() if isinstance(v, SecretStr) else v

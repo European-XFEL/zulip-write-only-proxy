@@ -33,7 +33,7 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
 
         Token data stored under `_access_token` and `_expires_at`.
         """
-        expired = self._expires_at <= dt.datetime.now()
+        expired = self._expires_at <= dt.datetime.now(tz=dt.timezone.utc)
         if self._access_token and not expired:
             logger.debug("Reusing existing MyMdC token", expires_at=self._expires_at)
             return self._access_token
@@ -59,19 +59,17 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
 
         if any(k not in data for k in ["access_token", "expires_in"]):
             logger.critical(
-                "Response from MyMdC missing required fields, check webservice `user-id`"
-                "and `user-secret`.",
+                "Response from MyMdC missing required fields, check webservice "
+                "`user-id` and `user-secret`.",
                 response=response.text,
                 status_code=response.status_code,
             )
             msg = "Invalid response from MyMdC"
-            raise ValueError(
-                msg
-            )  # TODO: custom exception, frontend feedback
+            raise ValueError(msg)  # TODO: custom exception, frontend feedback
 
         expires_in = dt.timedelta(seconds=data["expires_in"])
         self._access_token = data["access_token"]
-        self._expires_at = dt.datetime.now() + expires_in
+        self._expires_at = dt.datetime.now(tz=dt.timezone.utc) + expires_in
 
         logger.info("Acquired new MyMdC token", expires_at=self._expires_at)
         return self._access_token
