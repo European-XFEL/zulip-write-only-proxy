@@ -64,8 +64,9 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
                 response=response.text,
                 status_code=response.status_code,
             )
+            msg = "Invalid response from MyMdC"
             raise ValueError(
-                "Invalid response from MyMdC"
+                msg
             )  # TODO: custom exception, frontend feedback
 
         expires_in = dt.timedelta(seconds=data["expires_in"])
@@ -134,7 +135,8 @@ class MyMdCClient(httpx.AsyncClient):
             raise NoStreamForProposalError(proposal_no)
 
         if not isinstance(res, str):
-            raise RuntimeError(f"stream name should be string not {type(res)=} {res=}")
+            msg = f"stream name should be string not {type(res)=} {res=}"
+            raise RuntimeError(msg)
 
         return res
 

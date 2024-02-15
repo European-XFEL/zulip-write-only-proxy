@@ -55,7 +55,7 @@ def zuliprc_repo(tmp_path_factory):
     zuliprc.unlink()
 
 
-@pytest.fixture
+@pytest.fixture()
 def scoped_client():
     client = ScopedClient(proposal_no=1234, stream="Test Stream", bot_name="Test Bot")
     client._client = MagicMock()
@@ -79,8 +79,8 @@ def mymdc_client():
         yield mock_class
 
 
-@pytest.fixture
+@pytest.fixture()
 def fastapi_client(client_repo, zulip_client):
     from zulip_write_only_proxy import main
 
-    yield TestClient(main.app, headers={"X-API-key": "client1"})
+    return TestClient(main.app, headers={"X-API-key": "client1"})

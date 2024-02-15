@@ -4,10 +4,12 @@ import datetime
 import enum
 import logging
 import secrets
-from typing import IO, Any
+from typing import IO, TYPE_CHECKING, Any
 
-import zulip
 from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
+
+if TYPE_CHECKING:
+    import zulip
 
 log = logging.getLogger(__name__)
 
