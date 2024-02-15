@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     debug: bool = True
     address: AnyUrl = AnyUrl("http://127.0.0.1:8000")
     log_level: str = "debug"
-    proxy_root_path: str = ""
+    proxy_root: str = ""
     session_secret: SecretStr
     config_dir: DirectoryPath = Path(__file__).parent.parent.parent / "config"
 
