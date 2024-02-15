@@ -1,25 +1,50 @@
 version: "3.8"
 
 services:
-
   zwop:
-    image: ${IMAGE:-ghcr.io/european-xfel/zulip-write-only-proxy}:${TAG:?error}
-    deploy:
-      update_config:
-        parallelism: 1
-        delay: 10s
-        failure_action: rollback
-        order: start-first
-        monitor: 5s
-        max_failure_ratio: 0
+    build: .
     volumes:
       - ./config:/app/config
-
-  nginx:
-    image: nginx:1.25.1
+    environment:
+      - ZWOP_ADDRESS=http://0.0.0.0:8000
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.middlewares.zwop.stripprefix.forceSlash=false"
+      - "traefik.http.middlewares.zwop.stripprefix.prefixes=${ZWOP_PROXY_ROOT:?error}"
+      - "traefik.http.routers.zwop.middlewares=zwop"
+      - "traefik.http.routers.zwop.rule=PathPrefix(`${ZWOP_PROXY_ROOT:?error}`)"
+      - "traefik.http.services.zwop.loadbalancer.server.port=8000"
+    develop:
+      watch:
+        - action: sync
+          path: ./src/zulip_write_only_proxy
+          target: /app/src/zulip_write_only_proxy
+          ignore:
+            - node_modules/
     ports:
-      - ${PORT:?err}:80
+      - 5678:5678
+    command: [
+        "sh",
+        "-c",
+        "python3 -m pip install debugpy &&
+        python3 -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678
+        -m zulip_write_only_proxy.main",
+      ]
+
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:8000"
+      - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32"
+    ports:
+      - "8000:8000"
+      - "8080:8080"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
