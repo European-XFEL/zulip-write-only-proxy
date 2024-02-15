@@ -222,7 +222,7 @@ def test_create_client(fastapi_client, zulip_client):
     }
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 def test_create_client_mymdc_error(fastapi_client):
     with patch(
         "zulip_write_only_proxy.mymdc.client.get_zulip_stream_name",
@@ -240,7 +240,7 @@ def test_create_client_mymdc_error(fastapi_client):
 
 
 @pytest.mark.parametrize(
-    "client_type,kwargs",
+    ("client_type", "kwargs"),
     [
         (models.AdminClient, {"admin": True}),
         (models.ScopedClient, {"proposal_no": 0, "stream": "name", "bot_name": "name"}),

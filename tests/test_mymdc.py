@@ -12,7 +12,7 @@ from zulip_write_only_proxy.mymdc import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mymdc_auth():
     return MyMdCAuth(
         id="test_id",
@@ -22,12 +22,12 @@ def mymdc_auth():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mymdc_client(mymdc_auth):
     return MyMdCClient(auth=mymdc_auth)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_acquire_token(mymdc_auth):
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value.json = Mock(
@@ -49,7 +49,7 @@ async def test_acquire_token(mymdc_auth):
         mock_post.assert_called_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_async_auth_flow(mymdc_auth):
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value.json = Mock(
@@ -65,7 +65,7 @@ async def test_async_auth_flow(mymdc_auth):
             assert req.headers["X-User-Email"] == "test_email"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_zulip_stream_name(mymdc_client):
     with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
         mock_get.return_value.json = Mock(
@@ -75,7 +75,7 @@ async def test_get_zulip_stream_name(mymdc_client):
         assert stream_name == "test_stream"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_zulip_stream_name_no_stream(mymdc_client):
     with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
         mock_get.return_value.json = Mock(return_value={"logbook_info": {}})
@@ -83,7 +83,7 @@ async def test_get_zulip_stream_name_no_stream(mymdc_client):
             await mymdc_client.get_zulip_stream_name(1)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_get_zulip_stream_name_invalid_stream(mymdc_client):
     with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
         mock_get.return_value.json = Mock(
