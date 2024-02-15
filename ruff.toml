@@ -25,7 +25,6 @@ select = [
     "S",     # flake8-bandit
     "DTZ",   # flake8-datetime
     "EM",    # flake8-errmsg
-    "FA",    # flake8-future-annotations
     "ISC",   # flake8-implicit-str-concat
     "ICN",   # flake8-import-conventions
     "G",     # flake8-logging-format
