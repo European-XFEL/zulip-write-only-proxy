@@ -48,7 +48,9 @@ target-version = ["py311", "py312"]
 
 [tool.ruff]
 line-length = 88
-extend-select = [
+select = [
+  "E",   # pycodestyle
+  "F",   # flake8
   "I",   # isort
   "B",   # flake8-bugbear
   "C4",  # flake8-comprehensions
