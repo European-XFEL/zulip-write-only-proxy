@@ -8,4 +8,4 @@ down:
 
 dev-docker:
 	docker build . --tag zwop:dev
-	docker run -it --rm -v $(PWD):/app -p 8080:8080 zwop:dev
+	docker run -it --rm -v $(PWD):/app -p 8000:8000 zwop:dev
