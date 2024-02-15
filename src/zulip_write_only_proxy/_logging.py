@@ -22,7 +22,7 @@ def logger_name_callsite(logger, method_name, event_dict):
     return event_dict
 
 
-def configure(debug: bool) -> None:
+def configure(debug: bool, add_call_site_parameters: bool = False) -> None:
     """
     Configures logging and sets up Uvicorn to use Structlog.
     """
@@ -47,14 +47,20 @@ def configure(debug: bool) -> None:
         structlog.processors.StackInfoRenderer(),
         structlog.dev.set_exc_info,
         structlog.processors.TimeStamper(fmt="%Y-%m-%dT%H:%M:%SZ", utc=True),
-        structlog.processors.CallsiteParameterAdder(
-            {
-                structlog.processors.CallsiteParameter.MODULE,
-                structlog.processors.CallsiteParameter.FUNC_NAME,
-            }
-        ),
-        parameter_parser,
     ]
+
+    if add_call_site_parameters:
+        shared_processors.extend(
+            [
+                structlog.processors.CallsiteParameterAdder(
+                    {
+                        structlog.processors.CallsiteParameter.MODULE,
+                        structlog.processors.CallsiteParameter.FUNC_NAME,
+                    }
+                ),  # type: ignore
+                logger_name_callsite,
+            ]
+        )
 
     structlog_processors = [*shared_processors, renderer]
     logging_processors = [ProcessorFormatter.remove_processors_meta, renderer]
@@ -82,7 +88,11 @@ def configure(debug: bool) -> None:
     configure_uvicorn(renderer, shared_processors)
 
     log = structlog.get_logger()
-    log.info("Configured Logging")
+    log.info(
+        "Configured Logging",
+        call_site_parameters=add_call_site_parameters,
+        log_level=logging.getLevelName(level),
+    )
 
 
 def configure_uvicorn(renderer, shared_processors):
