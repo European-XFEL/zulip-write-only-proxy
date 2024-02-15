@@ -3,12 +3,14 @@ from typing import TYPE_CHECKING
 import fastapi
 from authlib.integrations.starlette_client import (  # type: ignore[import-untyped]
     OAuth,
+    OAuthError,
     StarletteOAuth2App,
 )
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 
 from .. import logger
+from .frontend import AuthException
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -41,23 +43,28 @@ def configure(settings: "Settings", _: "FastAPI") -> None:
 @router.get("/")
 async def auth(request: Request):
     if request.session.get("user"):
-        return RedirectResponse(url=request.scope.get("root_path") or "/")
-    url = request.url_for("callback")
-    url = url.replace(path=f"{request.scope.get('root_path') or ''}{url.path}")
-    return await OAUTH.authorize_redirect(request, url)
+        return RedirectResponse(url=request.base_url)
+    return await OAUTH.authorize_redirect(request, request.url_for("callback"))
 
 
 @router.get("/callback")
 async def callback(request: Request):
-    token = await OAUTH.authorize_access_token(request)
-    user = await OAUTH.userinfo(token=token)
+    try:
+        token = await OAUTH.authorize_access_token(request)
+        user = await OAUTH.userinfo(token=token)
+    except OAuthError as e:
+        await logger.aerror("OAuth error", error=str(e))
+        raise AuthException(status_code=401, detail=str(e)) from e
 
     request.session["user"] = dict(user)
 
-    return RedirectResponse(url=request.scope.get("root_path") or "/")
+    await logger.ainfo("Logged in", username=user["preferred_username"])
+
+    return RedirectResponse(url=request.base_url)
 
 
 @router.get("/logout")
-def logout(request: Request):
-    request.session.pop("user", None)
-    return RedirectResponse(url=request.scope.get("root_path") or "/")
+async def logout(request: Request):
+    if user := request.session.pop("user", None):
+        await logger.ainfo("Logged out", username=user["preferred_username"])
+    return RedirectResponse(url=request.base_url)
