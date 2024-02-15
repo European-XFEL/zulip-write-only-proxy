@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
     from zulip_write_only_proxy.repositories import ClientRepository
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_create_client(client_repo: ClientRepository):
     result = await services.create_client(
         ScopedClientCreate(proposal_no=1234, stream="Test Stream", bot_name="Test Bot"),
@@ -19,7 +19,7 @@ async def test_create_client(client_repo: ClientRepository):
     assert isinstance(result, ScopedClient)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_create_client_no_bot(client_repo: ClientRepository):
     result = await services.create_client(
         ScopedClientCreate(proposal_no=1234, stream="Test Stream", bot_name="Test Bot"),

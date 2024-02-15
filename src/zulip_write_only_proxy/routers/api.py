@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from tempfile import SpooledTemporaryFile
-from typing import Annotated, Union
+from typing import TYPE_CHECKING, Annotated
 
 import fastapi
 from fastapi.security import APIKeyHeader
 
 from .. import __version__, __version_tuple__, models, services
+
+if TYPE_CHECKING:
+    from tempfile import SpooledTemporaryFile
 
 _docs_url = "https://zulip.com/api/send-message#response"
 
@@ -37,7 +39,7 @@ def send_message(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
     topic: Annotated[str, fastapi.Query(...)],
     content: Annotated[str, fastapi.Body(...)],
-    image: Annotated[Union[fastapi.UploadFile, None], fastapi.File()] = None,
+    image: Annotated[fastapi.UploadFile | None, fastapi.File()] = None,
 ):
     if image:
         # Some screwing around to get the spooled tmp file to act more like a real file
