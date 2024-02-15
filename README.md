@@ -4,14 +4,14 @@
 
 ### Client
 
-Recommended clients are `requests` for synchronous code and `httpx` for asynchronous code. These examples are written for a server running locally at <http://localhost:8080> but the actual URL will depend on the deployment.
+Recommended clients are `requests` for synchronous code and `httpx` for asynchronous code. These examples are written for a server running locally at <http://localhost:8000> but the actual URL will depend on the deployment.
 
 Using requests (synchronous):
 
 ```python
 import requests
 
-base_url = "http://localhost:8080"
+base_url = "http://localhost:8000"
 
 response = requests.post(f"{base_url}/{endpoint}", data=data, ...)
 ```
@@ -21,7 +21,7 @@ Using httpx (async):
 ```python
 import httpx
 
-base_url = "http://localhost:8080"
+base_url = "http://localhost:8000"
 
 async with httpx.AsyncClient() as client:
     response = await client.post(f"{base_url}/{endpoint}", ...)
@@ -52,7 +52,7 @@ client.headers.update({"X-API-key": "token"})
 
 ### Endpoints
 
-Full API documentation is available by going to the `/docs` page (e.g. <http://localhost:8080/docs>). These examples are just intended to show basic usage and may not represent the current state of the API, check the API docs for the latest information.
+Full API documentation is available by going to the `/docs` page (e.g. <http://localhost:8000/docs>). These examples are just intended to show basic usage and may not represent the current state of the API, check the API docs for the latest information.
 
 #### Sending a message with text
 
@@ -103,7 +103,7 @@ For docker:
 docker build . --tag zwop:dev
 
 # Start the server, with the current directory mounted as a volume:
-docker run -it --rm -v $(PWD):/app -p 8080:8080 zwop:dev
+docker run -it --rm -v $(PWD):/app -p 8000:8000 zwop:dev
 
 # Or use make, which does the same thing:
 make dev-docker
@@ -138,7 +138,7 @@ Here is an example configuration, placed in `.vscode/launch.json`:
             "args": [
                 "zulip_write_only_proxy.main:app",
                 "--port",
-                "8080",
+                "8000",
             ],
             "jinja": true,
             "justMyCode": false
