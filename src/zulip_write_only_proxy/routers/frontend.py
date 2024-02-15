@@ -49,7 +49,7 @@ async def check_auth(request: Request):
     if "da" not in user.get("groups", []):
         raise AuthException(
             status_code=403,
-            detail=f"Forbidden - user `{user.get('preferred_username')}` not allowed access",
+            detail=f"Forbidden - `{user.get('preferred_username')}` not allowed access",
         )
 
 
