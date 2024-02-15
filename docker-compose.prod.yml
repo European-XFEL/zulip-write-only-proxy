@@ -1,0 +1,28 @@
+version: "3.8"
+
+networks:
+  proxy:
+    external: true
+
+services:
+  zwop:
+    image: ${IMAGE:-ghcr.io/european-xfel/zulip-write-only-proxy}:${TAG:?error}
+    environment:
+      - ZWOP_PROXY_ROOT=/zwop
+    networks:
+      - proxy
+    labels:
+      traefik.http.routers.zwop.entryPoints: https
+      traefik.http.routers.zwop.rule: PathPrefix(`/zwop`)
+      traefik.http.middlewares.zwop-strip-prefix.stripprefix.prefixes: /zwop
+    command: !reset null
+    deploy:
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+        monitor: 10s
+        max_failure_ratio: 0
+
+  traefik: !reset null
