@@ -13,10 +13,12 @@ if TYPE_CHECKING:
     from starlette.responses import Response
 
 
-def parameter_parser(logger, method_name, event_dict):
-    event_dict["logger_name"] = ".".join(
-        [event_dict.pop("module", None), event_dict.pop("func_name", None)]
-    )
+def logger_name_callsite(logger, method_name, event_dict):
+    if not event_dict.get("logger_name"):
+        logger_name = f"{event_dict.pop('module')}.{event_dict.pop('func_name')}"
+        if not event_dict.pop("disable_name", False):
+            event_dict["logger_name"] = logger_name.strip(".")
+
     return event_dict
 
 
@@ -107,7 +109,14 @@ def configure_uvicorn(renderer, shared_processors):
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    log = structlog.get_logger()
+    _logger = None
+
+    @property
+    def logger(self):
+        if not self._logger:
+            self._logger = structlog.get_logger(disable_name=True)
+
+        return self._logger
 
     async def dispatch(self, request: "Request", call_next) -> "Response":
         """Add a middleware to FastAPI that will log requests and responses,
@@ -125,12 +134,22 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         if request.path_params:
             info["path_params"] = str(request.path_params)
 
-        self.log.debug("Request", **info)
+        logger = self.logger.bind(path=request.url.path, method=request.method)
+        logger.debug("Request", **info)
+
         response = await call_next(request)
+
         if response.status_code < 400:
-            self.log.debug("Response", status_code=response.status_code)
+            response_logger = logger.info
         elif response.status_code < 500:
-            self.log.info("Response", status_code=response.status_code)
+            response_logger = logger.warn
         else:
-            self.log.error("Response", status_code=response.status_code)
+            response_logger = logger.error
+
+        # Health checks are noisy, so we downgrade their log level
+        if request.url.path.endswith("/health"):
+            response_logger = logger.debug
+
+        response_logger("Response", status_code=response.status_code)
+
         return response
