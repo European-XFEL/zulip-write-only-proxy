@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 import colorama
 import structlog
@@ -41,7 +41,7 @@ def configure(debug: bool, add_call_site_parameters: bool = False) -> None:
 
     # sentry_processor = sentry.SentryProcessor(level=level)
 
-    shared_processors: Sequence[structlog.typing.Processor] = [
+    shared_processors: list[structlog.typing.Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.StackInfoRenderer(),
@@ -57,7 +57,7 @@ def configure(debug: bool, add_call_site_parameters: bool = False) -> None:
                         structlog.processors.CallsiteParameter.MODULE,
                         structlog.processors.CallsiteParameter.FUNC_NAME,
                     }
-                ),  # type: ignore
+                ),  # type: ignore[arg-type]
                 logger_name_callsite,
             ]
         )
