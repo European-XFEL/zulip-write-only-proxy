@@ -1,0 +1,20 @@
+version: "3.8"
+
+networks:
+  proxy:
+    external: true
+
+services:
+  zwop:
+    build: .
+    environment:
+      - ZWOP_PROXY_ROOT=/zwop-staging
+    networks:
+      - proxy
+    labels:
+      traefik.http.routers.zwop.entryPoints: https
+      traefik.http.routers.zwop.rule: PathPrefix(`/zwop-staging`)
+      traefik.http.middlewares.zwop-strip-prefix.stripprefix.prefixes: /zwop-staging
+    command: !reset null
+
+  traefik: !reset null
