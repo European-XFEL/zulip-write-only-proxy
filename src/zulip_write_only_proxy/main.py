@@ -12,7 +12,9 @@ from .settings import settings
 
 @asynccontextmanager
 async def lifespan(app: fastapi.FastAPI):
-    from . import mymdc
+    from . import _logging, mymdc
+
+    _logging.configure(debug=app.debug, add_call_site_parameters=True)
 
     services.configure(settings, app)
 
@@ -30,6 +32,7 @@ async def lifespan(app: fastapi.FastAPI):
 app = fastapi.FastAPI(
     title="Zulip Write Only Proxy",
     lifespan=lifespan,
+    debug=settings.debug,
     exception_handlers={
         routers.frontend.AuthException: routers.frontend.auth_redirect,
     },
