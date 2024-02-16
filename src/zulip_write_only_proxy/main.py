@@ -1,69 +1,70 @@
-from __future__ import annotations
+def create_app():
+    from contextlib import asynccontextmanager
 
-from contextlib import asynccontextmanager
+    import fastapi
+    from starlette.middleware.sessions import SessionMiddleware
 
-import fastapi
-from starlette.middleware.sessions import SessionMiddleware
+    from . import routers, services
+    from ._logging import RequestLoggingMiddleware
+    from .settings import settings
 
-from . import logger, routers, services
-from ._logging import RequestLoggingMiddleware
-from .settings import settings
+    @asynccontextmanager
+    async def lifespan(app: fastapi.FastAPI):
+        from . import _logging, mymdc
 
+        _logging.configure(debug=app.debug, add_call_site_parameters=True)
 
-@asynccontextmanager
-async def lifespan(app: fastapi.FastAPI):
-    from . import _logging, mymdc
+        services.configure(settings, app)
 
-    _logging.configure(debug=app.debug, add_call_site_parameters=True)
+        mymdc.configure(settings, app)
 
-    services.configure(settings, app)
+        for module in [routers.api, routers.auth, routers.frontend]:
+            app.include_router(module.router)
 
-    mymdc.configure(settings, app)
+            if hasattr(module, "configure"):
+                module.configure(settings, app)
 
-    for module in [routers.api, routers.auth, routers.frontend]:
-        app.include_router(module.router)
+        yield
 
-        if hasattr(module, "configure"):
-            module.configure(settings, app)
+    app = fastapi.FastAPI(
+        title="Zulip Write Only Proxy",
+        lifespan=lifespan,
+        debug=settings.debug,
+        exception_handlers={
+            routers.frontend.AuthException: routers.frontend.auth_redirect,
+        },
+    )
 
-    yield
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.session_secret.get_secret_value(),
+    )
 
+    app.add_middleware(RequestLoggingMiddleware)
 
-app = fastapi.FastAPI(
-    title="Zulip Write Only Proxy",
-    lifespan=lifespan,
-    debug=settings.debug,
-    exception_handlers={
-        routers.frontend.AuthException: routers.frontend.auth_redirect,
-    },
-)
+    return app
 
-
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.session_secret.get_secret_value(),
-)
-
-app.add_middleware(RequestLoggingMiddleware)
 
 if __name__ == "__main__":
     import uvicorn
 
-    logger.info(
-        "Starting uvicorn",
-        app=f"{__package__}.main:app",
-        host=settings.address.host or "127.0.0.1",
-        port=settings.address.port or 8000,
-        reload=settings.debug,
-        log_level=settings.log_level,
-        root_path=settings.proxy_root,
-    )
+    from . import _logging, get_logger
+    from .settings import settings
 
-    uvicorn.run(
-        app=f"{__package__}.main:app",
-        host=settings.address.host or "127.0.0.1",
-        port=settings.address.port or 8000,
-        reload=settings.debug,
-        log_level=settings.log_level,
-        root_path=settings.proxy_root,
-    )
+    _logging.configure(settings.debug, add_call_site_parameters=False)
+
+    logger = get_logger()
+
+    args = {
+        "app": f"{__package__}.main:create_app",
+        "host": settings.address.host or "127.0.0.1",
+        "port": settings.address.port or 8000,
+        "reload": settings.debug,
+        "log_level": settings.log_level,
+        "root_path": settings.proxy_root,
+        "factory": True,
+    }
+
+    logger.info("Starting uvicorn", **args)
+
+    uvicorn.run(**args)
