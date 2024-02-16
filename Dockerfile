@@ -7,13 +7,12 @@ RUN corepack enable
 
 WORKDIR /app
 
-COPY ./package.json ./pnpm-lock.yaml ./
+COPY --link ./package.json ./pnpm-lock.yaml ./tailwind.config.js ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-COPY ./src/zulip_write_only_proxy/frontend/**.html \
-  ./src/zulip_write_only_proxy/frontend/**.css \
-  ./src/zulip_write_only_proxy/frontend
+COPY ./src/zulip_write_only_proxy/frontend/templates/ \
+  ./src/zulip_write_only_proxy/frontend/templates/
 
 RUN pnpm build
 
