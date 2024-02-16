@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Annotated
 
 import fastapi
@@ -13,7 +11,7 @@ CLIENT_REPO: repositories.ClientRepository = None  # type: ignore[assignment]
 ZULIPRC_REPO: repositories.ZuliprcRepository = None  # type: ignore[assignment]
 
 
-def configure(settings: Settings, _: fastapi.FastAPI):
+def configure(settings: "Settings", _: fastapi.FastAPI):
     """Set up the repositories for the services. This should be called before
     any of the other functions in this module."""
     global CLIENT_REPO, ZULIPRC_REPO
