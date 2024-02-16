@@ -45,6 +45,35 @@ def create_app():
     return app
 
 
+def get_trusted_hosts(logger):
+    import socket
+    import struct
+    from pathlib import Path
+
+    trusted = set()
+
+    routes = Path("/proc/net/route").read_text()
+    for line in routes.split("\n"):
+        fields = line.strip().split()
+        if not fields or fields[1] != "00000000" or not int(fields[3], 16) & 2:
+            # Not default route
+            continue
+
+        if gateway := socket.inet_ntoa(struct.pack("<L", int(fields[2], 16))):
+            trusted.add(gateway)
+
+    try:
+        traefik = socket.gethostbyname_ex("traefik")
+        trusted |= set(traefik[2])
+    except socket.gaierror:
+        logger.warning("Failed to resolve traefik")
+
+    if not trusted:
+        logger.critical("No trusted hosts found")
+
+    return trusted
+
+
 if __name__ == "__main__":
     import uvicorn
 
@@ -64,6 +93,9 @@ if __name__ == "__main__":
         "root_path": settings.proxy_root,
         "factory": True,
     }
+
+    if settings.proxy_root and settings.proxy_root != "/":
+        args["forwarded_allow_ips"] = get_trusted_hosts(logger)
 
     logger.info("Starting uvicorn", **args)
 
