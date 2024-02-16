@@ -6,11 +6,6 @@ except ImportError:
 
 from structlog import get_logger
 
-from . import _logging
-from .settings import settings
-
-_logging.configure(settings.debug)
-
 logger = get_logger()
 
 __all__ = ["__version__", "__version_tuple__", "logger"]
