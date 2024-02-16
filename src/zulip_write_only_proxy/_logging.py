@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 import sys
 from typing import TYPE_CHECKING
@@ -130,7 +128,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         return self._logger
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(self, request: "Request", call_next) -> "Response":
         """Add a middleware to FastAPI that will log requests and responses,
         this is used instead of the builtin Uvicorn access logging to better
         integrate with structlog"""

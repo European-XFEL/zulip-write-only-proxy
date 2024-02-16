@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import datetime
 import enum
 import secrets
@@ -37,7 +35,7 @@ class ScopedClient(BaseModel):
     created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
     created_by: str
 
-    _client: zulip.Client = PrivateAttr()
+    _client: "zulip.Client" = PrivateAttr()
 
     def upload_file(self, file: IO[Any]):
         return self._client.upload_file(file)
@@ -89,5 +87,5 @@ class ScopedClientWithKey(ScopedClient):
     key: str  # type: ignore[assignment]
 
     @field_validator("key")
-    def _set_key(self, v: str | SecretStr) -> str:
+    def _set_key(cls, v: str | SecretStr) -> str:
         return v.get_secret_value() if isinstance(v, SecretStr) else v
