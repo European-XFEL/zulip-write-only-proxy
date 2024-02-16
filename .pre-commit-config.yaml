@@ -1,8 +1,14 @@
 repos:
-- hooks:
+- repo: https://github.com/commitizen-tools/commitizen
+  hooks:
   - id: commitizen
   - id: commitizen-branch
     stages:
     - push
-  repo: https://github.com/commitizen-tools/commitizen
   rev: v2.42.1
+- repo: https://github.com/Yelp/detect-secrets
+  rev: v1.4.0
+  hooks:
+  - id: detect-secrets
+    args: ['--baseline', '.secrets.baseline', '--disable-filter', 'detect_secrets.filters.heuristic.is_likely_id_string']
+    exclude: '(pnpm-lock.yaml|poetry.lock)'
