@@ -41,7 +41,7 @@ async def check_auth(request: Request):
             status_code=401,
             detail=(
                 "Unauthorized - no authentication provided"
-                if request.url.path != "/"
+                if request.url.path.rstrip("/") != request.scope.get("root_path", "")
                 else ""
             ),
         )
@@ -54,6 +54,7 @@ async def check_auth(request: Request):
 
 
 async def auth_redirect(request: Request, exc: AuthException):
+    logger.info("Redirecting to login", status_code=exc.status_code, detail=exc.detail)
     return TEMPLATES.TemplateResponse(
         "login.html",
         {"request": request, "message": exc.detail},
