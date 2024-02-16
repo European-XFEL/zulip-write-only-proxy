@@ -1,11 +1,11 @@
 repos:
 - repo: https://github.com/commitizen-tools/commitizen
+  rev: v3.14.1
   hooks:
   - id: commitizen
   - id: commitizen-branch
     stages:
     - push
-  rev: v2.42.1
 - repo: https://github.com/Yelp/detect-secrets
   rev: v1.4.0
   hooks:
