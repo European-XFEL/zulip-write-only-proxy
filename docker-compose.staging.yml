@@ -8,7 +8,7 @@ services:
   zwop:
     build: .
     environment:
-      - ZWOP_PROXY_ROOT=/zwop-staging
+      ZWOP_PROXY_ROOT: /zwop-staging
     networks:
       - proxy
     labels:
