@@ -62,7 +62,7 @@ _docs_url = "https://zulip.com/api/update-message#response"
 def update_message(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
     message_id: Annotated[int, fastapi.Query(...)],
-    propagate_mode: Annotated[models.PropagateMode, fastapi.Query(...)],
+    propagate_mode: Annotated[models.PropagateMode | None, fastapi.Query()] = None,
     content: Annotated[str | None, fastapi.Body(media_type="text/plain")] = None,
     topic: Annotated[str | None, fastapi.Query()] = None,
 ):
