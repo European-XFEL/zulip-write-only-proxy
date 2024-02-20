@@ -1,27 +1,41 @@
+import asyncio
 from typing import TYPE_CHECKING, Annotated
 
 import fastapi
+import zulip
 
 from . import logger, models, mymdc, repositories
 
 if TYPE_CHECKING:
     from .settings import Settings
 
-CLIENT_REPO: repositories.ClientRepository = None  # type: ignore[assignment]
-ZULIPRC_REPO: repositories.ZuliprcRepository = None  # type: ignore[assignment]
+CLIENT_REPO: repositories.BaseRepository = None  # type: ignore[assignment]
+ZULIPRC_REPO: repositories.BaseRepository = None  # type: ignore[assignment]
 
 
 def configure(settings: "Settings", _: fastapi.FastAPI):
     """Set up the repositories for the services. This should be called before
     any of the other functions in this module."""
     global CLIENT_REPO, ZULIPRC_REPO
-    logger.info(
-        "Setting up repositories",
-        client_repo=settings.clients.path,
-        zuliprc_repo=settings.zuliprcs.directory,
+
+    ZULIPRC_REPO = repositories.BaseRepository(
+        file=settings.config_dir / "zuliprc.json",
+        index="name",
+        model=models.BotConfig,
     )
-    CLIENT_REPO = repositories.ClientRepository(path=settings.clients.path)
-    ZULIPRC_REPO = repositories.ZuliprcRepository(directory=settings.zuliprcs.directory)
+
+    CLIENT_REPO = repositories.BaseRepository(
+        file=settings.config_dir / "clients.json",
+        index="key",
+        model=models.ScopedClient,
+    )
+
+    logger.info(
+        "Setting up repositories", client_repo=CLIENT_REPO, zuliprc_repo=ZULIPRC_REPO
+    )
+
+    asyncio.create_task(CLIENT_REPO.load())  # noqa: RUF006
+    asyncio.create_task(ZULIPRC_REPO.load())  # noqa: RUF006
 
 
 async def create_client(
@@ -36,56 +50,77 @@ async def create_client(
         )
         logger.debug("Stream name from MyMdC", stream=new_client.stream)
 
-    if new_client.bot_name is None:
-        new_client.bot_name = str(new_client.proposal_no)
-        logger.debug("Bot name from proposal number", bot_name=new_client.bot_name)
+    name = new_client.bot_name or new_client.proposal_no
+    key, email, site = (new_client.bot_key, new_client.bot_email, new_client.bot_site)
 
-    bot_name = new_client.bot_name
-    key, email, site = new_client.bot_key, new_client.bot_email, new_client.bot_site
-
-    if bot_name not in ZULIPRC_REPO.list():
+    if name not in await ZULIPRC_REPO.list():
         logger.debug("Bot zuliprc not present")
         if not key or not email:
-            key, email = await mymdc.CLIENT.get_zulip_bot_credentials(
+            _id, key, email = await mymdc.CLIENT.get_zulip_bot_credentials(
                 new_client.proposal_no
             )
-            logger.debug("Bot credentials from MyMdC", bot_email=email, bot_key=key)
+            logger.debug(
+                "Bot credentials from MyMdC",
+                bot_name=name,
+                bot_email=email,
+                bot_key=key,
+                bot_id=_id,
+            )
 
         if not key or not email:
             raise fastapi.HTTPException(
                 status_code=422,
                 detail=(
-                    f"bot '{bot_name}' does not exist, and a bot could not "
+                    f"bot '{name}' does not exist, and a bot could not "
                     f"be found for proposal '{new_client.proposal_no}' via MyMdC. To "
                     "add a client with a new bot provide both bot_email bot_key."
                 ),
             )
 
-        ZULIPRC_REPO.put(bot_name, email, key, site)
+        bot = models.BotConfig(
+            name=str(name),
+            id=_id,
+            api_key=key,  # type: ignore[arg-type]
+            email=email,
+            site=site,  # type: ignore[arg-type]
+        )
 
-    _ = new_client.model_dump()
-    _["created_by"] = created_by
-    client = models.ScopedClient.model_validate(_)
+        await ZULIPRC_REPO.insert(bot)
+    else:
+        bot = await ZULIPRC_REPO.get(str(name))
 
-    CLIENT_REPO.put(client)
+    client = models.ScopedClient.model_validate(
+        {
+            **new_client.model_dump(),
+            "created_by": created_by,
+            "bot_id": bot.id,
+            "bot_name": bot.name,
+        }
+    )
+
+    await CLIENT_REPO.insert(client)
 
     logger.info("Created client", client=client)
 
     return client
 
 
-def get_client(key: str) -> models.ScopedClient:
-    client = CLIENT_REPO.get(key)
+async def get_client(key: str) -> models.ScopedClient:
+    client = await CLIENT_REPO.get(key)
+    bot_config = await ZULIPRC_REPO.get(client.bot_name)
 
-    if isinstance(client, models.ScopedClient):
-        client._client = ZULIPRC_REPO.get(client.bot_name)
+    client._client = zulip.Client(
+        email=bot_config.email,
+        api_key=bot_config.api_key.get_secret_value(),
+        site=str(bot_config.site),
+    )
 
     return client
 
 
-def get_bot(bot_name: str):
-    return ZULIPRC_REPO.get(bot_name)
+async def get_bot(bot_name: str) -> models.BotConfig:
+    return await ZULIPRC_REPO.get(bot_name)
 
 
-def list_clients() -> list[models.ScopedClientWithKey]:
-    return CLIENT_REPO.list()
+async def list_clients() -> list[models.ScopedClientWithKey]:
+    return await CLIENT_REPO.list()

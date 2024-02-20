@@ -1,55 +1,62 @@
-import threading
+import asyncio
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Generic, TypeVar
 
 import orjson
-import zulip
-from pydantic import BaseModel, DirectoryPath, FilePath, SecretStr, validate_call
+import pydantic
+from anyio import Path as APath
+from pydantic import BaseModel
 
-from . import models
-
-file_lock = threading.Lock()
-
-
-class ZuliprcRepository(BaseModel):
-    directory: DirectoryPath
-
-    def get(self, key: str) -> zulip.Client:
-        return zulip.Client(config_file=str(self.directory / f"{key}.zuliprc"))
-
-    @validate_call
-    def put(self, name: str, email: str, key: str, site: str) -> zulip.Client:
-        (self.directory / f"{name}.zuliprc").write_text(
-            f"""[api]
-email={email}
-key={key}
-site={site}
-"""
-        )
-        return zulip.Client(config_file=str(self.directory / f"{name}.zuliprc"))
-
-    def list(self):
-        return [p.stem for p in self.directory.iterdir() if p.suffix == ".zuliprc"]
+T = TypeVar("T", bound=BaseModel)
 
 
-class ClientRepository(BaseModel):
-    """A basic file/JSON-based repository for storing client entries."""
+@dataclass
+class BaseRepository(Generic[T]):
+    file: Path
+    index: str
+    model: T
 
-    path: FilePath
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False, repr=False)
+    data: dict[str, T] = field(default_factory=dict, init=False, repr=False)
 
-    def get(self, key: str) -> models.ScopedClient:
-        data = orjson.loads(self.path.read_bytes())
-        client_data = data[key]
+    @staticmethod
+    def _serialize_pydantic(obj):
+        if type(obj) is pydantic.AnyUrl:
+            return str(obj)
+        if type(obj) is pydantic.SecretStr:
+            return obj.get_secret_value()
+        raise TypeError
 
-        return models.ScopedClient(key=SecretStr(key), **client_data)
+    async def load(self):
+        if not await APath(self.file).exists():
+            return
 
-    def put(self, client: models.ScopedClient) -> None:
-        with file_lock:
-            data: dict[str, dict] = orjson.loads(self.path.read_bytes())
-            data[client.key.get_secret_value()] = client.model_dump(exclude={"key"})
-            self.path.write_bytes(orjson.dumps(data, option=orjson.OPT_INDENT_2))
+        self.data = orjson.loads(await APath(self.file).read_bytes())
 
-    def list(self) -> list[models.ScopedClientWithKey]:
-        data = orjson.loads(self.path.read_bytes())
+    async def write(self):
+        async with self.lock:
+            await APath(self.file).write_bytes(
+                orjson.dumps(
+                    self.data,
+                    option=orjson.OPT_INDENT_2,
+                    default=self._serialize_pydantic,
+                )
+            )
 
-        return [
-            models.ScopedClientWithKey(key=key, **value) for key, value in data.items()
-        ]
+    async def get(self, key: str) -> T:
+        return self.model.model_validate(self.data.get(key))
+
+    async def insert(self, item: T):
+        _item = item.model_dump()
+        key = _item[self.index]
+
+        if type(key) is pydantic.SecretStr:
+            key = key.get_secret_value()
+
+        self.data[key] = _item
+
+        await self.write()
+
+    async def list(self) -> list[T]:
+        return [self.model.model_validate(item) for item in self.data.values()]
