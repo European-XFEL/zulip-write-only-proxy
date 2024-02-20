@@ -101,14 +101,12 @@ async def create_client(
     else:
         bot = await ZULIPRC_REPO.get(str(name))
 
-    client = models.ScopedClient.model_validate(
-        {
-            **new_client.model_dump(),
-            "created_by": created_by,
-            "bot_id": bot.id,
-            "bot_name": bot.name,
-        }
-    )
+    client = models.ScopedClient.model_validate({
+        **new_client.model_dump(),
+        "created_by": created_by,
+        "bot_id": bot.id,
+        "bot_name": bot.name,
+    })
 
     await CLIENT_REPO.insert(client)
 

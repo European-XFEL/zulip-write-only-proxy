@@ -71,7 +71,7 @@
 
     function viewMessages(element) {
       let key = element.parentElement.parentElement.getAttribute("key");
-      htmx.ajax('GET', '/client/messages', {headers: {'X-API-key': key}})
+      htmx.ajax("GET", "/client/messages", { headers: { "X-API-key": key } });
     }
   </script>
 {% endblock %}
