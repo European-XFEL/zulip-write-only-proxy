@@ -55,8 +55,8 @@ async def create_client(
 
     if name not in await ZULIPRC_REPO.list():
         logger.debug("Bot zuliprc not present")
-        if not key or not email:
-            _id, key, email = await mymdc.CLIENT.get_zulip_bot_credentials(
+        if not all((key, email, site)):
+            _id, key, email, site = await mymdc.CLIENT.get_zulip_bot_credentials(
                 new_client.proposal_no
             )
             logger.debug(
