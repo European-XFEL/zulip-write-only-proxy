@@ -29,10 +29,11 @@ class BaseRepository(Generic[T]):
         raise TypeError
 
     async def load(self):
-        if not await APath(self.file).exists():
-            return
+        async with self.lock:
+            if not await APath(self.file).exists():
+                return
 
-        self.data = orjson.loads(await APath(self.file).read_bytes())
+            self.data = orjson.loads(await APath(self.file).read_bytes())
 
     async def write(self):
         async with self.lock:
