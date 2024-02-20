@@ -52,6 +52,7 @@ async def create_client(
 
     name = new_client.bot_name or new_client.proposal_no
     key, email, site = (new_client.bot_key, new_client.bot_email, new_client.bot_site)
+    _id = None
 
     if name not in await ZULIPRC_REPO.list():
         logger.debug("Bot zuliprc not present")
@@ -76,6 +77,17 @@ async def create_client(
                     "add a client with a new bot provide both bot_email bot_key."
                 ),
             )
+
+        if not _id:
+            profile = zulip.Client(email=email, api_key=key, site=site).get_profile()
+            _id = profile.get("user_id")
+            if not _id:
+                raise fastapi.HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"could not get bot id from zulip for bot '{name=}, {email=}'."
+                    ),
+                )
 
         bot = models.BotConfig(
             name=str(name),
