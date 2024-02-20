@@ -29,6 +29,13 @@ def configure(_: "Settings", app: fastapi.FastAPI):
     )
     TEMPLATES = Jinja2Templates(directory=templates_dir)
 
+    TEMPLATES.env.globals["static_main_css"] = app.url_path_for(
+        "static", path="main.css"
+    )
+    TEMPLATES.env.globals["static_htmx"] = app.url_path_for(
+        "static", path="htmx.min.js"
+    )
+
 
 class AuthException(exceptions.ZwopException):
     pass
