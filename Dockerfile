@@ -16,8 +16,8 @@ COPY ./src/zulip_write_only_proxy/frontend/templates/ \
 
 RUN pnpm build
 
-ADD --link https://unpkg.com/browse/htmx.org@1.9.10/dist/htmx.js \
-  https://unpkg.com/browse/htmx.org@1.9.10/dist/htmx.min.js \
+ADD --link https://unpkg.com/htmx.org@1.9.10/dist/htmx.js \
+  https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js \
   ./src/zulip_write_only_proxy/frontend/static/
 
 FROM python:3.11-alpine
