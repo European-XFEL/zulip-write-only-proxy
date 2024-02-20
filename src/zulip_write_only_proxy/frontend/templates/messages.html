@@ -42,7 +42,7 @@
     </thead>
     <tbody id="rows">
       {% for message in messages %}
-        <tr>
+        <tr message_id="{{ message.id }}">
           <th>
             <label>
               <input type="checkbox" class="checkbox" />
@@ -84,22 +84,43 @@
     <div class="modal-box flex h-1/2 max-w-screen-lg flex-col">
       <textarea id="editText" class="textarea textarea-ghost grow"></textarea>
       <div class="modal-action">
-        <button class="btn">Update</button>
+        <button id="updateButton" class="btn" onclick=updateMessage(this);>Update</button>
         <button class="btn" onclick="closeModal();">Close</button>
       </div>
     </div>
   </dialog>
 
   <script>
+    var modalRow = null;
+    var modalMessageID = null;
+
     function showModal(button) {
-      var thisMessage =
-        button.parentNode.parentNode.getElementsByTagName("textarea")[0].value;
-      document.getElementById("editText").value = thisMessage;
+      modalRow = button.parentNode.parentNode;
+      modalMessageID = modalRow.getAttribute("message_id");
+      document.getElementById("editText").value = modalRow.getElementsByTagName("textarea")[0].value
       document.getElementById("editModal").showModal();
     }
 
     function closeModal() {
       document.getElementById("editModal").close();
+    }
+
+    async function updateMessage(button){
+      await fetch('/api/update_message?' + new URLSearchParams({message_id: modalMessageID}), {
+        method: 'PATCH',
+        body: document.getElementById("editText").value,
+        headers: {
+          'Content-Type': 'text/plain',
+          'X-API-key': '{{ client.key.get_secret_value() }}',
+        },
+      }).then(response => {
+        if (response.ok) {
+          modalRow.getElementsByTagName("textarea")[0].value = document.getElementById("editText").value;
+          closeModal();
+        } else {
+          alert('Error updating message: ' + response.status + ' ' + response.statusText);
+        }
+      });
     }
 
   function filterTable() {
