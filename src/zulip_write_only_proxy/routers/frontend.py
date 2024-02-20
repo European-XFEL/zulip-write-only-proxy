@@ -83,22 +83,29 @@ router = fastapi.APIRouter(
 
 @router.get("/")
 async def root(request: Request):
-    return await client_list(request)
-
-
-@router.get("/client/list")
-async def client_list(request: Request):
-    clients = await services.list_clients()
-    clients.reverse()
     return TEMPLATES.TemplateResponse(
-        "list.html",
-        {"request": request, "clients": clients},
+        "index.html",
+        {"request": request},
         headers={
             "HX-Retarget": "#content",
             "HX-Reselect": "#content",
             "HX-Swap": "outerHTML",
+            "HX-Location": str(request.url_for("client_list")),
         },
     )
+
+
+@router.get("/client/list")
+async def client_list(request: Request):
+    if request.headers.get("HX-Target") == "rows":
+        clients = await services.list_clients()
+        clients.reverse()
+        return TEMPLATES.TemplateResponse(
+            "fragments/list-table-rows.html",
+            {"request": request, "clients": clients},
+        )
+
+    return TEMPLATES.TemplateResponse("list.html", {"request": request})
 
 
 @router.get("/client/create")

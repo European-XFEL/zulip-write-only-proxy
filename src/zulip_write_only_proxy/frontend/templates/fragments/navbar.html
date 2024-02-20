@@ -2,23 +2,13 @@
   id="navbar"
   class="navbar sticky top-0 z-30 w-full justify-center bg-opacity-90 backdrop-blur"
   hx-boost="true"
+  hx-push-url="false"
+  hx-target="#content"
 >
   <div class="flex-1">
-    <a
-      hx-push-url="false"
-      class="btn btn-ghost text-xl"
-      href="{{ url_for('root') }}"
-      hx-swap="outerHTML"
-      >ZWOP</a
-    >
+    <a class="btn btn-ghost text-xl" href="{{ url_for('root') }}">ZWOP</a>
   </div>
-  <div
-    class="flex-none"
-    hx-target="#content"
-    hx-select="#content"
-    hx-swap="outerHTML"
-    hx-push-url="false"
-  >
+  <div class="flex-none">
     <ul class="menu menu-horizontal px-1">
       <li>
         <a href="{{ url_for('client_list') }}">List</a>
