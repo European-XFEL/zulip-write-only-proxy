@@ -15,14 +15,14 @@ router = fastapi.APIRouter(prefix="/api")
 api_key_header = APIKeyHeader(name="X-API-key", auto_error=False)
 
 
-def get_client(
+async def get_client(
     key: Annotated[str, fastapi.Security(api_key_header)]
 ) -> models.ScopedClient:
     if key is None:
         raise fastapi.HTTPException(status_code=403, detail="Not authenticated")
 
     try:
-        return services.get_client(key)
+        return await services.get_client(key)
     except KeyError as e:
         raise fastapi.HTTPException(
             status_code=401, detail="Unauthorised", headers={"HX-Location": "/"}
@@ -66,7 +66,7 @@ def update_message(
     content: Annotated[str | None, fastapi.Body(media_type="text/plain")] = None,
     topic: Annotated[str | None, fastapi.Query()] = None,
 ):
-    if not (content or topic):
+    if not (content or topic):  # sourcery skip
         raise fastapi.HTTPException(
             status_code=400,
             detail=(
