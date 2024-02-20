@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import orjson
 import pydantic
@@ -20,7 +20,7 @@ class BaseRepository(Generic[T]):
     model: T
 
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False, repr=False)
-    data: dict[str, T] = field(default_factory=dict, init=False, repr=False)
+    data: dict[str, Any] = field(default_factory=dict, init=False, repr=False)
 
     @staticmethod
     def _serialize_pydantic(obj):
@@ -62,7 +62,7 @@ class BaseRepository(Generic[T]):
         if type(key) is pydantic.SecretStr:
             key = key.get_secret_value()
 
-        self.data[key] = _item
+        self.data[str(key)] = _item
 
         await self.write()
 
