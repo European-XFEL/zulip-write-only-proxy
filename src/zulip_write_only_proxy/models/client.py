@@ -1,20 +1,20 @@
 import datetime
-import enum
 import secrets
 from typing import IO, TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field, PrivateAttr, SecretStr, field_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    PrivateAttr,
+    SecretStr,
+    field_validator,
+)
 
-from zulip_write_only_proxy import logger
+from .. import logger
+from .zulip import PropagateMode
 
 if TYPE_CHECKING:
     import zulip
-
-
-class PropagateMode(str, enum.Enum):
-    change_one = "change_one"
-    change_all = "change_all"
-    change_later = "change_later"
 
 
 class ScopedClientCreate(BaseModel):
@@ -30,6 +30,7 @@ class ScopedClient(BaseModel):
     proposal_no: int
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
     bot_name: str
+    bot_id: int
     key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
@@ -82,10 +83,29 @@ class ScopedClient(BaseModel):
 
         return self._client.update_message(request)
 
+    def get_messages(self):
+        request = {
+            "anchor": "newest",
+            "num_before": 100,
+            "num_after": 0,
+            "apply_markdown": "false",
+            "narrow": [
+                {"operator": "sender", "operand": self.bot_id},
+                {"operator": "stream", "operand": self.stream},
+            ],
+        }
+        # result should be success, if found oldest and found newest both true no more
+        # messages to fetch
+        return self._client.get_messages(request)
+
+    def get_me(self):
+        return self._client.get_profile()
+
 
 class ScopedClientWithKey(ScopedClient):
     key: str  # type: ignore[assignment]
 
     @field_validator("key")
+    @classmethod
     def _set_key(cls, v: str | SecretStr) -> str:
         return v.get_secret_value() if isinstance(v, SecretStr) else v
