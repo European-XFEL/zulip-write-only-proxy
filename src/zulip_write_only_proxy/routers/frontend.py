@@ -136,3 +136,29 @@ async def client_create_post(request: Request):
             "fragments/alert-error.html",
             {"request": request, "message": e.__repr__()},
         )
+
+
+@router.get("/client/messages")
+async def client_messages(request: Request):
+    client_key = request.headers.get("X-API-Key")
+    if not client_key:
+        raise exceptions.ZwopException(
+            status_code=400,
+            detail="Bad Request - missing X-API-Key header",
+        )
+    client = await services.get_client(client_key)
+    _messages = client.get_messages()
+    logger.debug("Messages", messages=_messages)
+    messages = [
+        models.Message(topic=m["subject"], id=m["id"], content=m["content"])
+        for m in _messages["messages"]
+    ]
+    return TEMPLATES.TemplateResponse(
+        "messages.html",
+        {"request": request, "messages": messages, "client": client},
+        headers={
+            "HX-Retarget": "#content",
+            "HX-Reselect": "#content",
+            "HX-Swap": "outerHTML",
+        },
+    )
