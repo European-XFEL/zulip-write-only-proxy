@@ -105,9 +105,23 @@ async def create_client(
     return client
 
 
-async def get_client(key: str) -> models.ScopedClient:
-    client = await CLIENT_REPO.get(key)
-    bot_config = await ZULIPRC_REPO.get(client.bot_name)
+async def get_client(key: str | None) -> models.ScopedClient:
+    if key is None:
+        raise fastapi.HTTPException(status_code=403, detail="Not authenticated")
+
+    try:
+        client = await CLIENT_REPO.get(key)
+    except KeyError as e:
+        raise fastapi.HTTPException(
+            status_code=401, detail="Unauthorised", headers={"HX-Location": "/"}
+        ) from e
+
+    try:
+        bot_config = await ZULIPRC_REPO.get(client.bot_name)
+    except KeyError as e:
+        raise fastapi.HTTPException(
+            status_code=401, detail="Bot configuration not found"
+        ) from e
 
     client._client = zulip.Client(
         email=bot_config.email,
