@@ -18,15 +18,7 @@ api_key_header = APIKeyHeader(name="X-API-key", auto_error=False)
 async def get_client(
     key: Annotated[str, fastapi.Security(api_key_header)]
 ) -> models.ScopedClient:
-    if key is None:
-        raise fastapi.HTTPException(status_code=403, detail="Not authenticated")
-
-    try:
-        return await services.get_client(key)
-    except KeyError as e:
-        raise fastapi.HTTPException(
-            status_code=401, detail="Unauthorised", headers={"HX-Location": "/"}
-        ) from e
+    return await services.get_client(key)
 
 
 @router.post(
