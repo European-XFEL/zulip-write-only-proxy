@@ -2,7 +2,7 @@
 
 <!-- Content -->
 {% block content %}
-  <a hx-boost="false" class="btn" href="{{ request.root_path + '/oauth' }}"
+  <a hx-boost="false" class="btn" href="{{ url_for('auth') }}"
     >Login</a
   >
 {% endblock %}
