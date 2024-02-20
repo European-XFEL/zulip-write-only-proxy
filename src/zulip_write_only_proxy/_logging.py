@@ -50,17 +50,13 @@ def configure(debug: bool, add_call_site_parameters: bool = False) -> None:
     ]
 
     if add_call_site_parameters:
-        shared_processors.extend(
-            [
-                structlog.processors.CallsiteParameterAdder(
-                    {
-                        structlog.processors.CallsiteParameter.MODULE,
-                        structlog.processors.CallsiteParameter.FUNC_NAME,
-                    }
-                ),  # type: ignore[arg-type]
-                logger_name_callsite,
-            ]
-        )
+        shared_processors.extend([
+            structlog.processors.CallsiteParameterAdder({
+                structlog.processors.CallsiteParameter.MODULE,
+                structlog.processors.CallsiteParameter.FUNC_NAME,
+            }),  # type: ignore[arg-type]
+            logger_name_callsite,
+        ])
 
     structlog_processors = [*shared_processors, renderer]
     logging_processors = [ProcessorFormatter.remove_processors_meta, renderer]
