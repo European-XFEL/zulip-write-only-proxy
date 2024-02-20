@@ -16,7 +16,7 @@ api_key_header = APIKeyHeader(name="X-API-key", auto_error=False)
 
 
 async def get_client(
-    key: Annotated[str, fastapi.Security(api_key_header)]
+    key: Annotated[str, fastapi.Security(api_key_header)],
 ) -> models.ScopedClient:
     return await services.get_client(key)
 
@@ -101,7 +101,7 @@ def get_stream_topics(
 
 @router.get("/me", response_model_exclude={"key"})
 def get_me(
-    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)]
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
 ) -> models.ScopedClient:
     return client
 

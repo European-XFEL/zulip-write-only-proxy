@@ -148,7 +148,6 @@ async def client_messages(request: Request):
         )
     client = await services.get_client(client_key)
     _messages = client.get_messages()
-    logger.debug("Messages", messages=_messages)
     messages = [
         models.Message(topic=m["subject"], id=m["id"], content=m["content"])
         for m in _messages["messages"]
