@@ -8,6 +8,8 @@ import pydantic
 from anyio import Path as APath
 from pydantic import BaseModel
 
+from . import logger
+
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -46,7 +48,12 @@ class BaseRepository(Generic[T]):
             )
 
     async def get(self, key: str) -> T:
-        return self.model.model_validate(self.data.get(key))
+        try:
+            return self.model.model_validate(self.data[key])
+        except KeyError:
+            logger.debug("Key not found, reload from file")
+            await self.load()
+            return self.model.model_validate(self.data[key])
 
     async def insert(self, item: T):
         _item = item.model_dump()
