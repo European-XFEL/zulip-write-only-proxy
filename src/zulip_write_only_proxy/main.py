@@ -99,4 +99,4 @@ if __name__ == "__main__":
 
     logger.info("Starting uvicorn", **args)
 
-    uvicorn.run(**args)
+    uvicorn.run(**args)  # type: ignore[arg-type]
