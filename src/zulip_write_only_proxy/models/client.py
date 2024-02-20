@@ -68,12 +68,12 @@ class ScopedClient(BaseModel):
         topic: str | None,
         content: str | None,
         message_id: int,
-        propagate_mode: PropagateMode,
+        propagate_mode: PropagateMode | None,
     ):
-        request = {
-            "message_id": message_id,
-            "propagate_mode": propagate_mode.value,
-        }
+        request: dict[str, str | int] = {"message_id": message_id}
+
+        if propagate_mode:
+            request["propagate_mode"] = propagate_mode
 
         if topic:
             request["topic"] = topic
