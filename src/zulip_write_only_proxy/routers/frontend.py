@@ -52,6 +52,8 @@ async def check_auth(request: Request):
             detail=f"Forbidden - `{user.get('preferred_username')}` not allowed access",
         )
 
+    logger.debug("Authenticated", user=user)
+
 
 async def auth_redirect(request: Request, exc: AuthException):
     logger.info("Redirecting to login", status_code=exc.status_code, detail=exc.detail)
@@ -73,13 +75,13 @@ router = fastapi.APIRouter(
 
 
 @router.get("/")
-def root(request: Request):
-    return client_list(request)
+async def root(request: Request):
+    return await client_list(request)
 
 
 @router.get("/client/list")
-def client_list(request: Request):
-    clients = services.list_clients()
+async def client_list(request: Request):
+    clients = await services.list_clients()
     clients.reverse()
     return TEMPLATES.TemplateResponse(
         "list.html",
@@ -93,7 +95,7 @@ def client_list(request: Request):
 
 
 @router.get("/client/create")
-def client_create(request: Request):
+async def client_create(request: Request):
     schema = models.ScopedClientCreate.model_json_schema()
     optional = schema["properties"]
     required = {field: optional.pop(field) for field in schema["required"]}
@@ -113,13 +115,13 @@ async def client_create_post(request: Request):
         )
         dump = client.model_dump()
         dump["key"] = client.key.get_secret_value()
-        bot = services.get_bot(client.bot_name)
+        bot = await services.get_bot(client.bot_name)
         return TEMPLATES.TemplateResponse(
             "fragments/create-success.html",
             {
                 "request": request,
                 "client": models.ScopedClientWithKey(**dump),
-                "bot_url": bot.base_url,
+                "bot_site": bot.site,
             },
         )
     except Exception as e:

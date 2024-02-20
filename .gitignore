@@ -1,6 +1,7 @@
 *.zuliprc
 .env
 clients.json
+zuliprc.json
 node_modules
 src/zulip_write_only_proxy/_version.py
 src/zulip_write_only_proxy/frontend/static

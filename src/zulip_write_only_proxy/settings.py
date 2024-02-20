@@ -4,8 +4,6 @@ from pathlib import Path
 from pydantic import AnyUrl, DirectoryPath, HttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .repositories import ClientRepository, ZuliprcRepository
-
 
 class Auth(BaseSettings):
     client_id: str
@@ -27,7 +25,9 @@ class MyMdCCredentials(BaseSettings):
     token_url: HttpUrl
 
     _access_token: str = ""
-    _expires_at: dt.datetime = dt.datetime.fromisocalendar(1970, 1, 1)
+    _expires_at: dt.datetime = dt.datetime.fromisocalendar(1970, 1, 1).astimezone(
+        dt.timezone.utc
+    )
 
 
 class Settings(BaseSettings):
@@ -40,8 +40,6 @@ class Settings(BaseSettings):
 
     auth: Auth
     mymdc: MyMdCCredentials
-    clients: ClientRepository
-    zuliprcs: ZuliprcRepository
 
     model_config = SettingsConfigDict(
         env_prefix="ZWOP_", env_file=[".env"], env_nested_delimiter="__"
