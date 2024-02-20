@@ -2,7 +2,7 @@
 
 <!-- Content -->
 {% block content %}
-  <a href="{{ request.root_path + '/oauth' }}" class="btn">Login</a>
+  <a href="{{ url_for('auth') }}" class="btn">Login</a>
   {% if message %}
     {% include 'fragments/alert-error.html' %}
   {% else %}
