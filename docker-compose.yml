@@ -7,7 +7,7 @@ services:
       - ./config:/app/config
     environment:
       ZWOP_ADDRESS: http://0.0.0.0:8000
-      ZWOP_PROXY: /zwop
+      ZWOP_PROXY_ROOT: /zwop
     env_file:
       - .env
     labels:
