@@ -28,13 +28,14 @@ def configure(_: "Settings", app: fastapi.FastAPI):
         "Setting Jinja2 Templates", directory=templates_dir.relative_to(Path.cwd())
     )
     TEMPLATES = Jinja2Templates(directory=templates_dir)
-
-    TEMPLATES.env.globals["static_main_css"] = app.url_path_for(
+    TEMPLATES.env.globals["static_main_css"] = _.proxy_root + app.url_path_for(
         "static", path="main.css"
     )
-    TEMPLATES.env.globals["static_htmx"] = app.url_path_for(
+    TEMPLATES.env.globals["static_htmx"] = _.proxy_root + app.url_path_for(
         "static", path="htmx.min.js"
     )
+
+    logger.info("Configured Jinja2 Templates", env=TEMPLATES.env.globals)
 
 
 class AuthException(exceptions.ZwopException):
@@ -81,21 +82,8 @@ router = fastapi.APIRouter(
 )
 
 
-@router.get("/")
-async def root(request: Request):
-    return TEMPLATES.TemplateResponse(
-        "index.html",
-        {"request": request},
-        headers={
-            "HX-Retarget": "#content",
-            "HX-Reselect": "#content",
-            "HX-Swap": "outerHTML",
-            "HX-Location": str(request.url_for("client_list")),
-        },
-    )
-
-
 @router.get("/client/list")
+@router.get("/", name="root")
 async def client_list(request: Request):
     if request.headers.get("HX-Current-URL", "").endswith("/client/list"):
         clients = await services.list_clients()
