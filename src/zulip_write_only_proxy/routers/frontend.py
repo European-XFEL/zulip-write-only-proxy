@@ -97,15 +97,20 @@ async def root(request: Request):
 
 @router.get("/client/list")
 async def client_list(request: Request):
-    if request.headers.get("HX-Target") == "rows":
+    if request.headers.get("HX-Current-URL", "").endswith("/client/list"):
         clients = await services.list_clients()
         clients.reverse()
         return TEMPLATES.TemplateResponse(
             "fragments/list-table-rows.html",
             {"request": request, "clients": clients},
+            headers={"HX-Retarget": "#rows"},
         )
 
-    return TEMPLATES.TemplateResponse("list.html", {"request": request})
+    return TEMPLATES.TemplateResponse(
+        "list.html",
+        {"request": request},
+        headers={"HX-Replace-Url": str(request.url_for("client_list"))},
+    )
 
 
 @router.get("/client/create")

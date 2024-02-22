@@ -1,35 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
   <table
+    id="table"
     class="table"
+    hx-swap="innerHTML settle:0s swap:0s"
     hx-trigger="load"
-    hx-target="tbody"
     hx-get="{{ url_for('client_list') }}"
+    hx-target="#rows"
   >
     <thead>
       <tr>
-        <th scope="col">Proposal</th>
-        <th scope="col">Stream</th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
+        <th class="max-w-1/6 w-min">Proposal</th>
+        <th class="max-w-2/6">Stream</th>
+        <th class="max-w-2/6">Name</th>
+        <th class="max-w-1/6 w-min text-right">Actions</th>
       </tr>
     </thead>
-    <tbody id="rows"></tbody>
+    <tbody id="rows" class="opacity-0 transition delay-75 ease-in-out"></tbody>
   </table>
   <script>
-    function copyToClipboard(element) {
-      let key = element.parentElement.parentElement.getAttribute("key");
-      navigator.clipboard.writeText(key).then(() => {
-        element.classList.add("btn-success");
-        setTimeout(() => {
-          element.classList.remove("btn-success");
-        }, 2000);
-      });
-    }
-
-    function viewMessages(element) {
-      let key = element.parentElement.parentElement.getAttribute("key");
-      htmx.ajax("GET", "/client/messages", { headers: { "X-API-key": key } });
-    }
+    document.body.addEventListener("htmx:afterOnLoad", function (event) {
+      if (event.detail.target.id === "rows") {
+        event.detail.target.classList.remove("opacity-0");
+      }
+    });
   </script>
 {% endblock %}

@@ -5,7 +5,7 @@
     <td>{{ client.bot_name }}</td>
     <td class="text-right">
       <button
-        class="btn btn-ghost tooltip ease-in-out"
+        class="btn btn-ghost tooltip transition ease-in-out"
         data-tip="Copy Client Key"
         onclick="copyToClipboard(this)"
       >
@@ -25,7 +25,10 @@
       <button
         class="btn btn-ghost tooltip ease-in-out"
         data-tip="View Messages"
-        onclick="viewMessages(this)"
+        hx-push-url="true"
+        hx-get="{{ url_for('client_messages') }}"
+        hx-on::before-request="viewMessagesKey = getKeyForRow(event);"
+        hx-headers="js:{'X-API-key': getKeyForRow(event)}"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -40,6 +43,53 @@
           />
         </svg>
       </button>
+      {% if False %}
+        <div class="dropdown dropdown-right">
+          <div tabindex="0" role="button" class=" btn btn-ghost">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="h-6 w-6"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+          <ul
+            tabindex="0"
+            class="menu dropdown-content z-[1] w-52 rounded-box bg-base-100 p-2 shadow"
+          >
+            <li><a>Test</a></li>
+            <li><a>Info</a></li>
+            <li><a>Delete</a></li>
+          </ul>
+          <div />
+        </div>
+      {% endif %}
     </td>
   </tr>
 {% endfor %}
+
+<script>
+  function getKeyForRow(event) {
+    return event.target.closest("tr").getAttribute("key");
+  }
+
+  function copyToClipboard(element) {
+    let key = element.parentElement.parentElement.getAttribute("key");
+    navigator.clipboard.writeText(key).then(() => {
+      element.classList.remove("btn-ghost");
+      element.classList.add("btn-success");
+      setTimeout(() => {
+        element.classList.remove("btn-success");
+        element.classList.add("btn-ghost");
+      }, 500);
+    });
+  }
+
+  var viewMessagesKey = null;
+</script>
