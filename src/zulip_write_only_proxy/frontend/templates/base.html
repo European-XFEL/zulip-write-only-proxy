@@ -37,7 +37,5 @@
   </html>
 {% else %}
   {# Return only the subpage content on HTMX requests #}
-  <div id="content" class="flex flex-col gap-4 px-4 sm:px-6 md:gap-6 md:px-8">
-    {{ self.content() }}
-  </div>
+  {{ self.content() }}
 {% endif %}
