@@ -1,5 +1,6 @@
 *.zuliprc
 .env
+.task
 clients.json
 zuliprc.json
 node_modules
