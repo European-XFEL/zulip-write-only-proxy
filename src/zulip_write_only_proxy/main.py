@@ -2,6 +2,7 @@ def create_app():
     from contextlib import asynccontextmanager
 
     import fastapi
+    from fastapi.middleware.gzip import GZipMiddleware
     from starlette.middleware.sessions import SessionMiddleware
 
     from . import routers, services
@@ -41,6 +42,7 @@ def create_app():
     )
 
     app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     return app
 
