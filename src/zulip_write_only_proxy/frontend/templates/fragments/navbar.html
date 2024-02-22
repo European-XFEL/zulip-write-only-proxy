@@ -2,7 +2,7 @@
   id="navbar"
   class="navbar sticky top-0 z-30 w-full justify-center bg-opacity-90 backdrop-blur"
   hx-boost="true"
-  hx-push-url="false"
+  hx-push-url="true"
   hx-target="#content"
 >
   <div class="flex-1">
@@ -12,8 +12,8 @@
     <a role="tab" class="tab" href="{{ url_for('client_list') }}">List</a>
     <a role="tab" class="tab" href="{{ url_for('client_create') }}">Create</a>
   </div>
-    <ul class="menu menu-horizontal px-1">
-      <li>
+  <ul class="menu menu-horizontal px-1">
+    <li>
       <a hx-boost="false" href="{{ url_for('logout') }}">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -28,9 +28,9 @@
           />
         </svg>
       </a>
-      </li>
-    </ul>
-  </div>
+    </li>
+  </ul>
+</div>
 <script>
   document.body.addEventListener("htmx:afterRequest", function (event) {
     // Set `tab-active` class on the tab for the current page
