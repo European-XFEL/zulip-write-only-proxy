@@ -11,7 +11,13 @@ def create_app():
 
     @asynccontextmanager
     async def lifespan(app: fastapi.FastAPI):
-        from . import _logging, mymdc
+        from asyncio import get_running_loop
+
+        from . import _logging, get_logger, mymdc
+
+        logger = get_logger()
+
+        logger.info("Running lifespan startup", loop=get_running_loop())
 
         _logging.configure(debug=app.debug, add_call_site_parameters=True)
 
