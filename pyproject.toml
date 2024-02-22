@@ -48,18 +48,11 @@ black = "^23.7.0"
 line-length = 88
 target-version = ["py311", "py312"]
 
-[tool.poe.tasks.dev]
-shell = """
-if [ -z ${debug} ]; then
-  python3 -Xfrozen_modules=off -m debugpy --listen 5678 -m zulip_write_only_proxy.main
-else
-  python3 -m zulip_write_only_proxy.main
-fi
-"""
-args = { debug = { default = "false", type = "boolean" } }
 
 [tool.poe.tasks]
-prod = { shell = "python3 -m zulip_write_only_proxy.main", env = { ZWOP_LOG_LEVEL = "info", ZWOP_DEBUG = "False" } }
+up = { shell = "python3 -m zulip_write_only_proxy.main", env = { UVICORN_LOOP = { default = "asyncio" } } }
+staging = { ref = "up", env = { UVICORN_LOOP = "uvloop", ZWOP_LOG_LEVEL = { default = "debug" }, ZWOP_DEBUG = { default = "False" } } }
+prod = { ref = "up", env = { UVICORN_LOOP = "uvloop", ZWOP_LOG_LEVEL = { default = "info" }, ZWOP_DEBUG = { default = "False" } } }
 
 test = "python3 -m pytest --cov=zulip_write_only_proxy --cov-report=term-missing --cov-report xml --cov-branch"
 
