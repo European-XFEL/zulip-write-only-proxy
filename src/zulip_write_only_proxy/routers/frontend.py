@@ -152,24 +152,27 @@ async def client_create_post(request: Request):
 
 @router.get("/client/messages")
 async def client_messages(request: Request):
-    client_key = request.headers.get("X-API-Key")
-    if not client_key:
-        raise exceptions.ZwopException(
-            status_code=400,
-            detail="Bad Request - missing X-API-Key header",
+    if request.headers.get("HX-Current-URL", "").endswith("/client/messages"):
+        client_key = request.headers.get("X-API-Key")
+        if not client_key:
+            raise exceptions.ZwopException(
+                status_code=400,
+                detail="Bad Request - missing X-API-Key header",
+            )
+        client = await services.get_client(client_key)
+        _messages = client.get_messages()
+        messages = [
+            models.Message(topic=m["subject"], id=m["id"], content=m["content"])
+            for m in _messages["messages"]
+        ]
+        return TEMPLATES.TemplateResponse(
+            "fragments/list-messages-rows.html",
+            {"request": request, "messages": messages, "client": client},
+            headers={"HX-Retarget": "#rows"},
         )
-    client = await services.get_client(client_key)
-    _messages = client.get_messages()
-    messages = [
-        models.Message(topic=m["subject"], id=m["id"], content=m["content"])
-        for m in _messages["messages"]
-    ]
+
     return TEMPLATES.TemplateResponse(
         "messages.html",
-        {"request": request, "messages": messages, "client": client},
-        headers={
-            "HX-Retarget": "#content",
-            "HX-Reselect": "#content",
-            "HX-Swap": "outerHTML",
-        },
+        {"request": request},
+        headers={"HX-Retarget": "#content"},
     )

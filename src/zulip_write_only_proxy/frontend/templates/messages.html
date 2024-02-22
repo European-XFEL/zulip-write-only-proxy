@@ -46,49 +46,7 @@
         <th scope="col"></th>
       </tr>
     </thead>
-    <tbody id="rows">
-      {% for message in messages %}
-        <tr message_id="{{ message.id }}">
-          <th>
-            <label>
-              <input type="checkbox" class="checkbox" />
-            </label>
-          </th>
-          <td>{{ message.topic }}</td>
-          <td>{{ message.id }}</td>
-          <td class="w-full">
-            <textarea
-              wrap="off"
-              class="textarea textarea-ghost w-full overflow-x-scroll"
-              disabled
-            >
-{{ message.content }}</textarea
-            >
-          </td>
-          <th class="text-right">
-            <button
-              class="btn btn-warning border-transparent bg-transparent shadow-none"
-              onclick="showModal(this)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="h-6 w-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                />
-              </svg>
-            </button>
-          </th>
-        </tr>
-      {% endfor %}
-    </tbody>
+    <tbody id="rows" class="opacity-0 transition delay-75 ease-in-out"></tbody>
   </table>
 
   <dialog id="editModal" class="modal">
@@ -96,6 +54,7 @@
       <textarea id="editText" class="textarea textarea-ghost grow"></textarea>
       <div class="modal-action">
         <button id="updateButton" class="btn" onclick="updateMessage(this);">
+          <div id="spinner" class="loading loading-spinner hidden"></div>
           Update
         </button>
         <button class="btn" onclick="closeModal();">Close</button>
@@ -117,34 +76,6 @@
 
     function closeModal() {
       document.getElementById("editModal").close();
-    }
-
-    async function updateMessage(button) {
-      await fetch(
-        "/api/update_message?" +
-          new URLSearchParams({ message_id: modalMessageID }),
-        {
-          method: "PATCH",
-          body: document.getElementById("editText").value,
-          headers: {
-            "Content-Type": "text/plain",
-            "X-API-key": "{{ client.key.get_secret_value() }}",
-          },
-        },
-      ).then((response) => {
-        if (response.ok) {
-          modalRow.getElementsByTagName("textarea")[0].value =
-            document.getElementById("editText").value;
-          closeModal();
-        } else {
-          alert(
-            "Error updating message: " +
-              response.status +
-              " " +
-              response.statusText,
-          );
-        }
-      });
     }
 
     function filterTable() {
