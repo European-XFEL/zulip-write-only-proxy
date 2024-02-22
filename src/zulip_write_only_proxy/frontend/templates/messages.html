@@ -35,15 +35,10 @@
   <table id="table" class="table">
     <thead>
       <tr>
-        <th>
-          <label>
-            <input type="checkbox" class="checkbox" />
-          </label>
-        </th>
-        <th scope="col">Topic</th>
-        <th scope="col">ID</th>
-        <th scope="col">Content</th>
-        <th scope="col"></th>
+        <th class="w-1/12">Topic</th>
+        <th class="w-1/12">ID</th>
+        <th class="">Content</th>
+        <th class="w-8 text-right"></th>
       </tr>
     </thead>
     <tbody id="rows" class="opacity-0 transition delay-75 ease-in-out"></tbody>
@@ -94,5 +89,11 @@
         }
       }
     }
+
+    document.body.addEventListener("htmx:afterOnLoad", function (event) {
+      if (event.detail.target.id === "rows") {
+        event.detail.target.classList.remove("opacity-0");
+      }
+    });
   </script>
 {% endblock %}
