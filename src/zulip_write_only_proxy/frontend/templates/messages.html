@@ -1,4 +1,4 @@
-{% block disabled %}
+{% if False %}
   {# NB: button for deleting message removed as message deletion not allowed on elog zulip#}
   <button class="btn btn-error border-transparent bg-transparent shadow-none">
     <svg
@@ -16,13 +16,10 @@
       />
     </svg>
   </button>
-{% endblock %}
+{% endif %}
 {% extends 'base.html' %}
-{% block content %}
-  <p class="text-l">
-    Message History - {{ client.proposal_no }} / {{ client.stream }}
-  </p>
 
+{% block content %}
   <div>
     <input
       id="filterText"
@@ -32,7 +29,15 @@
     />
   </div>
 
-  <table id="table" class="table">
+  <table
+    id="table"
+    class="table"
+    hx-swap="innerHTML"
+    hx-trigger="load"
+    hx-get="{{ url_for('client_messages') }}"
+    hx-headers="js:{'X-API-key': viewMessagesKey}"
+    hx-target="#rows"
+  >
     <thead>
       <tr>
         <th class="w-1/12">Topic</th>
