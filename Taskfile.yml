@@ -1,0 +1,47 @@
+---
+version: 3
+
+tasks:
+  css:
+    cmds:
+      - |
+        pnpm exec tailwindcss \
+          -o src/zulip_write_only_proxy/frontend/static/main.css
+    sources:
+      - src/**/*.html
+      - ./tailwind.config.js
+    generates:
+      - src/zulip_write_only_proxy/frontend/static/main.css
+
+  css-watch: |
+    pnpm exec tailwindcss \
+      -o src/zulip_write_only_proxy/frontend/static/main.css \
+      --watch
+
+  htmx: |
+    cd ./src/zulip_write_only_proxy/frontend/static && \
+      wget -N https://unpkg.com/htmx.org@1.9.10/dist/htmx.js
+
+  poe-dev: poe dev
+
+  dev:
+    deps: [css-watch, htmx, poe-dev]
+
+  docker:
+    cmds:
+      - defer: docker compose -p zwop-dev -f ./compose.yml down
+      - docker compose -p zwop-dev -f ./compose.yml watch
+      - sleep 10 && docker compose -p zwop-dev -f ./compose.yml logs -f
+    interactive: true
+
+  staging:
+    - docker build . -t zwop:staging
+    - |
+      docker compose -f ./compose.staging.yml config | \
+        sed '/published:/ s/"//g' | sed "/name:/d" | \
+        docker stack deploy -c - zwop-staging
+
+  prod: |
+    docker compose -f ./compose.prod.yml config | \
+      sed '/published:/ s/"//g' | sed "/name:/d" | \
+      docker stack deploy -c - zwop-prod
