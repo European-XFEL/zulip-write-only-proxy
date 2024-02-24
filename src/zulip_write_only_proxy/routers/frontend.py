@@ -150,7 +150,12 @@ async def client_messages(request: Request):
         client = await services.get_client(client_key)
         _messages = client.get_messages()
         messages = [
-            models.Message(topic=m["subject"], id=m["id"], content=m["content"])
+            models.Message(
+                topic=m["subject"],
+                id=m["id"],
+                content=m["content"],
+                timestamp=m["timestamp"],
+            )
             for m in _messages["messages"]
         ]
         return TEMPLATES.TemplateResponse(

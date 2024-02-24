@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, SecretStr
@@ -25,6 +26,7 @@ class Message(BaseModel):
     topic: str
     id: MessageID
     content: str
+    timestamp: datetime
 
 
 class Messages(BaseModel):
