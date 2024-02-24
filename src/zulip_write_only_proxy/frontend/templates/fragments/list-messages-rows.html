@@ -1,7 +1,7 @@
 {% for message in messages %}
   <tr message_id="{{ message.id }}">
     <td>{{ message.topic }}</td>
-    <td>{{ message.id }}</td>
+    <td>{{ message.timestamp }}</td>
     <td class="w-full">
       <textarea
         wrap="off"
