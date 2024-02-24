@@ -42,7 +42,7 @@ class BaseRepository(Generic[T]):
             await APath(self.file).write_bytes(
                 orjson.dumps(
                     self.data,
-                    option=orjson.OPT_INDENT_2,
+                    option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
                     default=self._serialize_pydantic,
                 )
             )
