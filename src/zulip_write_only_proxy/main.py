@@ -90,8 +90,7 @@ if __name__ == "__main__":
     if settings.proxy_root and settings.proxy_root != "/":
         trusted_hosts = get_trusted_hosts(logger)
 
-
-    config = uvicorn.Config(
+    uvicorn.run(
         app=f"{__package__}.main:create_app",
         host=settings.address.host or "127.0.0.1",
         port=settings.address.port or 8000,
@@ -101,28 +100,3 @@ if __name__ == "__main__":
         forwarded_allow_ips=trusted_hosts,
         factory=True,
     )
-
-    logger.debug("Uvicorn configuration", **config.__dict__)
-
-    server = uvicorn.Server(config)
-
-    logger.info(
-        "Starting server",
-        **{
-            k: getattr(server.config, k)
-            for k in {
-                "host",
-                "port",
-                "reload",
-                "log_level",
-                "root_path",
-                "loop",
-                "forwarded_allow_ips",
-                "server_header",
-                "access_log",
-                "date_header",
-            }
-        },
-    )
-
-    server.run()
