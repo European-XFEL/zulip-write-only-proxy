@@ -1,4 +1,4 @@
-from .client import ScopedClient, ScopedClientCreate, ScopedClientWithKey
+from .client import ScopedClient, ScopedClientCreate, ScopedClientWithToken
 from .zulip import BotConfig, Message, Messages, PropagateMode
 
 __all__ = [
@@ -8,5 +8,5 @@ __all__ = [
     "PropagateMode",
     "ScopedClient",
     "ScopedClientCreate",
-    "ScopedClientWithKey",
+    "ScopedClientWithToken",
 ]

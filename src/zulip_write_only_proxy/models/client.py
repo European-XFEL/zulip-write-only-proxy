@@ -31,7 +31,7 @@ class ScopedClient(BaseModel):
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
     bot_name: str
     bot_id: int
-    key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
+    token: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
     created_by: str
@@ -102,10 +102,10 @@ class ScopedClient(BaseModel):
         return self._client.get_profile()
 
 
-class ScopedClientWithKey(ScopedClient):
-    key: str  # type: ignore[assignment]
+class ScopedClientWithToken(ScopedClient):
+    token: str  # type: ignore[assignment]
 
-    @field_validator("key")
+    @field_validator("token")
     @classmethod
-    def _set_key(cls, v: str | SecretStr) -> str:
+    def _set_token(cls, v: str | SecretStr) -> str:
         return v.get_secret_value() if isinstance(v, SecretStr) else v

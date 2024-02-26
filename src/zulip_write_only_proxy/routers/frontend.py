@@ -121,13 +121,13 @@ async def client_create_post(request: Request):
             new_client, created_by=user.get("email", "none")
         )
         dump = client.model_dump()
-        dump["key"] = client.key.get_secret_value()
+        dump["token"] = client.token.get_secret_value()
         bot = await services.get_bot(client.bot_name)
         return TEMPLATES.TemplateResponse(
             "fragments/create-success.html",
             {
                 "request": request,
-                "client": models.ScopedClientWithKey(**dump),
+                "client": models.ScopedClientWithToken(**dump),
                 "bot_site": bot.site,
             },
         )
