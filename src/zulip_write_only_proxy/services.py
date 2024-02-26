@@ -146,5 +146,5 @@ async def get_bot(bot_name: str) -> models.BotConfig:
     return await ZULIPRC_REPO.get(bot_name)
 
 
-async def list_clients() -> list[models.ScopedClientWithKey]:
+async def list_clients() -> list[models.ScopedClientWithToken]:
     return await CLIENT_REPO.list()
