@@ -1,12 +1,14 @@
 version: "3.8"
 
 services:
-  zwop:
+  zwop-dev:
     build: .
     volumes:
       - ./config:/app/config
     env_file:
       - .env
+    environment:
+      - ZWOP_PROXY_ROOT=/zwop
     labels:
       traefik.enable: true
       traefik.http.middlewares.zwop-dev.stripprefix.forceSlash: false
