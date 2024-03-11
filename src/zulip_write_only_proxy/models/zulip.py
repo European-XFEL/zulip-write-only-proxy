@@ -4,6 +4,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, SecretStr
 
+from .base import Base
+
 
 class PropagateMode(str, enum.Enum):
     change_one = "change_one"
@@ -11,7 +13,7 @@ class PropagateMode(str, enum.Enum):
     change_later = "change_later"
 
 
-class BotConfig(BaseModel):
+class BotConfig(Base):
     name: str
     email: EmailStr
     api_key: SecretStr
