@@ -66,6 +66,43 @@
     var modalRow = null;
     var modalMessageID = null;
 
+    async function updateMessage(button) {
+      const currentText = modalRow.getElementsByTagName("textarea")[0].value;
+      const updatedText = document.getElementById("editText").value;
+
+      if (currentText == updatedText) {
+        closeModal();
+      } else {
+        document.getElementById("spinner").classList.remove("hidden");
+        await fetch(
+          "{{ url_for('update_message') }}?" +
+            new URLSearchParams({ message_id: modalMessageID }),
+          {
+            method: "PATCH",
+            body: updatedText,
+            headers: {
+              "Content-Type": "text/plain",
+              "X-API-key": "{{ client.token.get_secret_value() }}",
+            },
+          },
+        ).then((response) => {
+          if (response.ok) {
+            modalRow.getElementsByTagName("textarea")[0].value = updatedText;
+            document.getElementById("spinner").classList.add("hidden");
+            closeModal();
+          } else {
+            alert(
+              "Error updating message: " +
+                response.status +
+                " " +
+                response.statusText,
+            );
+            document.getElementById("spinner").classList.add("hidden");
+          }
+        });
+      }
+    }
+
     function showModal(button) {
       modalRow = button.parentNode.parentNode;
       modalMessageID = modalRow.getAttribute("message_id");
