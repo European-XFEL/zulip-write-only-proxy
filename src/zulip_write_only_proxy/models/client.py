@@ -1,4 +1,3 @@
-import datetime
 import secrets
 from typing import IO, TYPE_CHECKING, Any
 
@@ -11,6 +10,7 @@ from pydantic import (
 )
 
 from .. import logger
+from .base import Base
 from .zulip import PropagateMode
 
 if TYPE_CHECKING:
@@ -26,14 +26,14 @@ class ScopedClientCreate(BaseModel):
     bot_site: str = "https://mylog.connect.xfel.eu/"
 
 
-class ScopedClient(BaseModel):
+class ScopedClient(Base):
     proposal_no: int
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
     bot_name: str
     bot_id: int
     token: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
-    created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
+    # created_at - from base
     created_by: str
 
     _client: "zulip.Client" = PrivateAttr()
