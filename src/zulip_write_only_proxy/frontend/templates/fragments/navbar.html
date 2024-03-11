@@ -34,7 +34,6 @@
 <script>
   document.body.addEventListener("htmx:afterRequest", function (event) {
     // Set `tab-active` class on the tab for the current page
-    debugger;
     document.querySelectorAll(".tabs [role=tab]").forEach((tab) => {
       if (tab.getAttribute("href").endsWith(window.location.pathname)) {
         tab.classList.add("tab-active");
