@@ -255,7 +255,7 @@ def test_get_me(client_type, kwargs, fastapi_client, zulip_client):
     ):
         response = fastapi_client.get(
             "/me",
-            headers={"X-API-key": client.key.get_secret_value()},
+            headers={"X-API-key": client.token.get_secret_value()},
         )
 
         assert response.status_code == 200
