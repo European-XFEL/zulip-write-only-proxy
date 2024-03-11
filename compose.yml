@@ -5,9 +5,6 @@ services:
     build: .
     volumes:
       - ./config:/app/config
-    environment:
-      ZWOP_ADDRESS: http://0.0.0.0:8000
-      ZWOP_PROXY_ROOT: /zwop
     env_file:
       - .env
     labels:
@@ -29,17 +26,9 @@ services:
           target: /app/docker-compose.yml
     ports:
       - 5678:5678
-    command: [
-        "sh",
-        "-c",
-        "python3 -m pip install debugpy &&
-        python3 -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678
-        -m zulip_write_only_proxy.main",
-      ]
 
   traefik:
     image: "traefik:v2.10"
-    container_name: "traefik"
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
