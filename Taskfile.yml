@@ -22,10 +22,10 @@ tasks:
     cd ./src/zulip_write_only_proxy/frontend/static && \
       wget -N https://unpkg.com/htmx.org@1.9.10/dist/htmx.js
 
-  poe-dev: poe dev
+  poe-up: poe up
 
   dev:
-    deps: [css-watch, htmx, poe-dev]
+    deps: [css-watch, htmx, poe-up]
 
   docker:
     cmds:
@@ -34,12 +34,10 @@ tasks:
       - sleep 10 && docker compose -p zwop-dev -f ./compose.yml logs -f
     interactive: true
 
-  staging:
-    - docker build . -t zwop:staging
-    - |
-      docker compose -f ./compose.staging.yml config | \
-        sed '/published:/ s/"//g' | sed "/name:/d" | \
-        docker stack deploy -c - zwop-staging
+  staging: |
+    docker compose -f ./compose.staging.yml config | \
+      sed '/published:/ s/"//g' | sed "/name:/d" | \
+      docker stack deploy -c - zwop-staging
 
   prod: |
     docker compose -f ./compose.prod.yml config | \

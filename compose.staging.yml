@@ -5,17 +5,19 @@ networks:
     external: true
 
 services:
-  zwop:
+  zwop-staging:
     build: .
-    environment:
-      ZWOP_PROXY_ROOT: /zwop-staging
+    volumes:
+      - ./config:/app/config
+    env_file:
+      - .env
     networks:
       - proxy
     labels:
-      traefik.http.routers.zwop.entryPoints: https
-      traefik.http.routers.zwop.rule: PathPrefix(`/zwop-staging`)
-      traefik.http.middlewares.zwop-strip-prefix.stripprefix.prefixes: /zwop-staging
-      traefik.docker.network: proxy
-    command: !reset null
-
-  traefik: !reset null
+      traefik.enable: true
+      traefik.http.middlewares.zwop-staging.stripprefix.forceSlash: false
+      traefik.http.middlewares.zwop-staging.stripprefix.prefixes: /zwop-staging
+      traefik.http.routers.zwop-staging.middlewares: zwop-staging
+      traefik.http.routers.zwop-staging.rule: PathPrefix(`/zwop-staging`)
+      traefik.http.services.zwop-staging.loadbalancer.server.port: 8000
+    command: ["poe", "staging"]

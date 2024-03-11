@@ -7,16 +7,20 @@ networks:
 services:
   zwop:
     image: ${IMAGE:-ghcr.io/european-xfel/zulip-write-only-proxy}:${TAG:?error}
-    environment:
-      ZWOP_PROXY_ROOT: /zwop
+    volumes:
+      - ./config:/app/config
+    env_file:
+      - .env
     networks:
       - proxy
     labels:
-      traefik.http.routers.zwop.entryPoints: https
+      traefik.enable: true
+      traefik.http.middlewares.zwop.stripprefix.forceSlash: false
+      traefik.http.middlewares.zwop.stripprefix.prefixes: /zwop
+      traefik.http.routers.zwop.middlewares: zwop
       traefik.http.routers.zwop.rule: PathPrefix(`/zwop`)
-      traefik.http.middlewares.zwop-strip-prefix.stripprefix.prefixes: /zwop
-      traefik.docker.network: proxy
-    command: !reset null
+      traefik.http.services.zwop.loadbalancer.server.port: 8000
+    command: ["poe", "prod"]
     deploy:
       update_config:
         parallelism: 1
@@ -25,5 +29,3 @@ services:
         order: start-first
         monitor: 10s
         max_failure_ratio: 0
-
-  traefik: !reset null
