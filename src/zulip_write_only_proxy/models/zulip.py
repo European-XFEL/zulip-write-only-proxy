@@ -14,11 +14,17 @@ class PropagateMode(str, enum.Enum):
 
 
 class BotConfig(Base):
-    name: str
     email: EmailStr
-    api_key: SecretStr
+    key: SecretStr
     site: Annotated[HttpUrl, Field(default="https://mylog.connect.xfel.eu/")]
     id: int
+    proposal_no: int
+
+    # created_at - from base
+
+    @property
+    def _key(self):
+        return f"{self.site.host}/{self.id}"
 
 
 MessageID = int

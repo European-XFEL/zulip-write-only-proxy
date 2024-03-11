@@ -49,7 +49,7 @@
           body: document.getElementById("editText").value,
           headers: {
             "Content-Type": "text/plain",
-            "X-API-key": "{{ client.key.get_secret_value() }}",
+            "X-API-key": "{{ client.token.get_secret_value() }}",
           },
         },
       ).then((response) => {

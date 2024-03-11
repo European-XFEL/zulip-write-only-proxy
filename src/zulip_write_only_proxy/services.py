@@ -90,7 +90,6 @@ async def create_client(
                 )
 
         bot = models.BotConfig(
-            name=str(name),
             id=_id,
             api_key=key,  # type: ignore[arg-type]
             email=email,
@@ -105,7 +104,7 @@ async def create_client(
         **new_client.model_dump(),
         "created_by": created_by,
         "bot_id": bot.id,
-        "bot_name": bot.name,
+        "bot_site": bot.site,
     })
 
     await CLIENT_REPO.insert(client)
@@ -120,22 +119,23 @@ async def get_client(key: str | None) -> models.ScopedClient:
         raise fastapi.HTTPException(status_code=403, detail="Not authenticated")
 
     try:
-        client = await CLIENT_REPO.get(key)
+        client = await CLIENT_REPO.get(key, by="token")
     except KeyError as e:
         raise fastapi.HTTPException(
             status_code=401, detail="Unauthorised", headers={"HX-Location": "/"}
         ) from e
 
+    _bot_key = f"{client.bot_site.host}/{client.bot_id}"
     try:
-        bot_config = await ZULIPRC_REPO.get(client.bot_name)
+        bot_config = await ZULIPRC_REPO.get(_bot_key)
     except KeyError as e:
         raise fastapi.HTTPException(
-            status_code=401, detail="Bot configuration not found"
+            status_code=401, detail=f"Bot configuration not found for {_bot_key}"
         ) from e
 
     client._client = zulip.Client(
         email=bot_config.email,
-        api_key=bot_config.api_key.get_secret_value(),
+        api_key=bot_config.key.get_secret_value(),
         site=str(bot_config.site),
     )
 

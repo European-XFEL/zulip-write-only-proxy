@@ -87,7 +87,6 @@ router = fastapi.APIRouter(
 async def client_list(request: Request):
     if request.headers.get("HX-Current-URL", "").endswith("/client/list"):
         clients = await services.list_clients()
-        clients.reverse()
         return TEMPLATES.TemplateResponse(
             "fragments/list-table-rows.html",
             {"request": request, "clients": clients},
@@ -122,7 +121,7 @@ async def client_create_post(request: Request):
         )
         dump = client.model_dump()
         dump["token"] = client.token.get_secret_value()
-        bot = await services.get_bot(client.bot_name)
+        bot = await services.get_bot(client._bot_key)
         return TEMPLATES.TemplateResponse(
             "fragments/create-success.html",
             {
