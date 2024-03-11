@@ -59,6 +59,7 @@ def get_trusted_hosts(logger):
         fields = line.strip().split()
         if not fields or fields[1] != "00000000" or not int(fields[3], 16) & 2:
             # Not default route
+            logger.warning("Not default route, cannot trust gateway")
             continue
 
         if gateway := socket.inet_ntoa(struct.pack("<L", int(fields[2], 16))):
@@ -89,6 +90,15 @@ if __name__ == "__main__":
     trusted_hosts = None
     if settings.proxy_root and settings.proxy_root != "/":
         trusted_hosts = get_trusted_hosts(logger)
+
+    logger.info("Trusted hosts", trusted_hosts=trusted_hosts)
+
+    host = settings.address.host or "127.0.0.1"
+
+    if "127.0.0.1" in host:
+        logger.critical(
+            "Running on localhost. This is only accessible from the local machine."
+        )
 
     uvicorn.run(
         app=f"{__package__}.main:create_app",
