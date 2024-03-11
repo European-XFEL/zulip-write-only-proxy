@@ -20,7 +20,7 @@ ADD --link https://unpkg.com/htmx.org@1.9.10/dist/htmx.js \
   https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js \
   ./src/zulip_write_only_proxy/frontend/static/
 
-FROM python:3.11-alpine
+FROM python:3.11-alpine AS prod
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -50,3 +50,12 @@ CMD ["poe", "up"]
 
 HEALTHCHECK --start-interval=1s --start-period=30s --interval=60s \
   CMD wget --spider http://localhost:8000/api/health || exit 1
+
+FROM prod AS dev
+
+RUN --mount=type=cache,target=/root/.cache \
+  python3 -m pip install debugpy
+
+EXPOSE 5678
+
+CMD ["python3", "-Xfrozen_modules=off", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "zulip_write_only_proxy.main"]
