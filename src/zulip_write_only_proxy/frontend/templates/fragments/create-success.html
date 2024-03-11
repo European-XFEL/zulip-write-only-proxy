@@ -20,14 +20,14 @@
     <div>
       <span>Key: </span>
       <span class="font-xs max-w-32 font-mono opacity-60" id="key"
-        >{{ client.key }}</span
+        >{{ client.token }}</span
       >
     </div>
     <div class="card-actions">
       <button
         class="btn btn-primary"
         onclick="copyToClipboard(this)"
-        key="{{ client.key }}"
+        key="{{ client.token }}"
       >
         Copy Key
       </button>

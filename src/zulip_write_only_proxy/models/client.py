@@ -4,6 +4,7 @@ from typing import IO, TYPE_CHECKING, Any
 from pydantic import (
     BaseModel,
     Field,
+    HttpUrl,
     PrivateAttr,
     SecretStr,
     field_validator,
@@ -31,12 +32,21 @@ class ScopedClient(Base):
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
     bot_name: str
     bot_id: int
+    bot_site: HttpUrl
     token: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     # created_at - from base
     created_by: str
 
     _client: "zulip.Client" = PrivateAttr()
+
+    @property
+    def _key(self):
+        return f"{self.proposal_no}/{self.created_by}/{self.bot_site.host}"
+
+    @property
+    def _bot_key(self):
+        return f"{self.bot_site.host}/{self.bot_id}"
 
     def upload_file(self, file: IO[Any]):
         return self._client.upload_file(file)
@@ -95,8 +105,12 @@ class ScopedClient(Base):
             ],
         }
         # result should be success, if found oldest and found newest both true no more
-        # messages to fetch
-        return self._client.get_messages(request)
+        # messages to fetch. TODO: handle multi-page results for more than 100 messages
+        messages = self._client.get_messages(request)
+        messages["messages"] = sorted(
+            messages["messages"], key=lambda m: m["id"], reverse=True
+        )
+        return messages
 
     def get_me(self):
         return self._client.get_profile()
