@@ -58,14 +58,12 @@ def test_send_message(scoped_client):
 
     result = scoped_client.send_message("Test Topic", "Test Content")
 
-    scoped_client._client.send_message.assert_called_once_with(
-        {
-            "type": "stream",
-            "to": "Test Stream",
-            "topic": "Test Topic",
-            "content": "Test Content",
-        }
-    )
+    scoped_client._client.send_message.assert_called_once_with({
+        "type": "stream",
+        "to": "Test Stream",
+        "topic": "Test Topic",
+        "content": "Test Content",
+    })
 
     assert result == {"result": "success"}
 
@@ -73,7 +71,7 @@ def test_send_message(scoped_client):
 def test_admin_client_create():
     client = AdminClient(admin=True)
 
-    assert client.key is not None
+    assert client.token is not None
 
     assert client.admin is True
 

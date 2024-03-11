@@ -49,7 +49,7 @@ def test_put_scoped_client(client_repo: ClientRepository):
 
     client_repo.put(client)
 
-    result = client_repo.get(client.key.get_secret_value())
+    result = client_repo.get(client.token.get_secret_value())
 
     assert isinstance(result, ScopedClient)
     assert result.stream == "Test Stream 3"
@@ -62,7 +62,7 @@ def test_put_admin_client(client_repo: ClientRepository):
 
     client_repo.put(client)
 
-    result = client_repo.get(client.key.get_secret_value())
+    result = client_repo.get(client.token.get_secret_value())
 
     assert isinstance(result, AdminClient)
     assert result.admin is True
