@@ -46,6 +46,8 @@ COPY --link --from=frontend /app/src/zulip_write_only_proxy/frontend/static \
 
 EXPOSE 8000
 
+ENV ZWOP_ADDRESS=http://0.0.0.0:8000
+
 CMD ["poe", "up"]
 
 HEALTHCHECK --start-interval=1s --start-period=30s --interval=60s \

@@ -11,6 +11,8 @@ services:
       - ./config:/app/config
     env_file:
       - .env
+    environment:
+      - ZWOP_PROXY_ROOT=/zwop-staging
     networks:
       - proxy
     labels:
