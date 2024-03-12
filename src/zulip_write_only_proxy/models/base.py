@@ -1,11 +1,11 @@
 import datetime
 from abc import ABC
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class Base(ABC, BaseModel):
-    created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
+    created_at: datetime.datetime
 
     @property
     def _key(self):
