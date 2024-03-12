@@ -1,4 +1,4 @@
-{% for client in clients %}
+{% for client in clients | sort(attribute='created_at', reverse=True) %}
   <tr class="hover" key="{{ client.token.get_secret_value() }}">
     <td>
       {{ client.proposal_no }}

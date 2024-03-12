@@ -43,10 +43,6 @@ class BaseRepository(Generic[T]):
                 for item in orjson.loads(await APath(self.file).read_bytes())
             ]
 
-            self._data = sorted(
-                self._data, key=lambda item: item.created_at, reverse=True
-            )
-
             self.data = {item._key: item for item in self._data}
 
     async def write(self):
