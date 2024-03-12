@@ -4,7 +4,7 @@
 {% block content %}
   <a href="{{ url_for('auth') }}" class="btn">Login</a>
   {% if message %}
-    {% include 'fragments/alert-error.html' %}
+    {% include 'fragments/alert.html' %}
   {% else %}
     <div id="response"></div>
   {% endif %}
