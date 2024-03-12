@@ -17,6 +17,8 @@
       </svg>
     {% endif %}
     </td>
+    <td>{{ client.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+    <td>{{ client.created_by.replace("@xfel.eu", "") }}</td>
     <td>{{ client.stream }}</td>
     <td class="text-right">
       <button
