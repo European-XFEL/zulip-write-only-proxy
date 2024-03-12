@@ -132,8 +132,8 @@ async def client_create_post(request: Request):
         )
     except Exception as e:
         return TEMPLATES.TemplateResponse(
-            "fragments/alert-error.html",
-            {"request": request, "message": e.__repr__()},
+            "fragments/alert.html",
+            {"request": request, "message": e.__repr__(), "level": "error"},
         )
 
 
