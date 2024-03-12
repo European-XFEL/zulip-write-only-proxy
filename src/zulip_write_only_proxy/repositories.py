@@ -16,7 +16,6 @@ T = TypeVar("T", bound=Base)
 @dataclass
 class BaseRepository(Generic[T]):
     file: Path
-    index: str
     model: T
 
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False, repr=False)
@@ -30,6 +29,8 @@ class BaseRepository(Generic[T]):
             return str(obj)
         if type(obj) is pydantic.SecretStr:
             return obj.get_secret_value()
+        if issubclass(obj.__class__, Base):
+            return obj.model_dump()
         raise TypeError
 
     async def load(self):
@@ -52,13 +53,15 @@ class BaseRepository(Generic[T]):
         async with self.lock:
             await APath(self.file).write_bytes(
                 orjson.dumps(
-                    self.data,
+                    self._data,
                     option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
                     default=self._serialize_pydantic,
                 )
             )
 
-    async def get(self, key: str, by: str | None = None) -> T:
+    async def get(self, key: str, by: str | None = None) -> T | None:
+        res = None
+
         if by:
             for item in self._data:
                 k = getattr(item, by, None)
@@ -67,17 +70,15 @@ class BaseRepository(Generic[T]):
                     k = k.get_secret_value()
 
                 if k == key:
-                    return item
+                    res = item
+                    break
+        else:
+            res = self.data.get(key)
 
-            # If we get here, the key was not found
-            msg = f"Key {key} not found"
-            raise KeyError(msg)
+        if res is None:
+            logger.warning("Key not found", key=key, by=by)
 
-        if key not in self.data:
-            logger.debug("Key not found, reload from file")
-            await self.load()
-
-        return self.data[key]
+        return res
 
     async def insert(self, item: T):
         self._data.append(item)
