@@ -127,7 +127,7 @@ async def client_create_post(request: Request):
             {
                 "request": request,
                 "client": models.ScopedClientWithToken(**dump),
-                "bot_site": bot.site,
+                "bot_site": bot.site if bot else None,
             },
         )
     except Exception as e:
@@ -149,7 +149,7 @@ async def client_messages(request: Request):
 
     if request.headers.get("HX-Current-URL", "").endswith("/client/messages"):
         _messages = client.get_messages()
-        messages = [
+        if messages := [
             models.Message(
                 topic=m["subject"],
                 id=m["id"],
@@ -157,11 +157,24 @@ async def client_messages(request: Request):
                 timestamp=m["timestamp"],
             )
             for m in _messages["messages"]
-        ]
+        ]:
+            return TEMPLATES.TemplateResponse(
+                "fragments/list-messages-rows.html",
+                {"request": request, "messages": messages},
+                headers={"HX-Retarget": "#rows"},
+            )
+
         return TEMPLATES.TemplateResponse(
-            "fragments/list-messages-rows.html",
-            {"request": request, "messages": messages},
-            headers={"HX-Retarget": "#rows"},
+            "fragments/alert.html",
+            {
+                "request": request,
+                "message": (
+                    f"No messages found for {client.stream} on {client.bot_site} by "
+                    f"bot ID {client.bot_id}"
+                ),
+                "level": "warning",
+            },
+            headers={"HX-Reswap": "afterend", "HX-Retarget": "#table"},
         )
 
     return TEMPLATES.TemplateResponse(
