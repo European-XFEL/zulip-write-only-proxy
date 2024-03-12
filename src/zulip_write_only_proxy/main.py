@@ -15,7 +15,7 @@ def create_app():
 
         _logging.configure(debug=app.debug, add_call_site_parameters=True)
 
-        services.configure(settings, app)
+        await services.configure(settings, app)
 
         mymdc.configure(settings, app)
 
