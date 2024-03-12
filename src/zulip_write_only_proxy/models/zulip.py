@@ -20,7 +20,7 @@ class BotConfig(Base):
     id: int
     proposal_no: int
 
-    # created_at - from base
+    created_at: datetime | None = None
 
     @property
     def _key(self):
