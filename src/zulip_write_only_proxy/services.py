@@ -1,8 +1,9 @@
-import asyncio
 from typing import TYPE_CHECKING, Annotated
 
 import fastapi
 import zulip
+from pydantic import SecretStr
+from pydantic_core import Url
 
 from . import logger, models, mymdc, repositories
 
@@ -13,29 +14,25 @@ CLIENT_REPO: repositories.BaseRepository = None  # type: ignore[assignment]
 ZULIPRC_REPO: repositories.BaseRepository = None  # type: ignore[assignment]
 
 
-def configure(settings: "Settings", _: fastapi.FastAPI):
+async def configure(settings: "Settings", _: fastapi.FastAPI | None):
     """Set up the repositories for the services. This should be called before
     any of the other functions in this module."""
     global CLIENT_REPO, ZULIPRC_REPO
 
     ZULIPRC_REPO = repositories.BaseRepository(
-        file=settings.config_dir / "zuliprc.json",
-        index="name",
-        model=models.BotConfig,
+        file=settings.config_dir / "zuliprc.json", model=models.BotConfig
     )
 
     CLIENT_REPO = repositories.BaseRepository(
-        file=settings.config_dir / "clients.json",
-        index="key",
-        model=models.ScopedClient,
+        file=settings.config_dir / "clients.json", model=models.ScopedClient
     )
 
     logger.info(
         "Setting up repositories", client_repo=CLIENT_REPO, zuliprc_repo=ZULIPRC_REPO
     )
 
-    asyncio.create_task(CLIENT_REPO.load())  # noqa: RUF006
-    asyncio.create_task(ZULIPRC_REPO.load())  # noqa: RUF006
+    await CLIENT_REPO.load()
+    await ZULIPRC_REPO.load()
 
 
 async def create_client(
@@ -91,9 +88,11 @@ async def create_client(
 
         bot = models.BotConfig(
             id=_id,
-            api_key=key,  # type: ignore[arg-type]
+            key=SecretStr(key),
             email=email,
-            site=site,  # type: ignore[arg-type]
+            site=Url(site),
+            created_at=new_client.created_at,
+            proposal_no=new_client.proposal_no,
         )
 
         await ZULIPRC_REPO.insert(bot)
