@@ -8,4 +8,9 @@ module.exports = {
     extend: {},
   },
   plugins: [require("daisyui")],
+  safelist: [
+    'alert-error',
+    'alert-info',
+    'alert-warning',
+  ]
 };
