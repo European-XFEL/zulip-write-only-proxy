@@ -1,3 +1,4 @@
+import datetime
 import secrets
 from typing import IO, TYPE_CHECKING, Any
 
@@ -21,10 +22,16 @@ if TYPE_CHECKING:
 class ScopedClientCreate(BaseModel):
     proposal_no: int
     stream: str | None = None
-    bot_name: str | None = None
-    bot_email: str | None = None
-    bot_key: str | None = None
     bot_site: str = "https://mylog.connect.xfel.eu/"
+    bot_id: int | None = None
+
+    token: SecretStr = Field(
+        default_factory=lambda: SecretStr(secrets.token_urlsafe()), init_var=False
+    )
+
+    created_at: datetime.datetime = Field(
+        default_factory=datetime.datetime.now, init_var=False
+    )
 
 
 class ScopedClient(Base):
@@ -33,7 +40,7 @@ class ScopedClient(Base):
     bot_name: str
     bot_id: int
     bot_site: HttpUrl
-    token: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
+    token: SecretStr
 
     # created_at - from base
     created_by: str
