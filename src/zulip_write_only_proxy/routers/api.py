@@ -27,6 +27,7 @@ async def get_client(
 @router.post(
     "/send_message",
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+    tags=["zulip"],
 )
 def send_message(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
@@ -53,6 +54,7 @@ _docs_url = "https://zulip.com/api/update-message#response"
 @router.patch(
     "/update_message",
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+    tags=["zulip"],
 )
 def update_message(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
@@ -78,6 +80,7 @@ _docs_url = "https://zulip.com/api/upload-file#response"
 @router.post(
     "/upload_file",
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+    tags=["zulip"],
 )
 def upload_file(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
@@ -95,6 +98,7 @@ _docs_url = "https://zulip.com/api/get-stream-topics#response"
 @router.get(
     "/get_stream_topics",
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
+    tags=["zulip"],
 )
 def get_stream_topics(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
