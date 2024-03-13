@@ -55,19 +55,25 @@ def get_trusted_hosts(logger):
     trusted = set()
 
     routes = Path("/proc/net/route").read_text()
-    for line in routes.split("\n"):
-        fields = line.strip().split()
+    lines = routes.split("\n")
+    for route in lines[1:-1]:
+        fields = route.strip().split()
         if not fields or fields[1] != "00000000" or not int(fields[3], 16) & 2:
-            # Not default route
-            logger.warning("Not default route, cannot trust gateway")
+            # Skip non-default routes
+            logger.debug("Route is not default, skipping", route=route)
             continue
 
         if gateway := socket.inet_ntoa(struct.pack("<L", int(fields[2], 16))):
+            logger.info("Found gateway", gateway=gateway)
             trusted.add(gateway)
+
+    if not trusted:
+        logger.warning("No gateways found in /proc/net/route", routes=routes)
 
     try:
         traefik = socket.gethostbyname_ex("traefik")
         trusted |= set(traefik[2])
+        logger.info("Resolved traefik", traefik=traefik)
     except socket.gaierror:
         logger.warning("Failed to resolve traefik")
 
