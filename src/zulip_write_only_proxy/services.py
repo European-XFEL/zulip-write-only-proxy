@@ -11,8 +11,8 @@ from . import logger, models, mymdc, repositories
 if TYPE_CHECKING:
     from .settings import Settings
 
-CLIENT_REPO: repositories.BaseRepository[models.ScopedClient] = None  # type: ignore[assignment]
-ZULIPRC_REPO: repositories.BaseRepository[models.BotConfig] = None  # type: ignore[assignment]
+CLIENT_REPO: repositories.BaseRepository[models.ScopedClient] = None  # type: ignore[assignment,type-var]
+ZULIPRC_REPO: repositories.BaseRepository[models.BotConfig] = None  # type: ignore[assignment,type-var]
 
 
 async def configure(settings: "Settings", _: fastapi.FastAPI | None):
@@ -22,12 +22,12 @@ async def configure(settings: "Settings", _: fastapi.FastAPI | None):
 
     ZULIPRC_REPO = repositories.BaseRepository(
         file=settings.config_dir / "zuliprc.json",
-        model=models.BotConfig,  # type: ignore[assignment]
+        model=models.BotConfig,
     )
 
     CLIENT_REPO = repositories.BaseRepository(
         file=settings.config_dir / "clients.json",
-        model=models.ScopedClient,  # type: ignore[assignment]
+        model=models.ScopedClient,
     )
 
     logger.info(
@@ -84,7 +84,7 @@ async def get_or_create_bot(
         key=SecretStr(bot_key),
         email=bot_email,
         site=Url(bot_site),
-        created_at=created_at or datetime.datetime.utcnow(),
+        created_at=created_at or datetime.datetime.now(tz=datetime.timezone.utc),
         proposal_no=proposal_no,
     )
 
