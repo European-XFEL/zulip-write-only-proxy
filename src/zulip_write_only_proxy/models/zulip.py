@@ -20,7 +20,8 @@ class BotConfig(Base):
     id: int
     proposal_no: int
 
-    created_at: datetime | None = None
+    # created at is optional for bots, not that important/used
+    created_at: datetime | None = None  # type: ignore[assignment]
 
     @property
     def _key(self):
