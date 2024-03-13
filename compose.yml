@@ -29,6 +29,8 @@ services:
         - action: sync+restart
           path: ./src/zulip_write_only_proxy/main.py
           target: /app/src/zulip_write_only_proxy/main.py
+    ports:
+      - 5678:5678
 
   traefik:
     image: "traefik:v2.10"
