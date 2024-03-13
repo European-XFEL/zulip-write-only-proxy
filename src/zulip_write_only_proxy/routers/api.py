@@ -1,9 +1,12 @@
 from typing import TYPE_CHECKING, Annotated
 
 import fastapi
+import orjson
 from fastapi.security import APIKeyHeader
 
-from .. import __version__, __version_tuple__, models, services
+from zulip_write_only_proxy import mymdc
+
+from .. import __version__, __version_tuple__, logger, models, services
 
 if TYPE_CHECKING:
     from tempfile import SpooledTemporaryFile
@@ -97,6 +100,97 @@ def get_stream_topics(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
 ):
     return client.get_stream_topics()
+
+
+mymdc_proxy_routes = {
+    "proposals/by_number/{proposal_no}": ["", "runs", "runs/{run_number}"],
+    "sample_types": ["{id}"],
+    "samples": ["", "{id}"],
+    "experiments": ["", "{id}"],
+}
+
+
+async def get_mymdc(
+    request: fastapi.Request,
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    proposal_no: int | None = None,
+    run_number: int | None = None,
+    id: int | None = None,
+):
+    logger.debug("get_mymdc", proposal_no=proposal_no, run_number=run_number, id=id)
+    # Early exit if proposal_no is explicitly provided and does not match client
+    if proposal_no and proposal_no != client.proposal_no:
+        raise fastapi.HTTPException(
+            status_code=403,
+            detail=f"Client is scoped to {client.proposal_no=}, not {proposal_no=}",
+        )
+
+    res = await mymdc.CLIENT.get(request.url.path.replace("/mymdc", ""))
+
+    # Error response or proposal_no provided and previously checked
+    if res.status_code != 200 or proposal_no:
+        return _create_response(res)
+
+    res_dict = orjson.loads(res.content)
+
+    checks = [
+        _check_prefix_path(res_dict, client),
+        await _check_proposal_id(res_dict, client),
+    ]
+
+    # Any checks true? Return response
+    if any(checks):
+        return _create_response(res)
+
+    # All checks are None? No checks performed
+    if all(c is None for c in checks):
+        logger.error(
+            "No checks performed", res=res, client=client, proposal_no=proposal_no
+        )
+        raise fastapi.HTTPException(
+            status_code=500,
+            detail="No checks could be performed",
+        )
+
+    # All checks are False? Raise 403
+    raise fastapi.HTTPException(
+        status_code=403,
+        detail="No checks passed",
+    )
+
+
+def _create_response(res):
+    return fastapi.Response(
+        content=res.content,
+        media_type=res.headers["Content-Type"],
+        headers=res.headers,
+        status_code=res.status_code,
+    )
+
+
+def _check_prefix_path(res_dict, client):
+    if v := res_dict.get("first_prefix_path"):
+        return v in f"/p{client.proposal_no:06d}/"
+    return None
+
+
+async def _check_proposal_id(res_dict, client):
+    if v := res_dict.get("proposal_id"):
+        proposal_no = orjson.loads(
+            (await mymdc.CLIENT.get(f"/api/proposals/{v}")).content
+        ).get("number")
+        return proposal_no == client.proposal_no
+    return None
+
+
+for path, subpaths in mymdc_proxy_routes.items():
+    for subpath in subpaths:
+        get_mymdc = router.get(
+            "/" + "/".join(["mymdc", path, subpath]).strip("/"),
+            tags=["mymdc"],
+            name="",
+            response_class=fastapi.Response,
+        )(get_mymdc)
 
 
 @router.get("/me", response_model_exclude={"key"})
