@@ -130,7 +130,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         integrate with structlog"""
         info = {
             "method": request.method,
-            "path": request.url.path,
+            "path": request.scope["path"],
             "client": request.client,
         }
 
@@ -140,7 +140,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         if request.path_params:
             info["path_params"] = str(request.path_params)
 
-        logger = self.logger.bind(path=request.url.path, method=request.method)
+        logger = self.logger.bind(path=request.scope["path"], method=request.method)
         logger.debug("Request", **info)
 
         response = await call_next(request)
