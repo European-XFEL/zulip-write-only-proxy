@@ -16,7 +16,7 @@ T = TypeVar("T", bound=Base)
 @dataclass
 class BaseRepository(Generic[T]):
     file: Path
-    model: T
+    model: type[T]
 
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False, repr=False)
     data: dict[str, T] = field(default_factory=dict, init=False, repr=False)
