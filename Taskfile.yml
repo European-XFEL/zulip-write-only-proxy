@@ -27,19 +27,15 @@ tasks:
   dev:
     deps: [css-watch, htmx, poe-up]
 
-  docker:
+  docker: docker compose -p zwop-dev -f ./compose.yml up --watch
+
+  staging:
+    dotenv: ['.env']
     cmds:
-      - defer: docker compose -p zwop-dev -f ./compose.yml down
-      - docker compose -p zwop-dev -f ./compose.yml watch
-      - sleep 10 && docker compose -p zwop-dev -f ./compose.yml logs -f
-    interactive: true
+      - docker build . --tag zwop:staging
+      - docker stack deploy -c ./compose.staging.yml zwop-staging
 
-  staging: |
-    docker compose -f ./compose.staging.yml config | \
-      sed '/published:/ s/"//g' | sed "/name:/d" | \
-      docker stack deploy -c - zwop-staging
-
-  prod: |
-    docker compose -f ./compose.prod.yml config | \
-      sed '/published:/ s/"//g' | sed "/name:/d" | \
-      docker stack deploy -c - zwop-prod
+  prod:
+    dotenv: ['.env']
+    cmds:
+      - docker stack deploy -c ./compose.prod.yml zwop
