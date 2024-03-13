@@ -129,7 +129,9 @@ async def get_mymdc(
             detail=f"Client is scoped to {client.proposal_no=}, not {proposal_no=}",
         )
 
-    res = await mymdc.CLIENT.get(request.url.path.replace("/mymdc", ""))
+    res = await mymdc.CLIENT.get(
+        request.scope["path"].replace("/api/mymdc", "/api")  # rewrite path for mymdc
+    )
 
     # Error response or proposal_no provided and previously checked
     if res.status_code != 200 or proposal_no:
