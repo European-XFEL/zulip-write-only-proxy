@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  zwop-dev:
+  server:
     build: .
     volumes:
       - ./config:/app/config
@@ -26,8 +26,9 @@ services:
         - action: sync+restart
           path: ./docker-compose.yml
           target: /app/docker-compose.yml
-    ports:
-      - 5678:5678
+        - action: sync+restart
+          path: ./src/zulip_write_only_proxy/main.py
+          target: /app/src/zulip_write_only_proxy/main.py
 
   traefik:
     image: "traefik:v2.10"
