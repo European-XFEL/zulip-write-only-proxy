@@ -77,6 +77,11 @@ class BaseRepository(Generic[T]):
         return res
 
     async def insert(self, item: T):
+        if item._key in self.data:
+            msg = "Key already exists"
+            logger.warning(msg, key=item._key)
+            raise ValueError(msg)
+
         self._data.append(item)
         self.data[item._key] = self._data[-1]
 
