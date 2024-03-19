@@ -32,10 +32,15 @@ async def check_and_proxy_request(client: ScopedClient, request: Request) -> Res
     res = await proxy_request(request)
     content = orjson.loads(res.body)
 
-    res_proposal_id = content.get("proposal_id")
-    res_proposal_no = content.get("proposal_no")
+    res_proposal_id = (
+        content.get("proposal_id")
+        or content.get("proposal", {}).get("id")
+        or content.get("id")
+    )
 
-    if all(n is None for n in (req_proposal_no, res_proposal_id, res_proposal_no)):
+    res_proposal_no = content.get("proposal", {}).get("no") or content.get("id")
+
+    if all(n is None for n in (res_proposal_id, res_proposal_no)):
         raise HTTPException(
             status_code=400, detail="Cannot determine proposal for response"
         )
