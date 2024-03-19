@@ -1,3 +1,4 @@
+migration
 *.zuliprc
 .env
 .task
