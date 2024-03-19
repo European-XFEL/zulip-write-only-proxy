@@ -12,7 +12,7 @@ ScopedClient: TypeAlias = Annotated[models.ScopedClient, Depends(get_client)]
 async def proxy_request(request: Request) -> Response:
     path = request.scope["path"].replace("/api/mymdc", "/api")  # rewrite path for mymdc
 
-    res = await mymdc.CLIENT.get(path)
+    res = await mymdc.CLIENT.get(path, params=request.query_params)
 
     return Response(
         content=res.content,
@@ -57,10 +57,19 @@ async def check_and_proxy_request(client: ScopedClient, request: Request) -> Res
 router = APIRouter(prefix="/api/mymdc", tags=["mymdc"])
 
 
-@router.get("/proposals/by_number/{proposal_no}/runs")
 @router.get("/proposals/by_number/{proposal_no}")
 async def get_proposals_by_number(
     proposal_no: int, res=Depends(check_and_proxy_request)
+):
+    return res
+
+
+@router.get("/proposals/by_number/{proposal_no}/runs")
+async def get_proposals_by_number_runs(
+    proposal_no: int,
+    page_size: int = 100,
+    page_number: int = 1,
+    res=Depends(check_and_proxy_request),
 ):
     return res
 
@@ -74,5 +83,5 @@ async def get_proposals_runs(
 
 @router.get("/samples/{id}")
 @router.get("/experiments/{id}")
-async def get(id: int, res=Depends(check_and_proxy_request)):
+async def get_with_id(id: int, res=Depends(check_and_proxy_request)):
     return res
