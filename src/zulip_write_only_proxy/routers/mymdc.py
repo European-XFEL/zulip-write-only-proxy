@@ -3,16 +3,14 @@ from typing import Annotated, TypeAlias
 import orjson
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
-from .. import models, mymdc
+from .. import logger, models, mymdc
 from .api import get_client
 
 ScopedClient: TypeAlias = Annotated[models.ScopedClient, Depends(get_client)]
 
 
-async def proxy_request(request: Request) -> Response:
-    path = request.scope["path"].replace("/api/mymdc", "/api")  # rewrite path for mymdc
-
-    res = await mymdc.CLIENT.get(path, params=request.query_params)
+async def proxy_request(mymdc_path: str, params) -> Response:
+    res = await mymdc.CLIENT.get(mymdc_path, params=params)
 
     return Response(
         content=res.content,
@@ -22,14 +20,25 @@ async def proxy_request(request: Request) -> Response:
     )
 
 
-async def check_and_proxy_request(client: ScopedClient, request: Request) -> Response:
-    req_proposal_no = request.path_params.get("proposal_no")
+async def check_and_proxy_request(
+    request: Request,
+    client: ScopedClient,
+    req_proposal_no: int | None,
+    mymdc_path: str,
+    params: dict,
+) -> Response:
+    if request.query_params.keys() != params.keys():
+        logger.warning(
+            "Dropped query parameters",
+            keys=set(request.query_params.keys()) - set(params.keys()),
+        )
+
     if req_proposal_no and int(req_proposal_no) != client.proposal_no:
         raise HTTPException(
             status_code=403, detail="Client not scoped to this proposal"
         )
 
-    res = await proxy_request(request)
+    res = await proxy_request(mymdc_path, params)
     content = orjson.loads(res.body)
 
     res_proposal_id = (
@@ -59,29 +68,50 @@ router = APIRouter(prefix="/api/mymdc", tags=["mymdc"])
 
 @router.get("/proposals/by_number/{proposal_no}")
 async def get_proposals_by_number(
-    proposal_no: int, res=Depends(check_and_proxy_request)
+    request: Request, client: ScopedClient, proposal_no: int
 ):
-    return res
+    return await check_and_proxy_request(
+        request, client, proposal_no, f"/api/proposals/by_number/{proposal_no}", {}
+    )
 
 
 @router.get("/proposals/by_number/{proposal_no}/runs")
 async def get_proposals_by_number_runs(
+    request: Request,
+    client: ScopedClient,
     proposal_no: int,
     page_size: int = 100,
-    page_number: int = 1,
-    res=Depends(check_and_proxy_request),
+    page: int = 1,
 ):
-    return res
+    return await check_and_proxy_request(
+        request,
+        client,
+        proposal_no,
+        f"/api/proposals/by_number/{proposal_no}/runs",
+        {"page_size": page_size, "page": page},
+    )
 
 
 @router.get("/proposals/by_number/{proposal_no}/runs/{run_number}")
 async def get_proposals_runs(
-    proposal_no: int, run_number: int, res=Depends(check_and_proxy_request)
+    request: Request, client: ScopedClient, proposal_no: int, run_number: int
 ):
-    return res
+    return await check_and_proxy_request(
+        request,
+        client,
+        proposal_no,
+        f"/api/proposals/by_number/{proposal_no}/runs/{run_number}",
+        {},
+    )
 
 
 @router.get("/samples/{id}")
 @router.get("/experiments/{id}")
-async def get_with_id(id: int, res=Depends(check_and_proxy_request)):
-    return res
+async def get_with_id(request: Request, client: ScopedClient, id: int):
+    return await check_and_proxy_request(
+        request,
+        client,
+        client.proposal_no,
+        request.scope["path"].replace("/api/mymdc", "/api"),
+        {},
+    )
