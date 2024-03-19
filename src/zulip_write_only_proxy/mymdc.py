@@ -146,3 +146,19 @@ class MyMdCClient(httpx.AsyncClient):
             raise NoStreamForProposalError(proposal_no)
 
         return res
+
+    async def get_proposal_id(self, proposal_no: int) -> int:
+        res = await self.get(f"/api/proposals/by_number/{proposal_no}")
+
+        res_dict = res.json()
+
+        if res.status_code == 404 or res_dict is None:
+            raise NoStreamForProposalError(proposal_no)
+
+        proposal_id = res_dict.get("id")
+
+        if proposal_id is None:
+            msg = "MyMdC response for did not contain `id`"
+            raise RuntimeError(msg)
+
+        return proposal_id
