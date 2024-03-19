@@ -25,7 +25,7 @@ def create_app():
 
         mymdc.configure(settings, app)
 
-        for module in [routers.api, routers.auth, routers.frontend]:
+        for module in [routers.api, routers.auth, routers.frontend, routers.mymdc]:
             app.include_router(module.router)
 
             if hasattr(module, "configure"):
