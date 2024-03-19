@@ -36,6 +36,7 @@ class ScopedClientCreate(BaseModel):
 
 class ScopedClient(Base):
     proposal_no: int
+    proposal_id: int
     stream: str  # type: ignore [reportIncompatibleVariableOverride]
     bot_name: str
     bot_id: int
