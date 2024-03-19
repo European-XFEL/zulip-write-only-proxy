@@ -111,6 +111,7 @@ async def create_client(
 
     client = models.ScopedClient(
         proposal_no=new_client.proposal_no,
+        proposal_id=await mymdc.CLIENT.get_proposal_id(new_client.proposal_no),
         stream=new_client.stream,
         bot_id=bot.id,
         bot_site=bot.site,
