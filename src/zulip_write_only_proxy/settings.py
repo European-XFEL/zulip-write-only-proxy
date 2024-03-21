@@ -1,7 +1,7 @@
 import datetime as dt
 from pathlib import Path
 
-from pydantic import AnyUrl, DirectoryPath, HttpUrl, SecretStr
+from pydantic import AnyUrl, DirectoryPath, FilePath, HttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,6 +30,14 @@ class MyMdCCredentials(BaseSettings):
     )
 
 
+class TokenWriter(BaseSettings):
+    ssh_destination: str = "xdana@max-exfl.desy.de"
+    ssh_private_key: FilePath = (
+        Path(__file__).parent.parent.parent / "config/id_ed25519"
+    )
+    zwop_url: HttpUrl = AnyUrl("https://exfldadev01.desy.de/zwop")
+
+
 class Settings(BaseSettings):
     debug: bool = True
     address: AnyUrl = AnyUrl("http://127.0.0.1:8000")
@@ -40,6 +48,7 @@ class Settings(BaseSettings):
 
     auth: Auth
     mymdc: MyMdCCredentials
+    token_writer: TokenWriter = TokenWriter()
 
     model_config = SettingsConfigDict(
         env_prefix="ZWOP_", env_file=[".env"], env_nested_delimiter="__"
