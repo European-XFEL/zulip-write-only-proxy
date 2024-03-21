@@ -138,14 +138,14 @@ class MyMdCClient(httpx.AsyncClient):
         return stream_name
 
     async def get_zulip_bot_credentials(self, proposal_no: int) -> dict:
-        res = (await self.get(f"/api/proposals/{proposal_no}/logbook_bot")).json()
+        res = await self.get(f"/api/proposals/{proposal_no}/logbook_bot")
 
         res_dict = res.json()
 
         if res.status_code == 404 or res_dict is None:
             raise NoStreamForProposalError(proposal_no)
 
-        return res
+        return res_dict
 
     async def get_proposal_id(self, proposal_no: int) -> int:
         res = await self.get(f"/api/proposals/by_number/{proposal_no}")
