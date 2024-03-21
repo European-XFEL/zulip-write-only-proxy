@@ -24,8 +24,8 @@ services:
           ignore:
             - node_modules/
         - action: sync+restart
-          path: ./docker-compose.yml
-          target: /app/docker-compose.yml
+          path: ./compose.yml
+          target: /app/compose.yml
         - action: sync+restart
           path: ./src/zulip_write_only_proxy/main.py
           target: /app/src/zulip_write_only_proxy/main.py
