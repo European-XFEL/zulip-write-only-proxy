@@ -14,7 +14,7 @@ services:
       traefik.http.middlewares.zwop-dev.stripprefix.forceSlash: false
       traefik.http.middlewares.zwop-dev.stripprefix.prefixes: /zwop
       traefik.http.routers.zwop-dev.middlewares: zwop-dev
-      traefik.http.routers.zwop-dev.rule: PathPrefix(`/zwop`)
+      traefik.http.routers.zwop-dev.rule: PathPrefix(`/zwop{slash:(\/|$)}`)
       traefik.http.services.zwop-dev.loadbalancer.server.port: 8000
     develop:
       watch:
