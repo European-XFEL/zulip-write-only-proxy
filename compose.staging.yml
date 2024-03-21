@@ -1,7 +1,7 @@
 version: "3.8"
 
 networks:
-  proxy:
+  proxy-swarm:
     external: true
 
 services:
@@ -14,9 +14,10 @@ services:
     environment:
       - ZWOP_PROXY_ROOT=/zwop-staging
     networks:
-      - proxy
+      - proxy-swarm
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=proxy-swarm"
       - "traefik.http.middlewares.zwop-staging.stripprefix.forceSlash=false"
       - "traefik.http.middlewares.zwop-staging.stripprefix.prefixes=/zwop-staging"
       - "traefik.http.routers.zwop-staging.middlewares=zwop-staging"
