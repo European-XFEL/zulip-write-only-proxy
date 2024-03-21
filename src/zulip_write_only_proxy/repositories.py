@@ -55,7 +55,7 @@ class BaseRepository(Generic[T]):
                 )
             )
 
-    async def get(self, key: str, by: str | None = None) -> T | None:
+    async def get(self, key: str | int, by: str | None = None) -> T | None:
         res = None
 
         if by:
@@ -69,7 +69,7 @@ class BaseRepository(Generic[T]):
                     res = item
                     break
         else:
-            res = self.data.get(key)
+            res = self.data.get(str(key))
 
         if res is None:
             logger.warning("Key not found", key=key, by=by)
