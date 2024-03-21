@@ -1,21 +1,23 @@
+import asyncio
 import datetime
-from typing import TYPE_CHECKING, Annotated
+import hashlib
+from pathlib import Path
+from typing import Annotated, Literal
 
 import fastapi
+import orjson
 import zulip
 from pydantic import SecretStr
 from pydantic_core import Url
 
-from . import logger, models, mymdc, repositories
-
-if TYPE_CHECKING:
-    from .settings import Settings
+from . import _remote_receive, logger, models, mymdc, repositories
+from .settings import Settings, settings
 
 CLIENT_REPO: repositories.BaseRepository[models.ScopedClient] = None  # type: ignore[assignment,type-var]
 ZULIPRC_REPO: repositories.BaseRepository[models.BotConfig] = None  # type: ignore[assignment,type-var]
 
 
-async def configure(settings: "Settings", _: fastapi.FastAPI | None):
+async def configure(settings: Settings, _: fastapi.FastAPI | None):
     """Set up the repositories for the services. This should be called before
     any of the other functions in this module."""
     global CLIENT_REPO, ZULIPRC_REPO
@@ -160,3 +162,113 @@ async def get_bot(bot_name: str) -> models.BotConfig | None:
 
 async def list_clients() -> list[models.ScopedClient]:
     return await CLIENT_REPO.list()
+
+
+async def write_tokens(
+    request: fastapi.Request,
+    proposal_no: int,
+    kinds: Annotated[list[Literal["zulip", "mymdc"]], fastapi.Query(...)],
+    overwrite: bool = False,
+    dry_run: bool = False,
+    created_by: str = "write_tokens",
+):
+    version = await _call_remote_receive("--version")
+
+    client = await CLIENT_REPO.get(proposal_no, by="proposal_no")
+    if client is None:
+        client = await create_client(
+            models.ScopedClientCreate(proposal_no=proposal_no),
+            created_by,
+        )
+
+    queue = {}
+    for _kind in kinds:
+        kind = (
+            _remote_receive.MymdcConfig
+            if _kind == "mymdc"
+            else _remote_receive.ZulipConfig
+        )
+        config = kind(
+            key=client.token.get_secret_value(),
+            zwop_url=str(settings.token_writer.zwop_url),
+        )
+        data = orjson.dumps(config).decode()
+        queue[_kind] = asyncio.create_task(
+            _call_remote_receive(
+                str(proposal_no),
+                _kind,
+                data,
+                "--dry-run" if dry_run else "",
+                "--overwrite" if overwrite else "",
+            )
+        )
+
+    await asyncio.wait(queue.values())
+
+    details = {k: v.result() for k, v in queue.items()}
+
+    script_file_hash = hashlib.sha256(
+        Path(_remote_receive.__file__).read_bytes()
+    ).hexdigest()
+
+    if version["hash"] != script_file_hash:
+        logger.critical(
+            "Remote script hash mismatch", version=version, local_hash=script_file_hash
+        )
+        details["version"] = version
+
+    status_code = max(
+        (d.get("status_code", 500) for d in details.values()), default=500
+    )
+
+    if status_code != 200:
+        raise fastapi.HTTPException(
+            status_code=status_code,
+            detail={
+                "msg": "error writing token(s)",
+                "details": details,
+            },
+        )
+
+    return details
+
+
+async def _call_remote_receive(*args: str):
+    base_cmd = [
+        "ssh",
+        "-F",
+        "/dev/null",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-i",
+        settings.token_writer.ssh_private_key,
+        settings.token_writer.ssh_destination,
+        "--",
+    ]
+
+    cmd = base_cmd.copy()
+    cmd.extend(args)
+
+    logger.debug("Calling", cmd=cmd)
+
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+
+    stdout, stderr = await process.communicate()
+
+    logger.info("Subprocess response", stdout=stdout, stderr=stderr)
+
+    try:
+        stdout = orjson.loads(stdout)
+    except orjson.JSONDecodeError:
+        stdout = {"stdout": stdout.decode()}
+
+    try:
+        stderr = orjson.loads(stderr)
+    except orjson.JSONDecodeError:
+        stderr = {"stderr": stderr.decode()}
+
+    return {"returncode": process.returncode, **stdout, **stderr}
