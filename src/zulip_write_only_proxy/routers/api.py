@@ -110,6 +110,13 @@ def get_me(
     return client
 
 
+@router.post("/write_tokens")
+def write_tokens(
+    res: Annotated[bool, fastapi.Depends(services.write_tokens)],
+):
+    return res
+
+
 @router.get("/health")
 def healthcheck(request: fastapi.Request):
     return {
