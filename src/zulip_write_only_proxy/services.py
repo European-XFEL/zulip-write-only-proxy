@@ -165,17 +165,19 @@ async def list_clients() -> list[models.ScopedClient]:
 
 
 async def write_tokens(
-    request: fastapi.Request,
     proposal_no: int,
     kinds: Annotated[list[Literal["zulip", "mymdc"]], fastapi.Query(...)],
     overwrite: bool = False,
     dry_run: bool = False,
     created_by: str = "write_tokens",
 ):
+    details: dict[str, Any] = {"created_client": False}
+
     version = await _call_remote_receive("--version")
 
     client = await CLIENT_REPO.get(proposal_no, by="proposal_no")
     if client is None:
+        details["created_client"] = True
         client = await create_client(
             models.ScopedClientCreate(proposal_no=proposal_no),
             created_by,
@@ -205,7 +207,7 @@ async def write_tokens(
 
     await asyncio.wait(queue.values())
 
-    details = {k: v.result() for k, v in queue.items()}
+    details |= {k: v.result() for k, v in queue.items()}
 
     script_file_hash = hashlib.sha256(
         Path(_remote_receive.__file__).read_bytes()
