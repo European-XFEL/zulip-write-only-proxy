@@ -1,6 +1,7 @@
 #!/gpfs/exfel/sw/software/mambaforge/22.11/envs/202401/bin/python3
 
 import hashlib
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -130,7 +131,7 @@ def cli(proposal, kind, data, dry_run, overwrite):
 
     if kind == "mymdc":
         config = MymdcConfig(**data)
-        target = amore_dir / "mymdc.cfg"
+        target = proposal / "usr/mymdc-credentials.yml"
 
     res = {
         "proposal": str(proposal),
@@ -161,6 +162,13 @@ def cli(proposal, kind, data, dry_run, overwrite):
         return
 
     target.write_text(content)
+
+    if kind == "zulip":
+        target.chmod(0o666)
+        shutil.chown(target, user="xdana", group="exfel")
+    if kind == "mymdc":
+        target.chmod(0o660)
+        shutil.chown(target, user="xdana", group="exfl_da")
 
     click.echo(JSONError("wrote config file", res, status_code=200).serialise())
 
