@@ -2,7 +2,7 @@ import asyncio
 import datetime
 import hashlib
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 import fastapi
 import orjson
@@ -12,6 +12,9 @@ from pydantic_core import Url
 
 from . import _remote_receive, logger, models, mymdc, repositories
 from .settings import Settings, settings
+
+if TYPE_CHECKING:
+    from os import PathLike
 
 CLIENT_REPO: repositories.BaseRepository[models.ScopedClient] = None  # type: ignore[assignment,type-var]
 ZULIPRC_REPO: repositories.BaseRepository[models.BotConfig] = None  # type: ignore[assignment,type-var]
@@ -236,7 +239,7 @@ async def write_tokens(
 
 
 async def _call_remote_receive(*args: str):
-    base_cmd = [
+    base_cmd: list[str | PathLike] = [
         "ssh",
         "-F",
         "/dev/null",
@@ -266,13 +269,13 @@ async def _call_remote_receive(*args: str):
     logger.info("Subprocess response", stdout=stdout, stderr=stderr)
 
     try:
-        stdout = orjson.loads(stdout)
+        stdout_dict = orjson.loads(stdout)
     except orjson.JSONDecodeError:
-        stdout = {"stdout": stdout.decode()}
+        stdout_dict = {"stdout": stdout.decode()}
 
     try:
-        stderr = orjson.loads(stderr)
+        stderr_dict = orjson.loads(stderr)
     except orjson.JSONDecodeError:
-        stderr = {"stderr": stderr.decode()}
+        stderr_dict = {"stderr": stderr.decode()}
 
-    return {"returncode": process.returncode, **stdout, **stderr}
+    return {"returncode": process.returncode, **stdout_dict, **stderr_dict}
