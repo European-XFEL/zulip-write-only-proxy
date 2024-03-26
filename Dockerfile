@@ -28,6 +28,8 @@ ENV PYTHONOPTIMIZE 2
 
 WORKDIR /app
 
+RUN apk update && apk add --no-cache openssh
+
 RUN --mount=type=cache,target=/root/.cache \
   python3 -m pip install --upgrade poetry pip && \
   poetry config virtualenvs.create false --local
