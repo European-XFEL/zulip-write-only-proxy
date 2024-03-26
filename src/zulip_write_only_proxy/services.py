@@ -240,6 +240,8 @@ async def _call_remote_receive(*args: str):
         "/dev/null",
         "-o",
         "IdentitiesOnly=yes",
+        "-o",
+        f"UserKnownHostsFile={settings.token_writer.ssh_known_hosts}",
         "-i",
         settings.token_writer.ssh_private_key,
         settings.token_writer.ssh_destination,
