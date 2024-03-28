@@ -11,6 +11,7 @@ from pydantic import SecretStr
 from pydantic_core import Url
 
 from . import _remote_receive, logger, models, mymdc, repositories
+from .models.client import NoBotForClientError
 from .settings import Settings, settings
 
 if TYPE_CHECKING:
@@ -49,7 +50,7 @@ async def get_or_create_bot(
     bot_key: str | None = None,
     bot_site: str = "https://mylog.connect.xfel.eu/",
     bot_id: int | None = None,
-):
+) -> models.BotConfig:
     created_at = None
 
     if bot_site and bot_id and (bot := await ZULIPRC_REPO.get(f"{bot_site}/{bot_id}")):
@@ -105,21 +106,35 @@ async def create_client(
     logger.info("Creating client", new_client=new_client, created_by=created_by)
 
     if new_client.stream is None:
-        new_client.stream = await mymdc.CLIENT.get_zulip_stream_name(
-            new_client.proposal_no
-        )
-        logger.debug("Stream name from MyMdC", stream=new_client.stream)
+        try:
+            new_client.stream = await mymdc.CLIENT.get_zulip_stream_name(
+                new_client.proposal_no
+            )
+            logger.debug("Stream name from MyMdC", stream=new_client.stream)
+        except mymdc.NoStreamForProposalError:
+            logger.warning("No stream name found", proposal_no=new_client.proposal_no)
 
-    bot = await get_or_create_bot(
-        new_client.proposal_no, bot_id=new_client.bot_id, bot_site=new_client.bot_site
-    )
+    try:
+        bot = await get_or_create_bot(
+            new_client.proposal_no,
+            bot_id=new_client.bot_id,
+            bot_site=new_client.bot_site,
+        )
+    except mymdc.MyMdCResponseError as e:
+        if "Logbook hasn't been created for proposal" not in str(e.detail):
+            raise e
+
+        bot = None
+        logger.warning(
+            "No logbook found for proposal", proposal_no=new_client.proposal_no
+        )
 
     client = models.ScopedClient(
         proposal_no=new_client.proposal_no,
         proposal_id=await mymdc.CLIENT.get_proposal_id(new_client.proposal_no),
         stream=new_client.stream,
-        bot_id=bot.id,
-        bot_site=bot.site,
+        bot_id=bot.id if bot else None,
+        bot_site=bot.site if bot else None,
         token=new_client.token,
         created_at=new_client.created_at,
         created_by=created_by,
@@ -143,18 +158,22 @@ async def get_client(key: str | None) -> models.ScopedClient:
             status_code=401, detail="Unauthorised", headers={"HX-Location": "/"}
         )
 
-    bot = await ZULIPRC_REPO.get(client._bot_key)
+    try:
+        bot = await ZULIPRC_REPO.get(client._bot_key)
 
-    if bot is None:
-        raise fastapi.HTTPException(
-            status_code=401, detail=f"Bot configuration not found for {client._bot_key}"
+        if bot is None:
+            raise fastapi.HTTPException(
+                status_code=401,
+                detail=f"Bot configuration not found for {client._bot_key}",
+            )
+
+        client._client = zulip.Client(
+            email=bot.email,
+            api_key=bot.key.get_secret_value(),
+            site=str(bot.site),
         )
-
-    client._client = zulip.Client(
-        email=bot.email,
-        api_key=bot.key.get_secret_value(),
-        site=str(bot.site),
-    )
+    except NoBotForClientError as e:
+        logger.warning("No bot for client", client=client, error=e)
 
     return client
 
@@ -223,7 +242,8 @@ async def write_tokens(
         details["version"] = version
 
     status_code = max(
-        (d.get("status_code", 500) for d in details.values()), default=500
+        (d.get("status_code", 500) for d in details.values() if isinstance(d, dict)),
+        default=500,
     )
 
     if status_code != 200:
