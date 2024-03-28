@@ -3,7 +3,9 @@ from typing import TYPE_CHECKING, Annotated
 import fastapi
 from fastapi.security import APIKeyHeader
 
-from .. import __version__, __version_tuple__, models, services
+from zulip_write_only_proxy import mymdc
+
+from .. import __version__, __version_tuple__, logger, models, services
 
 if TYPE_CHECKING:
     from tempfile import SpooledTemporaryFile
@@ -21,13 +23,46 @@ async def get_client(
     return await services.get_client(key)
 
 
+async def get_client_zulip(
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+) -> models.ScopedClient:
+    if client.bot_id is None or client.bot_site is None:
+        logger.warning("Client missing bot", client=client)
+        bot = await services.get_or_create_bot(client.proposal_no)
+        if bot:
+            client.bot_id = bot.id
+            client.bot_site = bot.site
+
+    if client.stream is None:
+        client.stream = await mymdc.CLIENT.get_zulip_stream_name(client.proposal_no)
+
+    if client.bot_id is None or client.bot_site is None:
+        raise fastapi.HTTPException(
+            status_code=404,
+            detail="No Zulip bot known for this client.",
+        )
+
+    if client.stream is None:
+        raise fastapi.HTTPException(
+            status_code=404,
+            detail="No Zulip stream known for this client.",
+        )
+
+    if getattr(client, "_client", None) is None:
+        raise fastapi.HTTPException(
+            status_code=500, detail="Zulip client not initialized"
+        )
+
+    return client
+
+
 @router.post(
     "/send_message",
     response_description=f"See <a href='{_docs_url}'>{_docs_url}</a>",
     tags=["zulip"],
 )
 def send_message(
-    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client_zulip)],
     topic: Annotated[str, fastapi.Query(...)],
     content: Annotated[str, fastapi.Body(...)],
     image: Annotated[fastapi.UploadFile | None, fastapi.File()] = None,
@@ -54,7 +89,7 @@ _docs_url = "https://zulip.com/api/update-message#response"
     tags=["zulip"],
 )
 def update_message(
-    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client_zulip)],
     message_id: Annotated[int, fastapi.Query(...)],
     propagate_mode: Annotated[models.PropagateMode | None, fastapi.Query()] = None,
     content: Annotated[str | None, fastapi.Body(media_type="text/plain")] = None,
@@ -80,7 +115,7 @@ _docs_url = "https://zulip.com/api/upload-file#response"
     tags=["zulip"],
 )
 def upload_file(
-    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client_zulip)],
     file: Annotated[fastapi.UploadFile, fastapi.File(...)],
 ):
     f: "SpooledTemporaryFile" = file.file  # type: ignore[assignment]
@@ -98,7 +133,7 @@ _docs_url = "https://zulip.com/api/get-stream-topics#response"
     tags=["zulip"],
 )
 def get_stream_topics(
-    client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    client: Annotated[models.ScopedClient, fastapi.Depends(get_client_zulip)],
 ):
     return client.get_stream_topics()
 
