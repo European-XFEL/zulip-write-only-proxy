@@ -24,3 +24,8 @@ services:
       - "traefik.http.routers.zwop-staging.rule=Host(`exfldadev01.desy.de`) && PathPrefix(`/zwop-staging{slash:(\/|$)}`)"
       - "traefik.http.services.zwop-staging.loadbalancer.server.port=8000"
     command: ["poe", "staging"]
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 120s
