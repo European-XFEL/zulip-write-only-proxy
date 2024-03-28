@@ -33,9 +33,9 @@ tasks:
     dotenv: ['.env']
     cmds:
       - docker build . --tag zwop:staging
-      - docker stack deploy -c ./compose.staging.yml zwop-staging
+      - docker compose -p zwop-staging -f ./compose.staging.yml
 
   prod:
     dotenv: ['.env']
     cmds:
-      - docker stack deploy -c ./compose.prod.yml zwop
+      - docker compose -p zwop -f ./compose.prod.yml
