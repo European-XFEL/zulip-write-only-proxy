@@ -27,7 +27,7 @@ tasks:
   dev:
     deps: [css-watch, htmx, poe-up]
 
-  docker: docker compose -p zwop-dev -f ./compose.yml up --watch
+  docker: docker compose -p zwop-dev -f ./compose.yml up --build --watch
 
   staging:
     dotenv: ['.env']
