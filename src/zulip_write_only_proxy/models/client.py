@@ -12,11 +12,17 @@ from pydantic import (
 )
 
 from .. import logger
+from ..exceptions import ZwopException
 from .base import Base
 from .zulip import PropagateMode
 
 if TYPE_CHECKING:
     import zulip
+
+
+class NoBotForClientError(ZwopException):
+    def __init__(self):
+        super().__init__(status_code=404, detail="No Zulip bot configured for client")
 
 
 class ScopedClientCreate(BaseModel):
@@ -37,10 +43,10 @@ class ScopedClientCreate(BaseModel):
 class ScopedClient(Base):
     proposal_no: int
     proposal_id: int
-    stream: str  # type: ignore [reportIncompatibleVariableOverride]
-    bot_name: str
-    bot_id: int
-    bot_site: HttpUrl
+    stream: str | None  # type: ignore [reportIncompatibleVariableOverride]
+    bot_name: str | None
+    bot_id: int | None
+    bot_site: HttpUrl | None
     token: SecretStr
 
     # created_at - from base
@@ -50,10 +56,15 @@ class ScopedClient(Base):
 
     @property
     def _key(self):
+        if not self.bot_site:
+            return f"{self.proposal_no}/{self.created_by}"
         return f"{self.proposal_no}/{self.created_by}/{self.bot_site.host}"
 
     @property
-    def _bot_key(self):
+    def _bot_key(self) -> str:
+        if not self.bot_site or not self.bot_id:
+            raise NoBotForClientError
+
         return f"{self.bot_site.host}/{self.bot_id}"
 
     def upload_file(self, file: IO[Any]):
