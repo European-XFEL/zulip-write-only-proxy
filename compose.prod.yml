@@ -21,7 +21,7 @@ services:
       - "traefik.http.middlewares.zwop.stripprefix.forceSlash=false"
       - "traefik.http.middlewares.zwop.stripprefix.prefixes=/zwop"
       - "traefik.http.routers.zwop.middlewares=zwop"
-      - "traefik.http.routers.zwop.rule=Host(`exfldadev01.desy.de`) && PathPrefix(`/zwop{slash:(\/|$)}`)"
+      - "traefik.http.routers.zwop.rule=Host(`exfldadev01.desy.de`) && PathPrefix(`/zwop{slash:(/|$)}`)"
       - "traefik.http.services.zwop.loadbalancer.server.port=8000"
     command: ["poe", "prod"]
     deploy:
