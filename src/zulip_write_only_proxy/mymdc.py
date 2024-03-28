@@ -92,6 +92,11 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
         yield request
 
 
+class MyMdCResponseError(ZwopException):
+    def __init__(self, res: httpx.Response):
+        super().__init__(status_code=res.status_code, detail=res.json())
+
+
 class NoStreamForProposalError(ZwopException):
     """Raised when no stream name is found for a given proposal number, can occur if the
     proposal does not have a Zulip eLog configured, or if the proposal does not exist.
@@ -128,7 +133,10 @@ class MyMdCClient(httpx.AsyncClient):
 
         stream_name = res_dict.get("logbook_info", {}).get("logbook_identifier", None)
 
-        if res.status_code == 404 or res_dict is None or stream_name is None:
+        if res.status_code == 404 or res_dict is None:
+            raise MyMdCResponseError(res)
+
+        if stream_name is None:
             raise NoStreamForProposalError(proposal_no)
 
         if not isinstance(stream_name, str):
@@ -143,7 +151,7 @@ class MyMdCClient(httpx.AsyncClient):
         res_dict = res.json()
 
         if res.status_code == 404 or res_dict is None:
-            raise NoStreamForProposalError(proposal_no)
+            raise MyMdCResponseError(res)
 
         return res_dict
 
@@ -153,7 +161,7 @@ class MyMdCClient(httpx.AsyncClient):
         res_dict = res.json()
 
         if res.status_code == 404 or res_dict is None:
-            raise NoStreamForProposalError(proposal_no)
+            raise MyMdCResponseError(res)
 
         proposal_id = res_dict.get("id")
 
