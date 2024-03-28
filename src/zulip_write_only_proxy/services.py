@@ -121,12 +121,9 @@ async def create_client(
             bot_site=new_client.bot_site,
         )
     except mymdc.MyMdCResponseError as e:
-        if "Logbook hasn't been created for proposal" not in str(e.detail):
-            raise e
-
         bot = None
         logger.warning(
-            "No logbook found for proposal", proposal_no=new_client.proposal_no
+            "No logbook found for proposal", proposal_no=new_client.proposal_no, exc=e
         )
 
     client = models.ScopedClient(
