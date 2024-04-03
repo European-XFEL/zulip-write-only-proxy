@@ -13,6 +13,7 @@ services:
       - .env
     environment:
       - ZWOP_PROXY_ROOT=/zwop-staging
+      - ZWOP_TOKEN_WRITER__ZWOP_URL=https://exfldadev01.desy.de/zwop-staging
     networks:
       - proxy
     labels:
@@ -29,3 +30,4 @@ services:
         condition: any
         delay: 5s
         window: 120s
+
