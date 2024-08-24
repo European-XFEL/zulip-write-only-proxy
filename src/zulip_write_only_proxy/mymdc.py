@@ -125,7 +125,9 @@ class MyMdCClient(httpx.AsyncClient):
 
         return res
 
-    async def get_zulip_bot_credentials(self, proposal_no: int):
+    async def get_zulip_bot_credentials(
+        self, proposal_no: int
+    ) -> tuple[str | None, str | None]:
         res = await self.get(f"/api/proposals/{proposal_no}/logbook_bot")
 
         res = res.json()
