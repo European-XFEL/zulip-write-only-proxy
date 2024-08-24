@@ -25,6 +25,13 @@ class NoBotForClientError(ZwopException):
         super().__init__(status_code=404, detail="No Zulip bot configured for client")
 
 
+class NoStreamForClientError(ZwopException):
+    def __init__(self):
+        super().__init__(
+            status_code=404, detail="No Zulip stream configured for client"
+        )
+
+
 class ScopedClientCreate(BaseModel):
     proposal_no: int
     stream: str | None = None
@@ -71,6 +78,9 @@ class ScopedClient(Base):
         return self._client.upload_file(file)
 
     def get_stream_topics(self):
+        if self.stream is None:
+            raise NoStreamForClientError
+
         stream = self._client.get_stream_id(self.stream)
         if stream["result"] != "success":
             logger.error(

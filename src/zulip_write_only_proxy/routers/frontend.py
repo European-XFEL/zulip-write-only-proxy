@@ -122,6 +122,10 @@ async def client_create_post(request: Request):
         dump = client.model_dump()
         dump["token"] = client.token.get_secret_value()
         bot = await services.get_bot(client._bot_key)
+
+        if bot is None:
+            logger.warning("Bot not found")
+
         return TEMPLATES.TemplateResponse(
             "fragments/create-success.html",
             {
@@ -130,7 +134,14 @@ async def client_create_post(request: Request):
                 "bot_site": bot.site if bot else None,
             },
         )
+    except exceptions.ZwopException as e:
+        logger.warning("Could not create client", exc_info=e)
+        return TEMPLATES.TemplateResponse(
+            "fragments/alert.html",
+            {"request": request, "message": e.detail, "level": "error"},
+        )
     except Exception as e:
+        logger.error("Error creating client", exc_info=e)
         return TEMPLATES.TemplateResponse(
             "fragments/alert.html",
             {"request": request, "message": e.__repr__(), "level": "error"},
