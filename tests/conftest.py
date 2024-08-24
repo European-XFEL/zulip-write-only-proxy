@@ -75,6 +75,7 @@ def mymdc_client():
         "zulip_write_only_proxy.mymdc.client", new_callable=AsyncMock
     ) as mock_class:
         mock_class.return_value = mock_class
+        mock_class.get_zulip_bot_credentials.return_value = ("key", "email")
         yield mock_class
 
 
