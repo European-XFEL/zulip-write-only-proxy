@@ -26,7 +26,7 @@ class ScopedClient(ScopedClientCreate):
     key: SecretStr = Field(default_factory=lambda: SecretStr(secrets.token_urlsafe()))
 
     proposal_no: int
-    stream: str
+    stream: str  # type: ignore [reportIncompatibleVariableOverride]
 
     _client: zulip.Client = PrivateAttr()
 
