@@ -123,5 +123,82 @@
     });
   }
 
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function sendToast(msg, type) {
+    let toast = document.createElement("div");
+
+    toast.innerHTML = `
+      <div class="alert ${type}">
+        <span>${msg}</span>
+      </div>
+    `;
+
+    document.getElementById("toasts").appendChild(toast);
+
+    await wait(5000);
+
+    toast.remove();
+  }
+
+  async function deleteClient(element) {
+    let client = element.closest("tr");
+    let key = client.getAttribute("key");
+    let proposal_no = client.getElementsByTagName("td")[0].innerText;
+
+    if (
+      !confirm(`Are you sure you want to delete the client for ${proposal_no}?`)
+    ) {
+      return;
+    }
+
+    let toast = document.createElement("div");
+
+    let spinner = element.getElementsByTagName("div")[0];
+    spinner.classList.remove("hidden");
+
+    try {
+      const response = await fetch("{{ url_for('client_delete') }}", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "text/plain",
+          "X-API-key": key,
+        },
+      });
+
+      const content = await response.json();
+      const detail = content.detail || content.message || content;
+
+      if (response.ok) {
+        client.remove();
+        await sendToast(`${detail}`, "alert-info");
+        return;
+      }
+
+      spinner.classList.add("hidden");
+
+      if (response.headers.get("content-type") !== "application/json") {
+        throw `unexpected response: ${response.statusText} ${response.status}`;
+      }
+
+      if (response.status === 404) {
+        await sendToast(
+          `Could not delete client for ${proposal_no} - ${detail}`,
+          "alert-warning",
+        );
+      } else {
+        throw `unexpected response: ${detail} (${response.statusText} ${response.status})`;
+      }
+    } catch (e) {
+      spinner.classList.add("hidden");
+      await sendToast(
+        `Error deleting client ${proposal_no} - ${e}`,
+        "alert-error",
+      );
+    }
+  }
+
   var viewMessagesKey = null;
 </script>
