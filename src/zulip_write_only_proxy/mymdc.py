@@ -113,9 +113,12 @@ class MyMdCClient(httpx.AsyncClient):
             str: The stream name.
         """
         # TODO: should use `/proposals/{number}/logbook`, but this responds with 403
-        res = await self.get(f"/api/proposals/by_number/{proposal_no}")
-
-        res = res.json().get("logbook_info", {}).get("logbook_identifier", None)
+        res = (
+            (await self.get(f"/api/proposals/by_number/{proposal_no}"))
+            .json()
+            .get("logbook_info", {})
+            .get("logbook_identifier", None)
+        )
 
         if res is None:
             raise NoStreamForProposalError(proposal_no)
@@ -128,9 +131,7 @@ class MyMdCClient(httpx.AsyncClient):
     async def get_zulip_bot_credentials(
         self, proposal_no: int
     ) -> tuple[str | None, str | None]:
-        res = await self.get(f"/api/proposals/{proposal_no}/logbook_bot")
-
-        res = res.json()
+        res = (await self.get(f"/api/proposals/{proposal_no}/logbook_bot")).json()
 
         if res is None:
             raise NoStreamForProposalError(proposal_no)
