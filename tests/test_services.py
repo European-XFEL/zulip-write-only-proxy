@@ -15,9 +15,6 @@ if typing.TYPE_CHECKING:
 async def test_create_client(client_repo: ClientRepository):
     result = await services.create_client(
         ScopedClientCreate(proposal_no=1234, stream="Test Stream", bot_name="Test Bot"),
-        _=await services.get_or_put_bot(
-            1234, bot_name="Test Bot", bot_email="email", bot_key="key"
-        ),
     )
     assert isinstance(result, ScopedClient)
 
@@ -26,9 +23,6 @@ async def test_create_client(client_repo: ClientRepository):
 async def test_create_client_no_bot(client_repo: ClientRepository):
     result = await services.create_client(
         ScopedClientCreate(proposal_no=1234, stream="Test Stream", bot_name="Test Bot"),
-        _=await services.get_or_put_bot(
-            1234, bot_name="Test Bot", bot_email="email", bot_key=None
-        ),
     )
     assert isinstance(result, ScopedClient)
 
