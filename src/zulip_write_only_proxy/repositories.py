@@ -55,21 +55,20 @@ class BaseRepository(Generic[T]):
                 )
             )
 
+    def _get_key_value(self, item, by):
+        k = getattr(item, by, None)
+        if isinstance(k, pydantic.SecretStr):
+            k = k.get_secret_value()
+        return k
+
+    def _get_by(self, by, key):
+        return next(
+            (item for item in self._data if self._get_key_value(item, by) == key),
+            None,
+        )
+
     async def get(self, key: str | int, by: str | None = None) -> T | None:
-        res = None
-
-        if by:
-            for item in self._data:
-                k = getattr(item, by, None)
-
-                if type(k) is pydantic.SecretStr:
-                    k = k.get_secret_value()
-
-                if k == key:
-                    res = item
-                    break
-        else:
-            res = self.data.get(str(key))
+        res = self._get_by(by, key) if by else self.data.get(str(key))
 
         if res is None:
             logger.warning("Key not found", key=key, by=by)
