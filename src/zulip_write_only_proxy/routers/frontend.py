@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 import fastapi
 from fastapi import Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -14,28 +15,28 @@ if TYPE_CHECKING:
 TEMPLATES: Jinja2Templates = None  # type: ignore[assignment]
 
 
-def configure(_: "Settings", app: fastapi.FastAPI):
+def configure(settings: "Settings", app: fastapi.FastAPI):
     global TEMPLATES
     frontend_dir = Path(__file__).parent.parent / "frontend"
-
     static_dir = frontend_dir / "static"
     templates_dir = frontend_dir / "templates"
 
-    logger.info("Mounting static files", directory=static_dir.relative_to(Path.cwd()))
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    TEMPLATES = Jinja2Templates(directory=templates_dir)
+
+    static_files = {"static_main_css": "main.css", "static_htmx": "htmx.min.js"}
+
+    for key, path in static_files.items():
+        TEMPLATES.env.globals[key] = settings.proxy_root + app.url_path_for(  # pyright: ignore[reportInvalidTypeForm]
+            "static", path=path
+        )
 
     logger.info(
-        "Setting Jinja2 Templates", directory=templates_dir.relative_to(Path.cwd())
+        "Configured static files and Jinja2 templates",
+        static_dir=static_dir.relative_to(Path.cwd()),
+        templates_dir=templates_dir.relative_to(Path.cwd()),
+        env=TEMPLATES.env.globals,
     )
-    TEMPLATES = Jinja2Templates(directory=templates_dir)
-    TEMPLATES.env.globals["static_main_css"] = _.proxy_root + app.url_path_for(
-        "static", path="main.css"
-    )
-    TEMPLATES.env.globals["static_htmx"] = _.proxy_root + app.url_path_for(
-        "static", path="htmx.min.js"
-    )
-
-    logger.info("Configured Jinja2 Templates", env=TEMPLATES.env.globals)
 
 
 class AuthException(exceptions.ZwopException):
