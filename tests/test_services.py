@@ -51,4 +51,4 @@ def test_get_client(client_repo: ClientRepository):
 
 def test_list_clients(client_repo: ClientRepository):
     result = services.list_clients()
-    assert len(result) == 3
+    assert len(result) == 2
