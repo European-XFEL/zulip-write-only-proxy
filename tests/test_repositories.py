@@ -71,7 +71,7 @@ def test_put_admin_client(client_repo: ClientRepository):
 def test_list_clients(client_repo: ClientRepository):
     result = client_repo.list()
 
-    assert len(result) == 3
+    assert len(result) == 2  # 2 clients and 1 admin, admin excluded
 
     assert isinstance(result[0], ScopedClient)
     assert result[0].stream == "Test Stream 1"
@@ -80,10 +80,6 @@ def test_list_clients(client_repo: ClientRepository):
     assert isinstance(result[1], ScopedClient)
     assert result[1].stream == "Test Stream 2"
     assert result[1].proposal_no == 2
-
-    assert isinstance(result[2], AdminClient)
-    assert result[2].key.get_secret_value() == "admin1"
-    assert result[2].admin is True
 
 
 def test_bot_repository_get(zuliprc_repo):
