@@ -75,6 +75,21 @@ class BaseRepository(Generic[T]):
 
         return res
 
+    async def delete(self, key: str, by: str | None = None) -> str:
+        item = self._get_by(by, key) if by else self.data.get(key)
+
+        if item is None:
+            raise KeyError(by or "key", key)
+
+        _key = item._key
+
+        self._data.remove(item)
+        del self.data[_key]
+
+        await self.write()
+
+        return _key
+
     async def insert(self, item: T):
         if item._key in self.data:
             msg = "Key already exists"
