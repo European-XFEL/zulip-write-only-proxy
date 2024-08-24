@@ -137,6 +137,31 @@ async def client_create_post(request: Request):
         )
 
 
+@router.delete("/client/")
+async def client_delete(request: Request):
+    client_key = request.headers.get("X-API-Key")
+
+    if not client_key:
+        raise exceptions.ZwopException(
+            status_code=400,
+            detail="Bad Request - missing X-API-Key header",
+        )
+
+    try:
+        deleted = await services.delete_client(client_key)
+        return JSONResponse({"detail": f"Deleted {deleted}"})
+    except KeyError as e:
+        raise exceptions.ZwopException(
+            status_code=404,
+            detail=f"Client not found {e}",
+        ) from e
+    except Exception as e:
+        raise exceptions.ZwopException(
+            status_code=500,
+            detail=f"{e.__repr__()}",
+        ) from e
+
+
 @router.get("/client/messages")
 async def client_messages(request: Request):
     client_key = request.headers.get("X-API-Key")
