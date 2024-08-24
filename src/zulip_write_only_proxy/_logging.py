@@ -17,7 +17,7 @@ def logger_name_callsite(logger, method_name, event_dict):
     if not event_dict.get("logger_name"):
         logger_name = f"{event_dict.pop('module')}.{event_dict.pop('func_name')}"
         if not event_dict.pop("disable_name", False):
-            event_dict["logger_name"] = logger_name.strip(".")
+            event_dict["logger_name"] = logger_name.strip(".")  # pyright: ignore[reportInvalidTypeForm]
 
     return event_dict
 
