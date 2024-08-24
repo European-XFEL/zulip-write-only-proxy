@@ -7,7 +7,7 @@ import orjson
 import pydantic
 from anyio import Path as APath
 
-from . import logger
+from . import exceptions, logger
 from .models.base import Base
 
 T = TypeVar("T", bound=Base)
@@ -92,10 +92,11 @@ class BaseRepository(Generic[T]):
 
     async def insert(self, item: T):
         if item._key in self.data:
-            msg = "Key already exists"
-            logger.warning(msg, key=item._key)
-            raise ValueError(msg)
-
+            logger.warning("Client already exists", key=item._key)
+            raise exceptions.ZwopException(
+                status_code=409,
+                detail=f"Client already exists for {item._key}",
+            )
         self._data.append(item)
         self.data[item._key] = self._data[-1]
 
