@@ -144,6 +144,10 @@ async def create_client(
     return client
 
 
+async def delete_client(key: str) -> str:
+    return await CLIENT_REPO.delete(key, by="token")
+
+
 async def get_client(key: str | None) -> models.ScopedClient:
     if key is None:
         raise fastapi.HTTPException(status_code=403, detail="Not authenticated")
