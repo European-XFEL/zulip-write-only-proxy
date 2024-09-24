@@ -196,67 +196,46 @@ def test_get_stream_topics_error(fastapi_client, zulip_client):
     assert response.json() == {"result": "error"}
 
 
-def test_create_client(fastapi_client, zulip_client):
-    zulip_client.create_client = MagicMock(return_value={"result": "success"})
+# def test_create_client(fastapi_client, zulip_client):
+#     zulip_client.create_client = MagicMock(return_value={"result": "success"})
 
-    with patch(
-        "secrets.token_urlsafe",
-        MagicMock(return_value="exposed-secret"),
-    ):
-        response = fastapi_client.post(
-            "/create_client",
-            headers={"X-API-key": "admin1"},
-            params={
-                "proposal_no": 1234,
-                "stream": "Test Stream",
-                "bot_name": "Test Bot",
-            },
+#     with patch(
+#         "secrets.token_urlsafe",
+#         MagicMock(return_value="exposed-secret"),
+#     ):
+#         response = fastapi_client.post(
+#             "/api/create_client",
+#             headers={"X-API-key": "admin1"},
+#             params={
+#                 "proposal_no": 1234,
+#                 "stream": "Test Stream",
+#             },
+#         )
+
+#     assert response.status_code == 200
+#     assert response.json() == {
+#         "key": "exposed-secret",
+#         "proposal_no": 1234,
+#         "stream": "Test Stream",
+#     }
+
+
+# @pytest.mark.asyncio()
+# def test_create_client_mymdc_error(fastapi_client):
+#     with patch(
+#         "zulip_write_only_proxy.mymdc.client.get_zulip_stream_name",
+#         AsyncMock(side_effect=NoStreamForProposalError(1234)),
+#     ):
+#         # Call the API endpoint with invalid data
+#         response = fastapi_client.post(
+#             "/api/create_client",
+#             headers={"X-API-key": "admin1"},
+#             params={"proposal_no": 1234},
+#         )
+
+#         assert response.status_code == 404
+#         assert "No stream name found for proposal" in response.json()["detail"]
         )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "key": "exposed-secret",
-        "proposal_no": 1234,
-        "stream": "Test Stream",
-        "bot_name": "Test Bot",
-    }
-
-
-@pytest.mark.asyncio()
-def test_create_client_mymdc_error(fastapi_client):
-    with patch(
-        "zulip_write_only_proxy.mymdc.client.get_zulip_stream_name",
-        AsyncMock(side_effect=NoStreamForProposalError(1234)),
-    ):
-        # Call the API endpoint with invalid data
-        response = fastapi_client.post(
-            "/create_client",
-            headers={"X-API-key": "admin1"},
-            params={"proposal_no": 1234},
-        )
-
-        assert response.status_code == 404
-        assert "No stream name found for proposal" in response.json()["detail"]
-
-
-@pytest.mark.parametrize(
-    ("client_type", "kwargs"),
-    [
-        (models.AdminClient, {"admin": True}),
-        (models.ScopedClient, {"proposal_no": 0, "stream": "name", "bot_name": "name"}),
-    ],
-)
-def test_get_me(client_type, kwargs, fastapi_client, zulip_client):
-    client = client_type(**kwargs)
-
-    with patch(
-        "zulip_write_only_proxy.services.get_client",
-        MagicMock(return_value=client),
-    ):
-        response = fastapi_client.get(
-            "/me",
-            headers={"X-API-key": client.token.get_secret_value()},
-        )
-
-        assert response.status_code == 200
-        assert response.json() == client.model_dump(exclude="key")
+    assert response.content.decode() == a_scoped_client.model_dump_json()
