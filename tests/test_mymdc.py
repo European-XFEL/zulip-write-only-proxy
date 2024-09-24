@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -18,7 +18,7 @@ def mymdc_auth():
         id="test_id",
         secret=SecretStr("test_secret"),
         email="test_email",
-        token_url="http://test_url",  # type: ignore[assignment]
+        token_url="http://test_url",  # type: ignore[assignment]  # noqa: S106
     )
 
 
@@ -37,9 +37,9 @@ async def test_acquire_token(mymdc_auth):
             }
         )
         token = await mymdc_auth.acquire_token()
-        assert token == "test_token"
-        assert mymdc_auth._access_token == "test_token"
-        assert mymdc_auth._expires_at > datetime.now()
+        assert token == "test_token"  # noqa: S105
+        assert mymdc_auth._access_token == "test_token"  # noqa: S105
+        assert mymdc_auth._expires_at > datetime.now(tz=UTC)
 
         mock_post.assert_called_once()
 
