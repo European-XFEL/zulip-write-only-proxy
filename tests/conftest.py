@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -9,6 +10,13 @@ from pydantic_core import Url
 
 from zulip_write_only_proxy.models import BotConfig, ScopedClient
 from zulip_write_only_proxy.settings import settings as base_settings
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="session", autouse=True)
