@@ -7,7 +7,7 @@ from zulip_write_only_proxy import mymdc
 
 from .. import __version__, __version_tuple__, logger, models, services
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from tempfile import SpooledTemporaryFile
 
 _docs_url = "https://zulip.com/api/send-message#response"

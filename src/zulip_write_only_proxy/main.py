@@ -47,7 +47,7 @@ def create_app():
     return app
 
 
-def get_trusted_hosts(logger):
+def get_trusted_hosts(logger):  # pragma: no cover
     import socket
     import struct
     from pathlib import Path
@@ -83,7 +83,7 @@ def get_trusted_hosts(logger):
     return list(trusted)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
     from . import _logging, get_logger

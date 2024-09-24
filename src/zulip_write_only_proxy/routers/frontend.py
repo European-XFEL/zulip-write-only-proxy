@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from .. import exceptions, logger, models, services
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no-cover
     from ..settings import Settings
 
 TEMPLATES: Jinja2Templates = None  # type: ignore[assignment]
