@@ -24,7 +24,7 @@ def settings(tmp_path_factory):
     """Configure settings for tests.
 
     - Set the config_dir to a temporary directory
-    - Remove  credentials
+    - Remove credentials
     """
     config_dir = tmp_path_factory.mktemp("config")
     base_settings.config_dir = config_dir
