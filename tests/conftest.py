@@ -11,7 +11,7 @@ from zulip_write_only_proxy.models import BotConfig, ScopedClient
 from zulip_write_only_proxy.settings import settings as base_settings
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def settings(tmp_path_factory):
     """Configure settings for tests.
 
@@ -30,17 +30,18 @@ def settings(tmp_path_factory):
     return base_settings
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def zulip_client():
     with patch("zulip.Client", new_callable=MagicMock) as mock_class:
         mock_class.return_value = mock_class
         yield mock_class
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def a_scoped_client(zulip_client):
     client = ScopedClient(
         proposal_no=1234,
+        proposal_id=5678,
         stream="Test Stream",
         bot_id=1,
         bot_site=Url("http://a-site.com"),
@@ -52,7 +53,7 @@ def a_scoped_client(zulip_client):
     return client
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def a_zuliprc():
     return BotConfig(
         email="foo@bar.com",
@@ -64,7 +65,7 @@ def a_zuliprc():
     )
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def _services(settings, a_zuliprc, a_scoped_client):
     from zulip_write_only_proxy import services
 
@@ -75,7 +76,7 @@ async def _services(settings, a_zuliprc, a_scoped_client):
     await services.ZULIPRC_REPO.insert(a_zuliprc)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def mymdc_client():
     with patch(
         "zulip_write_only_proxy.mymdc.CLIENT", new_callable=AsyncMock
@@ -85,7 +86,7 @@ def mymdc_client():
         yield mock_class
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session", autouse=True)
 def fastapi_client(client_repo, zulip_client):
     from zulip_write_only_proxy import main
 
