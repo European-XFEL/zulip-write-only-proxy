@@ -16,7 +16,7 @@ def test_send_message(fastapi_client: "TestClient", zulip_client):
     zulip_client.send_message = MagicMock(return_value=zulip_response)
 
     response = fastapi_client.post(
-        "/send_message",
+        "/api/send_message",
         params={"topic": "Test Topic"},
         data={"content": "Test Content"},
     )
@@ -36,7 +36,7 @@ def test_send_message(fastapi_client: "TestClient", zulip_client):
 
 def test_send_message_unauthorised(fastapi_client):
     response = fastapi_client.post(
-        "/send_message",
+        "/api/send_message",
         headers={"X-API-key": "invalid_key"},
         params={"topic": "Test Topic"},
         data={"content": "Test Content"},
@@ -59,7 +59,7 @@ def test_send_message_with_image(fastapi_client, zulip_client):
 
     image = io.BytesIO(b"test image data")
     response = fastapi_client.post(
-        "/send_message",
+        "/api/send_message",
         params={"topic": "Test Topic"},
         files={"image": ("test.jpg", image)},
         data={"content": "Test Content"},
@@ -88,7 +88,7 @@ def test_update_message_move_topic(fastapi_client: "TestClient", zulip_client):
     zulip_client.update_message = MagicMock(return_value=zulip_response)
 
     response = fastapi_client.patch(
-        "/update_message",
+        "/api/update_message",
         params={"message_id": 42, "propagate_mode": "change_one", "topic": "New Topic"},
     )
 
@@ -109,7 +109,7 @@ def test_update_message_content(fastapi_client: "TestClient", zulip_client):
     zulip_client.update_message = MagicMock(return_value=zulip_response)
 
     response = fastapi_client.patch(
-        "/update_message",
+        "/api/update_message",
         params={"message_id": 42, "propagate_mode": "change_one"},
         headers={"Content-Type": "text/plain"},
         content="Test Content",
@@ -129,7 +129,7 @@ def test_update_message_content(fastapi_client: "TestClient", zulip_client):
 
 def test_update_message_missing_args(fastapi_client: "TestClient", zulip_client):
     response = fastapi_client.patch(
-        "/update_message",
+        "/api/update_message",
         params={"message_id": 42, "propagate_mode": "change_one"},
         headers={"Content-Type": "text/plain"},
     )
@@ -153,7 +153,7 @@ def test_upload_file(fastapi_client, zulip_client):
 
     file = io.BytesIO(b"test file data")
     response = fastapi_client.post(
-        "/upload_file",
+        "/api/upload_file",
         files={"file": ("test.jpg", file)},
     )
 
@@ -180,7 +180,7 @@ def test_get_stream_topics(fastapi_client, zulip_client):
     zulip_client.get_stream_id = MagicMock(return_value=zulip_response_id)
     zulip_client.get_stream_topics = MagicMock(return_value=zulip_response_topics)
 
-    response = fastapi_client.get("/get_stream_topics")
+    response = fastapi_client.get("/api/get_stream_topics")
 
     assert response.status_code == 200
     assert response.json() == zulip_response_topics
@@ -190,7 +190,7 @@ def test_get_stream_topics_error(fastapi_client, zulip_client):
     zulip_response_id = {"result": "error"}
     zulip_client.get_stream_id = MagicMock(return_value=zulip_response_id)
 
-    response = fastapi_client.get("/get_stream_topics")
+    response = fastapi_client.get("/api/get_stream_topics")
 
     assert response.status_code == 200
     assert response.json() == {"result": "error"}
@@ -235,6 +235,12 @@ def test_get_stream_topics_error(fastapi_client, zulip_client):
 
 #         assert response.status_code == 404
 #         assert "No stream name found for proposal" in response.json()["detail"]
+
+
+def test_get_me(a_scoped_client, fastapi_client, zulip_client):
+    response = fastapi_client.get(
+        "/api/me",
+        headers={"X-API-key": "secret"},
         )
 
     assert response.status_code == 200
