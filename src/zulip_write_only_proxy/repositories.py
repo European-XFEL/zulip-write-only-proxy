@@ -13,6 +13,11 @@ from .models.base import Base
 T = TypeVar("T", bound=Base)
 
 
+class EntryExistsException(exceptions.ZwopException):
+    def __init__(self, key: str):
+        super().__init__(status_code=409, detail=f"Client already exists for {key}")
+
+
 @dataclass
 class BaseRepository(Generic[T]):
     file: Path
@@ -93,10 +98,8 @@ class BaseRepository(Generic[T]):
     async def insert(self, item: T):
         if item._key in self.data:
             logger.warning("Client already exists", key=item._key)
-            raise exceptions.ZwopException(
-                status_code=409,
-                detail=f"Client already exists for {item._key}",
-            )
+            raise EntryExistsException(key=item._key)
+
         self._data.append(item)
         self.data[item._key] = self._data[-1]
 
