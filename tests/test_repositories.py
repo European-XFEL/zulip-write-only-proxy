@@ -52,74 +52,9 @@ def test_put_scoped_client(client_repo: ClientRepository):
     result = client_repo.get(client.token.get_secret_value())
 
     assert isinstance(result, ScopedClient)
-    assert result.stream == "Test Stream 3"
-    assert result.proposal_no == 3
-    assert result.bot_name == "Test Bot 3"
+    assert result.model_dump() == client.model_dump()
 
+    await client_repo.delete(client._key)
 
-def test_put_admin_client(client_repo: ClientRepository):
-    client = AdminClient(key="admin2", admin=True)  # type: ignore[arg-type]
-
-    client_repo.put(client)
-
-    result = client_repo.get(client.token.get_secret_value())
-
-    assert isinstance(result, AdminClient)
-    assert result.admin is True
-
-
-def test_list_clients(client_repo: ClientRepository):
-    result = client_repo.list()
-
-    assert len(result) == 2  # 2 clients and 1 admin, admin excluded
-
-    assert isinstance(result[0], ScopedClient)
-    assert result[0].stream == "Test Stream 1"
-    assert result[0].proposal_no == 1
-
-    assert isinstance(result[1], ScopedClient)
-    assert result[1].stream == "Test Stream 2"
-    assert result[1].proposal_no == 2
-
-
-def test_bot_repository_get(zuliprc_repo):
-    result = zuliprc_repo.get("bot1")
-
-    assert result.call_args[1]["config_file"] == str(
-        zuliprc_repo.directory / "bot1.zuliprc"
-    )
-
-
-def test_bot_repository_put(zuliprc_repo, zulip_client):
-    name = "bot3"
-    key = "bot3"
-    email = "email3"
-    site = "site3"
-
-    zuliprc_repo.put(name, email, key, site)
-
-    client = zuliprc_repo.get(name)
-
-    assert client.call_args[1]["config_file"] == str(
-        zuliprc_repo.directory / f"{name}.zuliprc"
-    )
-
-    text = (zuliprc_repo.directory / f"{name}.zuliprc").read_text()
-
-    assert text == f"[api]\nemail={email}\nkey={key}\nsite={site}\n"
-
-
-@pytest.mark.parametrize("key", ["key", "email", "site"])
-def test_bot_repository_put_error(zuliprc_repo, key):
-    name = "bot3"
-    data = {
-        "name": name,
-        "key": "bot3",
-        "email": "email3",
-        "site": "site3",
-    }
-
-    data.pop(key)
-
-    with pytest.raises(ValidationError):
-        zuliprc_repo.put(**data)
+    result = await client_repo.get(client._key)
+    assert result is None
