@@ -16,7 +16,7 @@ from ..exceptions import ZwopException
 from .base import Base
 from .zulip import PropagateMode
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     import zulip
 
 

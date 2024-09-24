@@ -12,7 +12,7 @@ from fastapi.responses import RedirectResponse
 from .. import logger
 from .frontend import AuthException
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from fastapi import FastAPI
 
     from ..settings import Settings

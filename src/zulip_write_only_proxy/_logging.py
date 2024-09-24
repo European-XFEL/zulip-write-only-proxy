@@ -8,7 +8,7 @@ import structlog.typing
 from starlette.middleware.base import BaseHTTPMiddleware
 from structlog.stdlib import ProcessorFormatter
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from starlette.requests import Request
     from starlette.responses import Response
 

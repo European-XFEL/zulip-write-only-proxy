@@ -12,7 +12,7 @@ from . import logger
 from .exceptions import ZwopException
 from .settings import MyMdCCredentials, Settings
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from fastapi import FastAPI
 
 

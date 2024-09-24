@@ -15,7 +15,7 @@ from . import _remote_receive, logger, models, mymdc, repositories
 from .models.client import NoBotForClientError
 from .settings import Settings, settings
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no-cover
     from os import PathLike
 
 CLIENT_REPO: repositories.BaseRepository[models.ScopedClient] = None  # type: ignore[assignment,type-var]
