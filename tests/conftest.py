@@ -101,9 +101,10 @@ def mymdc_client():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def fastapi_client(client_repo, zulip_client):
+def fastapi_client(_services, a_scoped_client, zulip_client):
     from zulip_write_only_proxy import main
 
     app = main.create_app()
 
-    return TestClient(app, headers={"X-API-key": "client1"})
+    with TestClient(app, headers={"X-API-key": "secret"}) as client:
+        yield client
