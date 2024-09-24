@@ -1,11 +1,6 @@
 import io
 from typing import TYPE_CHECKING
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
-from zulip_write_only_proxy import models
-from zulip_write_only_proxy.mymdc import NoStreamForProposalError
+from unittest.mock import MagicMock
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -241,7 +236,7 @@ def test_get_me(a_scoped_client, fastapi_client, zulip_client):
     response = fastapi_client.get(
         "/api/me",
         headers={"X-API-key": "secret"},
-        )
+    )
 
     assert response.status_code == 200
     assert response.content.decode() == a_scoped_client.model_dump_json()
