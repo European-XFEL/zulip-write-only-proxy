@@ -27,7 +27,7 @@ def test_send_message(fastapi_client: "TestClient", zulip_client):
     # Check that the zulip client was called with the expected arguments
     zulip_request = {
         "type": "stream",
-        "to": "Test Stream 1",
+        "to": "Test Stream",
         "topic": "Test Topic",
         "content": "Test Content",
     }
@@ -71,7 +71,7 @@ def test_send_message_with_image(fastapi_client, zulip_client):
     # Check that the zulip client was called with the expected arguments
     zulip_request_msg = {
         "type": "stream",
-        "to": "Test Stream 1",
+        "to": "Test Stream",
         "topic": "Test Topic",
         "content": f"Test Content\n\n[]({zulip_response_file['uri']})",
     }
