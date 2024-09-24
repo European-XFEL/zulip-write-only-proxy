@@ -95,6 +95,7 @@ async def get_or_create_bot(
         proposal_no=proposal_no,
     )
 
+    with contextlib.suppress(repositories.EntryExistsException):
         await ZULIPRC_REPO.insert(bot)
 
     return bot
