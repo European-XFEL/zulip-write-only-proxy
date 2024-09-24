@@ -76,6 +76,20 @@ async def _services(settings, a_zuliprc, a_scoped_client):
     await services.ZULIPRC_REPO.insert(a_zuliprc)
 
 
+@pytest_asyncio.fixture(scope="session")
+def client_repo(_services):
+    from zulip_write_only_proxy import services
+
+    return services.CLIENT_REPO
+
+
+@pytest_asyncio.fixture(scope="session")
+def zuliprc_repo(_services):
+    from zulip_write_only_proxy import services
+
+    return services.ZULIPRC_REPO
+
+
 @pytest.fixture(scope="session", autouse=True)
 def mymdc_client():
     with patch(
