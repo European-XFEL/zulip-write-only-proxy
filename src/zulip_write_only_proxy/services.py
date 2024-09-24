@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import datetime
 import hashlib
 from pathlib import Path
@@ -94,7 +95,7 @@ async def get_or_create_bot(
         proposal_no=proposal_no,
     )
 
-    await ZULIPRC_REPO.insert(bot)
+        await ZULIPRC_REPO.insert(bot)
 
     return bot
 
@@ -179,8 +180,8 @@ async def get_client(key: str | None) -> models.ScopedClient:
     return client
 
 
-async def get_bot(bot_name: str) -> models.BotConfig | None:
-    return await ZULIPRC_REPO.get(bot_name)
+async def get_bot(bot_key: str) -> models.BotConfig | None:
+    return await ZULIPRC_REPO.get(bot_key)
 
 
 async def list_clients() -> list[models.ScopedClient]:

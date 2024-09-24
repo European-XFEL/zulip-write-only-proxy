@@ -51,7 +51,6 @@ class ScopedClient(Base):
     proposal_no: int
     proposal_id: int
     stream: str | None  # type: ignore [reportIncompatibleVariableOverride]
-    bot_name: str | None
     bot_id: int | None
     bot_site: HttpUrl | None
     token: SecretStr
