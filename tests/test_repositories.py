@@ -10,7 +10,7 @@ from zulip_write_only_proxy.models import ScopedClient
 from zulip_write_only_proxy.repositories import BaseRepository
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_file_creation():
     with tempfile.TemporaryDirectory() as f:
         path = Path(f) / "test.json"
@@ -24,7 +24,7 @@ async def test_file_creation():
         assert path.exists()
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_get_scoped_client(client_repo, a_scoped_client):
     result = await client_repo.get(a_scoped_client._key)
 
@@ -36,7 +36,7 @@ async def test_get_scoped_client(client_repo, a_scoped_client):
     assert result is None
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_list_clients(client_repo, a_scoped_client):
     result = await client_repo.list()
 
@@ -46,7 +46,7 @@ async def test_list_clients(client_repo, a_scoped_client):
     assert result[0].model_dump() == a_scoped_client.model_dump()
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_insert_delete_scoped_client(client_repo):
     client = ScopedClient(
         proposal_no=11234,

@@ -12,7 +12,7 @@ from zulip_write_only_proxy.models import ScopedClient, ScopedClientCreate
 from zulip_write_only_proxy.mymdc import MyMdCResponseError
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_create_client():
     client = ScopedClientCreate(
         proposal_no=11234,
@@ -27,7 +27,7 @@ async def test_create_client():
     assert isinstance(result, ScopedClient)
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_create_client_no_bot():
     import httpx
 
@@ -53,7 +53,7 @@ async def test_create_client_no_bot():
     assert result.bot_id is None
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_get_client(a_scoped_client):
     result = await services.get_client(a_scoped_client.token.get_secret_value())
 

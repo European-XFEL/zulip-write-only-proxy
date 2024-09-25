@@ -1,4 +1,5 @@
 import datetime
+import operator
 import secrets
 from typing import IO, TYPE_CHECKING, Any
 
@@ -136,7 +137,7 @@ class ScopedClient(Base):
         # messages to fetch. TODO: handle multi-page results for more than 100 messages
         messages = self._client.get_messages(request)
         messages["messages"] = sorted(
-            messages["messages"], key=lambda m: m["id"], reverse=True
+            messages["messages"], key=operator.itemgetter("id"), reverse=True
         )
         return messages
 
