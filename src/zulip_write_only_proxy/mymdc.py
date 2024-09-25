@@ -4,7 +4,8 @@ TODO: I've copy-pasted this code across a few different projects, when/if an asy
 MyMdC client package is created this can be removed and replaced with calls to that."""
 
 import datetime as dt
-from typing import TYPE_CHECKING, Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
@@ -33,7 +34,7 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
 
         Token data stored under `_access_token` and `_expires_at`.
         """
-        expired = self._expires_at <= dt.datetime.now(tz=dt.timezone.utc)
+        expired = self._expires_at <= dt.datetime.now(tz=dt.UTC)
         if self._access_token and not expired:
             logger.debug("Reusing existing MyMdC token", expires_at=self._expires_at)
             return self._access_token
@@ -69,7 +70,7 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
 
         expires_in = dt.timedelta(seconds=data["expires_in"])
         self._access_token = data["access_token"]
-        self._expires_at = dt.datetime.now(tz=dt.timezone.utc) + expires_in
+        self._expires_at = dt.datetime.now(tz=dt.UTC) + expires_in
 
         logger.info("Acquired new MyMdC token", expires_at=self._expires_at)
         return self._access_token

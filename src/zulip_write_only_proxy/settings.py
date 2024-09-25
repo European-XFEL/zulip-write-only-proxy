@@ -26,7 +26,7 @@ class MyMdCCredentials(BaseSettings):
 
     _access_token: str = ""
     _expires_at: dt.datetime = dt.datetime.fromisocalendar(1970, 1, 1).astimezone(
-        dt.timezone.utc
+        dt.UTC
     )
 
 

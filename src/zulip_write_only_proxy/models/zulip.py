@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr, Field, HttpUrl, SecretStr
 from .base import Base
 
 
-class PropagateMode(str, enum.Enum):
+class PropagateMode(enum.StrEnum):
     change_one = "change_one"
     change_all = "change_all"
     change_later = "change_later"

@@ -91,7 +91,7 @@ async def get_or_create_bot(
         key=SecretStr(bot_key),
         email=bot_email,
         site=Url(bot_site),
-        created_at=created_at or datetime.datetime.now(tz=datetime.timezone.utc),
+        created_at=created_at or datetime.datetime.now(tz=datetime.UTC),
         proposal_no=proposal_no,
     )
 
