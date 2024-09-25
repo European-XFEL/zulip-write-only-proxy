@@ -70,7 +70,7 @@ def send_message(
     if image:
         # Some screwing around to get the spooled tmp file to act more like a real file
         # since Zulip needs it to have a filename
-        f: "SpooledTemporaryFile" = image.file  # type: ignore[assignment]
+        f: SpooledTemporaryFile = image.file  # type: ignore[assignment]
         f._file.name = image.filename  # type: ignore[misc, assignment]
 
         result = client.upload_file(f)
@@ -118,7 +118,7 @@ def upload_file(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client_zulip)],
     file: Annotated[fastapi.UploadFile, fastapi.File(...)],
 ):
-    f: "SpooledTemporaryFile" = file.file  # type: ignore[assignment]
+    f: SpooledTemporaryFile = file.file  # type: ignore[assignment]
     f._file.name = file.filename  # type: ignore[misc, assignment]
 
     return client.upload_file(f)

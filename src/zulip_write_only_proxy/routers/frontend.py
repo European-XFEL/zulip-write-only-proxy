@@ -43,7 +43,7 @@ class AuthException(exceptions.ZwopException):
     pass
 
 
-async def check_auth(request: Request):
+async def check_auth(request: Request):  # noqa: RUF029
     user = request.session.get("user")
     if not user:
         raise AuthException(
@@ -64,7 +64,7 @@ async def check_auth(request: Request):
     logger.debug("Authenticated", user=user)
 
 
-async def auth_redirect(request: Request, exc: AuthException):
+async def auth_redirect(request: Request, exc: AuthException):  # noqa: RUF029
     logger.info("Redirecting to login", status_code=exc.status_code, detail=exc.detail)
     return TEMPLATES.TemplateResponse(
         "login.html",
