@@ -75,7 +75,7 @@ def send_message(
 
         result = client.upload_file(f)
 
-        content += f"\n\n[]({result['uri']})"
+        content += f"\n\n[]({result["uri"]})"
 
     return client.send_message(topic, content)
 
