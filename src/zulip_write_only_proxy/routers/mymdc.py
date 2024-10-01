@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from .. import logger, models, mymdc
 from .api import get_client
 
-type ScopedClient = Annotated[models.ScopedClient, Depends(get_client)]
+ScopedClient = Annotated[models.ScopedClient, Depends(get_client)]
 
 
 async def proxy_request(mymdc_path: str, params) -> Response:
