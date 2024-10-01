@@ -107,6 +107,7 @@ async def get_proposals_runs(
 
 @router.get("/samples/{id}")
 @router.get("/experiments/{id}")
+@router.get("/runs/{id}")
 async def get_with_id(request: Request, client: ScopedClient, id: int):
     return await check_and_proxy_request(
         request,
