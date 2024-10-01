@@ -20,7 +20,7 @@ ADD --link https://unpkg.com/htmx.org@1.9.10/dist/htmx.js \
   https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js \
   ./src/zulip_write_only_proxy/frontend/static/
 
-FROM python:3.11-alpine AS prod
+FROM python:3.12-alpine AS prod
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -34,7 +34,7 @@ RUN --mount=type=cache,target=/root/.cache \
   python3 -m pip install --upgrade poetry pip && \
   poetry config virtualenvs.create false --local
 
-COPY ./poetry.lock ./pyproject.toml ./README.md /app
+COPY ./poetry.lock ./pyproject.toml ./README.md /app/
 
 RUN --mount=type=cache,target=/root/.cache \
   poetry install --no-root
