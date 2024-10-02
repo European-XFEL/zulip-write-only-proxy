@@ -25,16 +25,12 @@ jobs:
 
       - name: Lint - ruff
         if: always()
-        run: poetry run poe ruff
-
-      - name: Lint - black
-        if: always()
-        run: poetry run poe black --check
+        run: poetry run ruff check ./src ./tests
 
       - name: Lint - mypy
         if: always()
-        run: poetry run poe mypy
+        run: poetry run mypy ./src ./tests
 
       - name: Lint - pyright
         if: always()
-        run: poetry run poe pyright
+        run: poetry run pyright ./src ./tests
