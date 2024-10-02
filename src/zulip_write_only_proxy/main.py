@@ -7,7 +7,10 @@ def create_app():
 
     from . import routers, services
     from ._logging import RequestLoggingMiddleware
+    from .settings import configure as configure_settings
     from .settings import settings
+
+    configure_settings()
 
     @asynccontextmanager
     async def lifespan(app: fastapi.FastAPI):
@@ -87,7 +90,10 @@ if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
     from . import _logging, get_logger
+    from .settings import configure as configure_settings
     from .settings import settings
+
+    configure_settings()
 
     _logging.configure(settings.debug, add_call_site_parameters=False)
 

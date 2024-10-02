@@ -1,8 +1,23 @@
 import datetime as dt
+import os
 from pathlib import Path
 
 from pydantic import AnyUrl, DirectoryPath, FilePath, HttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from . import get_logger
+
+logger = get_logger(__name__)
+
+settings: "Settings" = None  # type: ignore[assignment]
+
+
+def configure():
+    global settings
+    zwop_dotenv_file = os.getenv("ZWOP_DOTENV_FILE", None)
+    logger.info("Configuring settings", zwop_dotenv_file=zwop_dotenv_file)
+    settings = Settings(_env_file=zwop_dotenv_file)  # type: ignore[call-arg]
+    return settings
 
 
 class Auth(BaseSettings):
@@ -54,8 +69,7 @@ class Settings(BaseSettings):
     token_writer: TokenWriter = TokenWriter()
 
     model_config = SettingsConfigDict(
-        env_prefix="ZWOP_", env_file=[".env"], env_nested_delimiter="__"
+        env_prefix="ZWOP_",
+        env_file=[".env"],
+        env_nested_delimiter="__",
     )
-
-
-settings = Settings()  # type: ignore[call-arg]

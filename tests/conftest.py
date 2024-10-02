@@ -1,4 +1,5 @@
 import asyncio
+import os
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -9,7 +10,6 @@ from pydantic import SecretStr
 from pydantic_core import Url
 
 from zulip_write_only_proxy.models import BotConfig, ScopedClient
-from zulip_write_only_proxy.settings import settings as base_settings
 
 
 @pytest.fixture(scope="session")
@@ -27,15 +27,28 @@ def settings(tmp_path_factory):
     - Remove credentials
     """
     config_dir = tmp_path_factory.mktemp("config")
-    base_settings.config_dir = config_dir
 
-    base_settings.auth.client_id = "client_id"
-    base_settings.auth.client_secret = SecretStr("client_secret")
+    dotenv_file = config_dir / ".env"
 
-    base_settings.mymdc.secret = SecretStr("mymdc_secret")
-    base_settings.mymdc.token_url = Url("http://foobar.local/token")
+    dotenv_file.write_text(
+        f"""ZWOP_CONFIG_DIR={config_dir}
+ZWOP_SESSION_SECRET=session_secret
 
-    return base_settings
+ZWOP_MYMDC__ID=mymdc_id
+ZWOP_MYMDC__SECRET=mymdc_secret
+ZWOP_MYMDC__EMAIL=email@example.com
+ZWOP_MYMDC__TOKEN_URL=http://foobar.local/token
+
+ZWOP_AUTH__CLIENT_ID=client_id
+ZWOP_AUTH__CLIENT_SECRET=client_secret
+"""
+    )
+
+    os.environ["ZWOP_DOTENV_FILE"] = str(dotenv_file)
+
+    from zulip_write_only_proxy.settings import configure
+
+    return configure()
 
 
 @pytest.fixture(scope="session", autouse=True)
