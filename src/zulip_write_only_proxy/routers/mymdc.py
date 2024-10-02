@@ -43,6 +43,7 @@ async def check_and_proxy_request(
 
     res_proposal_id = (
         content.get("proposal_id")
+        or content.get("experiment", {}).get("proposal_id")
         or content.get("proposal", {}).get("id")
         or content.get("id")
     )
