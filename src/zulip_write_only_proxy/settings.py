@@ -14,7 +14,7 @@ settings: "Settings" = None  # type: ignore[assignment]
 
 def configure():
     global settings
-    zwop_dotenv_file = os.getenv("ZWOP_DOTENV_FILE", None)
+    zwop_dotenv_file = os.getenv("ZWOP_DOTENV_FILE", ".env")
     logger.info("Configuring settings", zwop_dotenv_file=zwop_dotenv_file)
     settings = Settings(_env_file=zwop_dotenv_file)  # type: ignore[call-arg]
     return settings
