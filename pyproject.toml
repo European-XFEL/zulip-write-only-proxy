@@ -10,7 +10,7 @@ packages = [{ include = "zulip_write_only_proxy", from = "src" }]
 damnit-zulip = "zulip_write_only_proxy.cli:app"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = ">=3.11,<3.14"
 fastapi = "^0.104"
 uvicorn = "^0.23.1"
 zulip = "^0.8.2"
