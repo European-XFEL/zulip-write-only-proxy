@@ -41,6 +41,10 @@ async def check_and_proxy_request(
     res = await proxy_request(mymdc_path, params)
     content = orjson.loads(res.body)
 
+    # Use first item if content is a list, e.g. for paginated responses
+    if isinstance(content, list):
+        content = content[0]
+
     res_proposal_id = (
         content.get("proposal_id")
         or content.get("experiment", {}).get("proposal_id")
@@ -76,6 +80,7 @@ async def get_proposals_by_number(
     )
 
 
+@router.get("/runs/runs_by_proposal")
 @router.get("/proposals/by_number/{proposal_no}/runs")
 async def get_proposals_by_number_runs(
     request: Request,
@@ -88,8 +93,8 @@ async def get_proposals_by_number_runs(
         request,
         client,
         proposal_no,
-        f"/api/proposals/by_number/{proposal_no}/runs",
-        {"page_size": page_size, "page": page},
+        request.scope["path"].replace("/api/mymdc", "/api"),
+        {"page_size": page_size, "page": page, "proposal_number": proposal_no},
     )
 
 
