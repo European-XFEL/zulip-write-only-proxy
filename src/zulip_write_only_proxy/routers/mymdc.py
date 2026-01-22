@@ -27,6 +27,8 @@ async def check_and_proxy_request(
     mymdc_path: str,
     params: dict,
 ) -> Response:
+    params = {k: v for k, v in params.items() if v is not None}
+
     if request.query_params.keys() != params.keys():
         logger.warning(
             "Dropped query parameters",
@@ -81,13 +83,14 @@ async def get_proposals_by_number(
 
 
 @router.get("/runs/runs_by_proposal")
+@router.get("/samples/")
 @router.get("/proposals/by_number/{proposal_no}/runs")
 async def get_proposals_by_number_runs(
     request: Request,
     client: ScopedClient,
     proposal_no: int,
-    page_size: int = 100,
-    page: int = 1,
+    page_size: int | None = None,
+    page: int | None = None,
 ):
     return await check_and_proxy_request(
         request,
