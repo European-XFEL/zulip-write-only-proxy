@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+## Frontend
 FROM node:21-slim AS frontend
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -20,46 +21,39 @@ ADD --link https://unpkg.com/htmx.org@1.9.10/dist/htmx.js \
   https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js \
   ./src/zulip_write_only_proxy/frontend/static/
 
-FROM python:3.12-alpine AS prod
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONOPTIMIZE 2
+## Server
+FROM python:3.14-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache openssh
+ENV \
+  PYTHONOPTIMIZE=2 \
+  UV_COMPILE_BYTECODE=1 \
+  UV_LINK_MODE=copy \
+  UV_CACHE_DIR=/opt/uv-cache/
 
-RUN --mount=type=cache,target=/root/.cache \
-  python3 -m pip install --upgrade poetry pip && \
-  poetry config virtualenvs.create false --local
+RUN apt update && apt install -y openssh-client
 
-COPY ./poetry.lock ./pyproject.toml ./README.md /app/
+COPY --link ./pyproject.toml ./uv.lock /app/
 
-RUN --mount=type=cache,target=/root/.cache \
-  poetry install --no-root
+RUN --mount=type=cache,target=/opt/uv-cache/ \
+  uv sync --locked --no-install-project
 
-COPY --link ./src /app/src
+COPY --link README.md src ./
 
-RUN --mount=type=cache,target=/root/.cache poetry install
+RUN --mount=type=cache,target=/opt/uv-cache/ \
+  uv sync --locked
 
-COPY --link --from=frontend /app/src/zulip_write_only_proxy/frontend/static \
-  /app/src/zulip_write_only_proxy/frontend/static
+COPY --link --from=frontend /app/src/zulip_write_only_proxy/frontend \
+  /app/src/zulip_write_only_proxy/frontend
 
 EXPOSE 8000
 
 ENV ZWOP_ADDRESS=http://0.0.0.0:8000
 
-CMD ["poe", "up"]
+CMD ["uv", "run", "-m", "zulip_write_only_proxy.main"]
 
 HEALTHCHECK --start-interval=1s --start-period=30s --interval=60s \
   CMD wget --spider http://0.0.0.0:8000/api/health || exit 1
-
-FROM prod AS dev
-
-RUN --mount=type=cache,target=/root/.cache \
-  python3 -m pip install debugpy
-
-EXPOSE 5678
-
-CMD ["python3", "-Xfrozen_modules=off", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "zulip_write_only_proxy.main"]

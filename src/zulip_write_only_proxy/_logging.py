@@ -2,7 +2,6 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
-import colorama
 import structlog
 import structlog.typing
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -31,7 +30,11 @@ def configure(debug: bool, add_call_site_parameters: bool = False) -> None:
     level_styles = structlog.dev.ConsoleRenderer.get_default_level_styles()
 
     if debug:
-        level_styles["debug"] = colorama.Fore.MAGENTA
+        try:
+            import colorama  # pyright: ignore[reportMissingModuleSource]
+            level_styles["debug"] = colorama.Fore.MAGENTA
+        except ImportError:
+            pass
 
     renderer: structlog.typing.Processor = (
         structlog.dev.ConsoleRenderer(colors=True, level_styles=level_styles)  # type: ignore[assignment]
