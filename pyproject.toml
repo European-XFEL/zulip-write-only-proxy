@@ -1,6 +1,6 @@
 [project]
 name = "zulip-write-only-proxy"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -28,8 +28,14 @@ include = ["src/zulip_write_only_proxy"]
 [tool.hatch.build.targets.wheel.sources]
 "src/zulip_write_only_proxy" = "zulip_write_only_proxy"
 
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/zulip_write_only_proxy/_version.py"
+
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [dependency-groups]

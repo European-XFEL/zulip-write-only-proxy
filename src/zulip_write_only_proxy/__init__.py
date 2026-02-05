@@ -1,5 +1,5 @@
 __version__: str
-__version_tuple__: tuple[int, int, int]
+__version_tuple__: tuple[int | str, ...]
 
 try:
     from ._version import (  # pyright: ignore[reportMissingImports]
