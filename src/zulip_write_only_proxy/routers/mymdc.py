@@ -40,7 +40,19 @@ async def check_and_proxy_request(
             keys=set(request.query_params.keys()) - set(params.keys()),
         )
 
-    if req_proposal_no and int(req_proposal_no) != client.proposal_no:
+    proposal_no_mismatch = (
+        req_proposal_no and int(req_proposal_no) != client.proposal_no
+    )
+    proposal_id_mismatch = (
+        req_proposal_id and int(req_proposal_id) != client.proposal_id
+    )
+
+    if proposal_no_mismatch or proposal_id_mismatch:
+        logger.info(
+            "Client not scoped to this proposal",
+            proposal_no_mismatch=proposal_no_mismatch,
+            proposal_id_mismatch=proposal_id_mismatch,
+        )
         raise HTTPException(
             status_code=403, detail="Client not scoped to this proposal"
         )
