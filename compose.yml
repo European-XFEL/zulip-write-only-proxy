@@ -1,46 +1,17 @@
-version: "3.8"
-
 services:
   server:
     build: .
     volumes:
-      - ./config:/app/config
+      - ./config:/config
     env_file:
       - .env
     environment:
-      - ZWOP_PROXY_ROOT=/zwop
+      - "ZWOP_PROXY_ROOT=/${COMPOSE_PROJECT_NAME}"
+      - "ZWOP_PROXY_HEADERS=true"
+      - "ZWOP_FORWARDED_ALLOW_IPS=*"
     labels:
-      traefik.enable: true
-      traefik.http.middlewares.zwop-dev.stripprefix.forceSlash: false
-      traefik.http.middlewares.zwop-dev.stripprefix.prefixes: /zwop
-      traefik.http.routers.zwop-dev.middlewares: zwop-dev
-      traefik.http.routers.zwop-dev.rule: PathPrefix(`/zwop{slash:(/|$)}`)
-      traefik.http.services.zwop-dev.loadbalancer.server.port: 8000
-    develop:
-      watch:
-        - action: sync
-          path: ./src/zulip_write_only_proxy
-          target: /app/src/zulip_write_only_proxy
-          ignore:
-            - node_modules/
-        - action: sync+restart
-          path: ./compose.yml
-          target: /app/compose.yml
-        - action: sync+restart
-          path: ./src/zulip_write_only_proxy/main.py
-          target: /app/src/zulip_write_only_proxy/main.py
-    ports:
-      - 5678:5678
-
-  traefik:
-    image: "traefik:v2.10"
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:8000"
-    ports:
-      - 8000:8000
-      - 8080:8080
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.${COMPOSE_PROJECT_NAME}-stripprefix.stripprefix.prefixes=/${COMPOSE_PROJECT_NAME}"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.middlewares=${COMPOSE_PROJECT_NAME}-stripprefix"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=PathRegexp(`^/${COMPOSE_PROJECT_NAME}(/|$)`)"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8000"

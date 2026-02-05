@@ -34,7 +34,7 @@ ENV \
   UV_LINK_MODE=copy \
   UV_CACHE_DIR=/opt/uv-cache/
 
-RUN apt update && apt install -y openssh-client
+RUN apt update && apt install -y openssh-client wget && rm -rf /var/lib/apt/lists/*
 
 COPY --link ./pyproject.toml ./uv.lock /app/
 
@@ -56,4 +56,4 @@ ENV ZWOP_ADDRESS=http://0.0.0.0:8000
 CMD ["uv", "run", "-m", "zulip_write_only_proxy.main"]
 
 HEALTHCHECK --start-interval=1s --start-period=30s --interval=60s \
-  CMD wget --spider http://0.0.0.0:8000/api/health || exit 1
+  CMD wget http://0.0.0.0:8000/api/health || exit 1

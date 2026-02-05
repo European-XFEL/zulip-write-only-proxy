@@ -1,0 +1,43 @@
+
+name: zwop-dev
+
+services:
+  server:
+    environment:
+      - "ZWOP_TOKEN_WRITER__ZWOP_URL=http://localhost:8000/${COMPOSE_PROJECT_NAME}"
+    develop:
+      watch:
+        - action: sync
+          path: ./src/zulip_write_only_proxy
+          target: /app/src/zulip_write_only_proxy
+          ignore:
+            - __pycache__/
+            - "*.pyc"
+            - ".pytest_cache/"
+        - action: sync+restart
+          path: ./pyproject.toml
+          target: /app/pyproject.toml
+        - action: sync+restart
+          path: ./src/zulip_write_only_proxy/main.py
+          target: /app/src/zulip_write_only_proxy/main.py
+    restart: never
+
+  traefik:
+    image: "traefik:latest"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:8000"
+      - "--log.level=DEBUG"
+    ports:
+      - 8000:8000
+      - 8080:8080
+    volumes:
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
+
+  whoami:
+    image: traefik/whoami
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=PathRegexp(`^/whoami(/|$)`)"

@@ -24,15 +24,9 @@ def configure(settings: "Settings", app: fastapi.FastAPI):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
     TEMPLATES = Jinja2Templates(directory=templates_dir)
 
-    static_files = {"static_main_css": "main.css", "static_htmx": "htmx.min.js"}
-
-    for key, path in static_files.items():
-        TEMPLATES.env.globals[key] = settings.proxy_root + app.url_path_for(  # pyright: ignore[reportInvalidTypeForm]
-            "static", path=path
-        )
-
     logger.info(
         "Configured static files and Jinja2 templates",
+        proxy_root=settings.proxy_root,
         static_dir=static_dir.relative_to(Path.cwd()),
         templates_dir=templates_dir.relative_to(Path.cwd()),
         env=TEMPLATES.env.globals,

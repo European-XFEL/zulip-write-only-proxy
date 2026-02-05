@@ -6,8 +6,12 @@
       <title>ZWOP</title>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link href="{{ static_main_css }}" rel="stylesheet" type="text/css" />
-      <script src="{{ static_htmx }}"></script>
+      <link
+        href="{{ request.url_for('static', path='main.css') }}"
+        rel="stylesheet"
+        type="text/css"
+      />
+      <script src="{{ request.url_for('static', path='htmx.min.js') }}"></script>
       <meta
         name="htmx-config"
         content='{"methodsThatUseUrlParams": ["post"]}'

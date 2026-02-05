@@ -1,4 +1,7 @@
-version: "3.8"
+name: zwop-staging
+
+include:
+  - compose.yml
 
 networks:
   proxy:
@@ -6,28 +9,9 @@ networks:
 
 services:
   server:
-    image: zwop:staging
-    volumes:
-      - ./config:/app/config
-    env_file:
-      - .env
+    build: .
     environment:
-      - ZWOP_PROXY_ROOT=/zwop-staging
-      - ZWOP_TOKEN_WRITER__ZWOP_URL=https://exfldadev01.desy.de/zwop-staging
+      - "ZWOP_TOKEN_WRITER__ZWOP_URL=https://exfldadev01.desy.de/${COMPOSE_PROJECT_NAME}"
     networks:
       - proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy"
-      - "traefik.http.middlewares.zwop-staging.stripprefix.forceSlash=false"
-      - "traefik.http.middlewares.zwop-staging.stripprefix.prefixes=/zwop-staging"
-      - "traefik.http.routers.zwop-staging.middlewares=zwop-staging"
-      - "traefik.http.routers.zwop-staging.rule=Host(`exfldadev01.desy.de`) && PathPrefix(`/zwop-staging{slash:(/|$)}`)"
-      - "traefik.http.services.zwop-staging.loadbalancer.server.port=8000"
-    command: ["poe", "staging"]
-    deploy:
-      restart_policy:
-        condition: any
-        delay: 5s
-        window: 120s
-
+    restart: unless-stopped

@@ -1,38 +1,9 @@
-version: "3.8"
+name: zwop
 
-networks:
-  proxy:
-    external: true
+include:
+  - compose.staging.yml
 
 services:
   server:
-    image: ${IMAGE:-ghcr.io/european-xfel/zulip-write-only-proxy}:${TAG:?error}
-    volumes:
-      - ./config:/app/config
-    env_file:
-      - .env
-    environment:
-      - ZWOP_PROXY_ROOT=/zwop
-    networks:
-      - proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy"
-      - "traefik.http.middlewares.zwop.stripprefix.forceSlash=false"
-      - "traefik.http.middlewares.zwop.stripprefix.prefixes=/zwop"
-      - "traefik.http.routers.zwop.middlewares=zwop"
-      - "traefik.http.routers.zwop.rule=Host(`exfldadev01.desy.de`) && PathPrefix(`/zwop{slash:(/|$)}`)"
-      - "traefik.http.services.zwop.loadbalancer.server.port=8000"
-    command: ["poe", "prod"]
-    deploy:
-      update_config:
-        parallelism: 1
-        delay: 10s
-        failure_action: rollback
-        order: start-first
-        monitor: 10s
-        max_failure_ratio: 0
-      restart_policy:
-        condition: any
-        delay: 5s
-        window: 120s
+    image: ghcr.io/european-xfel/zulip-write-only-proxy:stable
+    pull_policy: "every_10m"

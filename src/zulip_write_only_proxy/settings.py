@@ -2,7 +2,14 @@ import datetime as dt
 import os
 from pathlib import Path
 
-from pydantic import AnyUrl, DirectoryPath, FilePath, HttpUrl, SecretStr
+from pydantic import (
+    AnyUrl,
+    DirectoryPath,
+    FilePath,
+    HttpUrl,
+    SecretStr,
+    field_validator,
+)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from . import get_logger
@@ -53,7 +60,7 @@ class TokenWriter(BaseSettings):
     ssh_known_hosts: FilePath = (
         Path(__file__).parent.parent.parent / "config/known_hosts"
     )
-    zwop_url: HttpUrl = AnyUrl("https://exfldadev01.desy.de/zwop")
+    zwop_url: HttpUrl = HttpUrl("https://exfldadev01.desy.de/zwop")
 
 
 class Settings(BaseSettings):
@@ -61,6 +68,8 @@ class Settings(BaseSettings):
     address: AnyUrl = AnyUrl("http://127.0.0.1:8000")
     log_level: str = "debug"
     proxy_root: str = ""
+    proxy_headers: bool = True
+    forwarded_allow_ips: str | None = None
     session_secret: SecretStr
     config_dir: DirectoryPath = Path(__file__).parent.parent.parent / "config"
 
@@ -73,3 +82,19 @@ class Settings(BaseSettings):
         env_file=[".env"],
         env_nested_delimiter="__",
     )
+
+    @field_validator("proxy_root")
+    @classmethod
+    def normalize_proxy_root(cls, value: str) -> str:
+        if not value:
+            return ""
+
+        normalized = value.strip()
+        if normalized == "/":
+            return ""
+
+        normalized = normalized.strip("/")
+        if not normalized:
+            return ""
+
+        return f"/{normalized}"
