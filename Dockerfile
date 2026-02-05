@@ -34,16 +34,18 @@ ENV \
   UV_LINK_MODE=copy \
   UV_CACHE_DIR=/opt/uv-cache/
 
-RUN apt update && apt install -y openssh-client wget && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y openssh-client wget git && rm -rf /var/lib/apt/lists/*
 
 COPY --link ./pyproject.toml ./uv.lock /app/
 
 RUN --mount=type=cache,target=/opt/uv-cache/ \
   uv sync --locked --no-install-project
 
-COPY --link README.md src ./
+COPY --link README.md ./
+COPY --link src ./src
 
 RUN --mount=type=cache,target=/opt/uv-cache/ \
+    --mount=type=bind,source=.git,target=/app/.git \
   uv sync --locked
 
 COPY --link --from=frontend /app/src/zulip_write_only_proxy/frontend \
