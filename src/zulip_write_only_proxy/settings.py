@@ -53,7 +53,7 @@ class TokenWriter(BaseSettings):
     ssh_known_hosts: FilePath = (
         Path(__file__).parent.parent.parent / "config/known_hosts"
     )
-    zwop_url: HttpUrl = AnyUrl("https://exfldadev01.desy.de/zwop")
+    zwop_url: HttpUrl = HttpUrl("https://exfldadev01.desy.de/zwop")
 
 
 class Settings(BaseSettings):

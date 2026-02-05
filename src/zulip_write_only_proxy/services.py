@@ -2,14 +2,13 @@ import asyncio
 import contextlib
 import datetime
 import hashlib
-from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 import fastapi
 import orjson
 import zulip
-from pydantic import SecretStr
-from pydantic_core import Url
+from anyio import Path as APath
+from pydantic import HttpUrl, SecretStr
 
 from . import _remote_receive, logger, models, mymdc, repositories
 from .models.client import NoBotForClientError
@@ -90,7 +89,7 @@ async def get_or_create_bot(
         id=bot_id,
         key=SecretStr(bot_key),
         email=bot_email,
-        site=Url(bot_site),
+        site=HttpUrl(bot_site),
         created_at=created_at or datetime.datetime.now(tz=datetime.UTC),
         proposal_no=proposal_no,
     )
@@ -209,21 +208,19 @@ async def write_tokens(
         )
 
     queue = {}
-    for _kind in kinds:
+    for k in kinds:
         kind = (
-            _remote_receive.MymdcConfig
-            if _kind == "mymdc"
-            else _remote_receive.ZulipConfig
+            _remote_receive.MymdcConfig if k == "mymdc" else _remote_receive.ZulipConfig
         )
         config = kind(
             key=client.token.get_secret_value(),
             zwop_url=str(settings.token_writer.zwop_url),
         )
         data = orjson.dumps(config).decode()
-        queue[_kind] = asyncio.create_task(
+        queue[k] = asyncio.create_task(
             _call_remote_receive(
                 str(proposal_no),
-                _kind,
+                k,
                 data,
                 "--dry-run" if dry_run else "",
                 "--overwrite" if overwrite else "",
@@ -235,7 +232,7 @@ async def write_tokens(
     details |= {k: v.result() for k, v in queue.items()}
 
     script_file_hash = hashlib.sha256(
-        Path(_remote_receive.__file__).read_bytes()
+        await APath(_remote_receive.__file__).read_bytes()
     ).hexdigest()
 
     if version["hash"] != script_file_hash:
