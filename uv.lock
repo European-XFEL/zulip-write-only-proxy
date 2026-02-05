@@ -859,7 +859,6 @@ wheels = [
 
 [[package]]
 name = "zulip-write-only-proxy"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "authlib" },
