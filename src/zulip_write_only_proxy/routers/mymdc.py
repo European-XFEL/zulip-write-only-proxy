@@ -138,7 +138,6 @@ async def get_with_id(request: Request, client: ScopedClient, id: int):
     return await check_and_proxy_request(
         request,
         client,
-        client.proposal_no,
-        request.scope["path"].replace("/api/mymdc", "/api"),
         {},
+        req_proposal_no=client.proposal_no,
     )
