@@ -33,6 +33,7 @@ def create_app():
         title="Zulip Write Only Proxy",
         lifespan=lifespan,
         debug=settings.debug,
+        root_path=settings.proxy_root,
         exception_handlers={
             routers.frontend.AuthException: routers.frontend.auth_redirect,
         },
@@ -49,42 +50,6 @@ def create_app():
     return app
 
 
-def get_trusted_hosts(logger):  # pragma: no cover
-    import socket
-    import struct
-    from pathlib import Path
-
-    trusted = set()
-
-    routes = Path("/proc/net/route").read_text()
-    lines = routes.split("\n")
-    for route in lines[1:-1]:
-        fields = route.strip().split()
-        if not fields or fields[1] != "00000000" or not int(fields[3], 16) & 2:
-            # Skip non-default routes
-            logger.debug("Route is not default, skipping", route=route)
-            continue
-
-        if gateway := socket.inet_ntoa(struct.pack("<L", int(fields[2], 16))):
-            logger.info("Found gateway", gateway=gateway)
-            trusted.add(gateway)
-
-    if not trusted:
-        logger.warning("No gateways found in /proc/net/route", routes=routes)
-
-    try:
-        traefik = socket.gethostbyname_ex("traefik")
-        trusted |= set(traefik[2])
-        logger.info("Resolved traefik", traefik=traefik)
-    except socket.gaierror:
-        logger.warning("Failed to resolve traefik")
-
-    if not trusted:
-        logger.critical("No trusted hosts found")
-
-    return list(trusted)
-
-
 if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
@@ -97,11 +62,12 @@ if __name__ == "__main__":  # pragma: no cover
 
     logger = get_logger()
 
-    trusted_hosts = None
-    if settings.proxy_root and settings.proxy_root != "/":
-        trusted_hosts = get_trusted_hosts(logger)
-
-    logger.info("Trusted hosts", trusted_hosts=trusted_hosts)
+    logger.info(
+        "Proxy settings",
+        proxy_root=settings.proxy_root,
+        proxy_headers=settings.proxy_headers,
+        forwarded_allow_ips=settings.forwarded_allow_ips,
+    )
 
     host = settings.address.host or "127.0.0.1"
 
@@ -117,6 +83,7 @@ if __name__ == "__main__":  # pragma: no cover
         reload=settings.debug,
         log_level=settings.log_level,
         root_path=settings.proxy_root,
-        forwarded_allow_ips=trusted_hosts,
+        proxy_headers=settings.proxy_headers,
+        forwarded_allow_ips=settings.forwarded_allow_ips,
         factory=True,
     )
