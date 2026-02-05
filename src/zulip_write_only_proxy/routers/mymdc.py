@@ -141,3 +141,19 @@ async def get_with_id(request: Request, client: ScopedClient, id: int):
         {},
         req_proposal_no=client.proposal_no,
     )
+
+
+@router.get("/samples")
+async def get_samples_for_proposal(
+    request: Request,
+    client: ScopedClient,
+    proposal_id: int,
+    page_size: int = 100,
+    page: int = 1,
+):
+    return await check_and_proxy_request(
+        request,
+        client,
+        {"page_size": page_size, "page": page, "proposal_id": proposal_id},
+        req_proposal_id=proposal_id,
+    )
