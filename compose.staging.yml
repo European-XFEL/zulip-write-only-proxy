@@ -6,7 +6,7 @@ services:
   server:
     image: zwop:staging
     volumes:
-      - ./config:/app/config
+      - ./config:/config
     env_file:
       - .env
     environment:

@@ -6,7 +6,7 @@ services:
   server:
     image: ${IMAGE:-ghcr.io/european-xfel/zulip-write-only-proxy}:${TAG:?error}
     volumes:
-      - ./config:/app/config
+      - ./config:/config
     env_file:
       - .env
     environment:
