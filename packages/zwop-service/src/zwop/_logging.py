@@ -14,7 +14,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 def logger_name_callsite(logger, method_name, event_dict):
     if not event_dict.get("logger_name"):
-        logger_name = f"{event_dict.pop("module")}.{event_dict.pop("func_name")}"
+        logger_name = f"{event_dict.pop('module')}.{event_dict.pop('func_name')}"
         if not event_dict.pop("disable_name", False):
             event_dict["logger_name"] = logger_name.strip(".")  # pyright: ignore[reportInvalidTypeForm]
 
@@ -32,6 +32,7 @@ def configure(debug: bool, add_call_site_parameters: bool = False) -> None:
     if debug:
         try:
             import colorama  # pyright: ignore[reportMissingModuleSource]
+
             level_styles["debug"] = colorama.Fore.MAGENTA
         except ImportError:
             pass
