@@ -30,9 +30,9 @@ class BaseRepository(Generic[T]):
 
     @staticmethod
     def _serialize_pydantic(obj):
-        if type(obj) is pydantic.AnyUrl:
+        if isinstance(obj, pydantic.AnyUrl):
             return str(obj)
-        if type(obj) is pydantic.SecretStr:
+        if isinstance(obj, pydantic.SecretStr):
             return obj.get_secret_value()
         if issubclass(obj.__class__, Base):
             return obj.model_dump()
