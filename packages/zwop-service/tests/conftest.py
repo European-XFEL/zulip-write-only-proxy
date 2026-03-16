@@ -5,18 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
-
-
-def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
-    """Temporarily skip all tests while the workspace refactor is in progress."""
-    skip = pytest.mark.skip(reason="Temporarily skipped during workspace refactor")
-    for item in items:
-        item.add_marker(skip)
-
-
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
-from pydantic_core import Url
+from pydantic import HttpUrl, SecretStr
 from zwop.models import BotConfig, ScopedClient
 
 
@@ -73,7 +63,7 @@ def a_scoped_client(zulip_client):
         proposal_id=5678,
         stream="Test Stream",
         bot_id=1,
-        bot_site=Url("http://a-site.com"),
+        bot_site=HttpUrl("http://a-site.com"),
         token=SecretStr("secret"),
         created_by="foo",
         created_at=datetime.fromisoformat("2021-01-01Z00:00:00"),
@@ -87,7 +77,7 @@ def a_zuliprc():
     return BotConfig(
         email="foo@bar.com",
         key=SecretStr("secret"),
-        site=Url("http://a-site.com"),
+        site=HttpUrl("http://a-site.com"),
         id=1,
         proposal_no=1234,
         created_at=datetime.fromisoformat("2021-01-01Z00:00:00"),
@@ -98,21 +88,26 @@ def a_zuliprc():
 async def _services(settings, a_zuliprc, a_scoped_client):
     from zwop import services
 
-    await services.configure(settings, None)
+    with (
+        patch("zwop.services.httpx.AsyncClient", new_callable=MagicMock),
+        patch("ssl.SSLContext.load_verify_locations"),
+        patch("ssl.SSLContext.load_cert_chain"),
+    ):
+        await services.configure(settings, None)
 
-    await services.CLIENT_REPO.insert(a_scoped_client)
+        await services.CLIENT_REPO.insert(a_scoped_client)
 
-    await services.ZULIPRC_REPO.insert(a_zuliprc)
+        await services.ZULIPRC_REPO.insert(a_zuliprc)
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest.fixture(scope="session")
 def client_repo(_services):
     from zwop import services
 
     return services.CLIENT_REPO
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest.fixture(scope="session")
 def zuliprc_repo(_services):
     from zwop import services
 
@@ -121,9 +116,7 @@ def zuliprc_repo(_services):
 
 @pytest.fixture(scope="session", autouse=True)
 def mymdc_client():
-    with patch(
-        "zwop.mymdc.CLIENT", new_callable=AsyncMock
-    ) as mock_class:
+    with patch("zwop.mymdc.CLIENT", new_callable=AsyncMock) as mock_class:
         mock_class.return_value = mock_class
         mock_class.get_zulip_bot_credentials.return_value = {
             "logbook_name": None,
@@ -144,5 +137,10 @@ def fastapi_client(_services, a_scoped_client, zulip_client):
 
     app = main.create_app()
 
-    with TestClient(app, headers={"X-API-key": "secret"}) as client:
+    with (
+        patch("zwop.services.httpx.AsyncClient", new_callable=MagicMock),
+        patch("ssl.SSLContext.load_verify_locations"),
+        patch("ssl.SSLContext.load_cert_chain"),
+        TestClient(app, headers={"X-API-key": "secret"}) as client,
+    ):
         yield client

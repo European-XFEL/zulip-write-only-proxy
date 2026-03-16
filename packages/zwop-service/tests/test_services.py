@@ -39,9 +39,7 @@ async def test_create_client_no_bot():
         created_at=datetime.fromisoformat("2021-01-01Z00:00:00"),
     )
 
-    with patch(
-        "zwop.mymdc.CLIENT", new_callable=AsyncMock
-    ) as mock_class:
+    with patch("zwop.mymdc.CLIENT", new_callable=AsyncMock) as mock_class:
         mock_class.return_value = mock_class
         mock_class.get_zulip_bot_credentials.side_effect = MyMdCResponseError(
             httpx.Response(status_code=403, json="{}")
