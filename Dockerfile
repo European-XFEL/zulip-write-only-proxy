@@ -12,14 +12,14 @@ COPY --link ./package.json ./pnpm-lock.yaml ./tailwind.config.js ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-COPY ./src/zwop/frontend/templates/ \
-  ./src/zwop/frontend/templates/
+COPY ./packages/zwop-service/src/zwop/frontend/templates/ \
+  ./packages/zwop-service/src/zwop/frontend/templates/
 
 RUN pnpm build
 
 ADD --link https://unpkg.com/htmx.org@1.9.10/dist/htmx.js \
   https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js \
-  ./src/zwop/frontend/static/
+  ./packages/zwop-service/src/zwop/frontend/static/
 
 
 ## Server
@@ -36,26 +36,29 @@ ENV \
 
 RUN apt update && apt install -y openssh-client wget git && rm -rf /var/lib/apt/lists/*
 
-COPY --link ./pyproject.toml ./uv.lock /app/
+COPY --link ./pyproject.toml ./uv.lock ./.python-version /app/
+COPY --link ./packages/zwop-contracts/pyproject.toml /app/packages/zwop-contracts/pyproject.toml
+COPY --link ./packages/zwop-service/pyproject.toml /app/packages/zwop-service/pyproject.toml
+COPY --link ./packages/zwop-token-writer/pyproject.toml /app/packages/zwop-token-writer/pyproject.toml
 
 RUN --mount=type=cache,target=/opt/uv-cache/ \
-  uv sync --locked --no-install-project
+  uv sync --frozen --no-install-workspace --no-dev
 
 COPY --link README.md ./
-COPY --link src ./src
+COPY --link packages ./packages
 
 RUN --mount=type=cache,target=/opt/uv-cache/ \
     --mount=type=bind,source=.git,target=/app/.git \
-  uv sync --locked
+  uv sync --locked --package zwop-service --no-dev
 
-COPY --link --from=frontend /app/src/zwop/frontend \
-  /app/src/zwop/frontend
+COPY --link --from=frontend /app/packages/zwop-service/src/zwop/frontend \
+  /app/packages/zwop-service/src/zwop/frontend
 
 EXPOSE 8000
 
 ENV ZWOP_ADDRESS=http://0.0.0.0:8000
 
-CMD ["uv", "run", "-m", "zwop.main"]
+CMD ["uv", "run", "--package", "zwop-service", "-m", "zwop.main"]
 
 HEALTHCHECK --start-interval=1s --start-period=30s --interval=60s \
   CMD wget http://0.0.0.0:8000/api/health || exit 1

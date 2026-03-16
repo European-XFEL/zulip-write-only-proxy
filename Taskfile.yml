@@ -6,20 +6,20 @@ tasks:
     cmds:
       - |
         pnpm exec tailwindcss \
-          -o src/zwop/frontend/static/main.css
+          -o packages/zwop-service/src/zwop/frontend/static/main.css
     sources:
-      - src/**/*.html
+      - packages/zwop-service/src/**/*.html
       - ./tailwind.config.js
     generates:
-      - src/zwop/frontend/static/main.css
+      - packages/zwop-service/src/zwop/frontend/static/main.css
 
   css-watch: |
     pnpm exec tailwindcss \
-      -o src/zwop/frontend/static/main.css \
+      -o packages/zwop-service/src/zwop/frontend/static/main.css \
       --watch
 
   htmx: |
-    cd ./src/zwop/frontend/static && \
+    cd ./packages/zwop-service/src/zwop/frontend/static && \
       wget -N https://unpkg.com/htmx.org@1.9.10/dist/htmx.js
 
   poe-up: poe up

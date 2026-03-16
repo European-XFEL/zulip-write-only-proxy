@@ -8,8 +8,8 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./src/zwop
-          target: /app/src/zwop
+          path: ./packages/zwop-service/src/zwop
+          target: /app/packages/zwop-service/src/zwop
           ignore:
             - __pycache__/
             - "*.pyc"
@@ -18,8 +18,11 @@ services:
           path: ./pyproject.toml
           target: /app/pyproject.toml
         - action: sync+restart
-          path: ./src/zwop/main.py
-          target: /app/src/zwop/main.py
+          path: ./packages/zwop-service/pyproject.toml
+          target: /app/packages/zwop-service/pyproject.toml
+        - action: sync+restart
+          path: ./packages/zwop-service/src/zwop/main.py
+          target: /app/packages/zwop-service/src/zwop/main.py
     restart: never
 
   traefik:

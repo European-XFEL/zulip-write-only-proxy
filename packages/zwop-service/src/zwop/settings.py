@@ -16,6 +16,7 @@ from . import get_logger
 
 logger = get_logger(__name__)
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
 settings: "Settings" = None  # type: ignore[assignment]
 
 
@@ -54,12 +55,8 @@ class MyMdCCredentials(BaseSettings):
 
 class TokenWriter(BaseSettings):
     ssh_destination: str = "xdana@max-exfl.desy.de"
-    ssh_private_key: FilePath = (
-        Path(__file__).parent.parent.parent / "config/id_ed25519"
-    )
-    ssh_known_hosts: FilePath = (
-        Path(__file__).parent.parent.parent / "config/known_hosts"
-    )
+    ssh_private_key: FilePath = REPO_ROOT / "config/id_ed25519"
+    ssh_known_hosts: FilePath = REPO_ROOT / "config/known_hosts"
     zwop_url: HttpUrl = HttpUrl("https://exfldadev01.desy.de/zwop")
 
 
@@ -71,7 +68,7 @@ class Settings(BaseSettings):
     proxy_headers: bool = True
     forwarded_allow_ips: str | None = None
     session_secret: SecretStr
-    config_dir: DirectoryPath = Path(__file__).parent.parent.parent / "config"
+    config_dir: DirectoryPath = REPO_ROOT / "config"
 
     auth: Auth
     mymdc: MyMdCCredentials

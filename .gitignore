@@ -7,8 +7,8 @@ migration
 clients.json
 zuliprc.json
 node_modules
-src/zwop/_version.py
-src/zwop/frontend/static
+packages/zwop-service/src/zwop/_version.py
+packages/zwop-service/src/zwop/frontend/static
 zuliprc
 
 # Byte-compiled / optimized / DLL files
