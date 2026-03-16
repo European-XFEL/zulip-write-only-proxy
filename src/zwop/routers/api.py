@@ -3,9 +3,7 @@ from typing import TYPE_CHECKING, Annotated
 import fastapi
 from fastapi.security import APIKeyHeader
 
-from zulip_write_only_proxy import mymdc
-
-from .. import __version__, __version_tuple__, logger, models, services
+from .. import __version__, __version_tuple__, logger, models, mymdc, services
 
 if TYPE_CHECKING:  # pragma: no cover
     from tempfile import SpooledTemporaryFile
@@ -75,7 +73,7 @@ def send_message(
 
         result = client.upload_file(f)
 
-        content += f"\n\n[]({result["uri"]})"
+        content += f"\n\n[]({result['uri']})"
 
     return client.send_message(topic, content)
 

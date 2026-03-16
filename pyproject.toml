@@ -1,5 +1,5 @@
 [project]
-name = "zulip-write-only-proxy"
+name = "zwop"
 dynamic = ["version"]
 description = "Add your description here"
 readme = "README.md"
@@ -20,19 +20,19 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/zulip_write_only_proxy"]
+include = ["src/zwop"]
 
 [tool.hatch.build.targets.wheel]
-include = ["src/zulip_write_only_proxy"]
+include = ["src/zwop"]
 
 [tool.hatch.build.targets.wheel.sources]
-"src/zulip_write_only_proxy" = "zulip_write_only_proxy"
+"src/zwop" = "zwop"
 
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/zulip_write_only_proxy/_version.py"
+version-file = "src/zwop/_version.py"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

@@ -5,7 +5,7 @@ import pytest
 from httpx import Request
 from pydantic import SecretStr
 
-from zulip_write_only_proxy.mymdc import (
+from zwop.mymdc import (
     MyMdCAuth,
     MyMdCClient,
     NoStreamForProposalError,

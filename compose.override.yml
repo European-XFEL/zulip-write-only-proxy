@@ -8,8 +8,8 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./src/zulip_write_only_proxy
-          target: /app/src/zulip_write_only_proxy
+          path: ./src/zwop
+          target: /app/src/zwop
           ignore:
             - __pycache__/
             - "*.pyc"
@@ -18,8 +18,8 @@ services:
           path: ./pyproject.toml
           target: /app/pyproject.toml
         - action: sync+restart
-          path: ./src/zulip_write_only_proxy/main.py
-          target: /app/src/zulip_write_only_proxy/main.py
+          path: ./src/zwop/main.py
+          target: /app/src/zwop/main.py
     restart: never
 
   traefik:

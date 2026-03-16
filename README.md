@@ -136,7 +136,7 @@ Here is an example configuration, placed in `.vscode/launch.json`:
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "zulip_write_only_proxy.main:app",
+                "zwop.main:app",
                 "--port",
                 "8000",
             ],

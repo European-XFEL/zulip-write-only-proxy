@@ -7,9 +7,9 @@ import pytest
 from fastapi import HTTPException
 from pydantic import SecretStr
 
-from zulip_write_only_proxy import services
-from zulip_write_only_proxy.models import ScopedClient, ScopedClientCreate
-from zulip_write_only_proxy.mymdc import MyMdCResponseError
+from zwop import services
+from zwop.models import ScopedClient, ScopedClientCreate
+from zwop.mymdc import MyMdCResponseError
 
 
 @pytest.mark.asyncio
@@ -40,7 +40,7 @@ async def test_create_client_no_bot():
     )
 
     with patch(
-        "zulip_write_only_proxy.mymdc.CLIENT", new_callable=AsyncMock
+        "zwop.mymdc.CLIENT", new_callable=AsyncMock
     ) as mock_class:
         mock_class.return_value = mock_class
         mock_class.get_zulip_bot_credentials.side_effect = MyMdCResponseError(

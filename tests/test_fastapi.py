@@ -218,7 +218,7 @@ def test_get_stream_topics_error(fastapi_client, zulip_client):
 # @pytest.mark.asyncio()
 # def test_create_client_mymdc_error(fastapi_client):
 #     with patch(
-#         "zulip_write_only_proxy.mymdc.client.get_zulip_stream_name",
+#         "zwop.mymdc.client.get_zulip_stream_name",
 #         AsyncMock(side_effect=NoStreamForProposalError(1234)),
 #     ):
 #         # Call the API endpoint with invalid data

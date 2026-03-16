@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 from pydantic_core import Url
 
-from zulip_write_only_proxy.models import BotConfig, ScopedClient
+from zwop.models import BotConfig, ScopedClient
 
 
 @pytest.fixture(scope="session")
@@ -46,7 +46,7 @@ ZWOP_AUTH__CLIENT_SECRET=client_secret
 
     os.environ["ZWOP_DOTENV_FILE"] = str(dotenv_file)
 
-    from zulip_write_only_proxy.settings import configure
+    from zwop.settings import configure
 
     return configure()
 
@@ -88,7 +88,7 @@ def a_zuliprc():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def _services(settings, a_zuliprc, a_scoped_client):
-    from zulip_write_only_proxy import services
+    from zwop import services
 
     await services.configure(settings, None)
 
@@ -99,14 +99,14 @@ async def _services(settings, a_zuliprc, a_scoped_client):
 
 @pytest_asyncio.fixture(scope="session")
 def client_repo(_services):
-    from zulip_write_only_proxy import services
+    from zwop import services
 
     return services.CLIENT_REPO
 
 
 @pytest_asyncio.fixture(scope="session")
 def zuliprc_repo(_services):
-    from zulip_write_only_proxy import services
+    from zwop import services
 
     return services.ZULIPRC_REPO
 
@@ -114,7 +114,7 @@ def zuliprc_repo(_services):
 @pytest.fixture(scope="session", autouse=True)
 def mymdc_client():
     with patch(
-        "zulip_write_only_proxy.mymdc.CLIENT", new_callable=AsyncMock
+        "zwop.mymdc.CLIENT", new_callable=AsyncMock
     ) as mock_class:
         mock_class.return_value = mock_class
         mock_class.get_zulip_bot_credentials.return_value = {
@@ -132,7 +132,7 @@ def mymdc_client():
 
 @pytest.fixture(scope="session", autouse=True)
 def fastapi_client(_services, a_scoped_client, zulip_client):
-    from zulip_write_only_proxy import main
+    from zwop import main
 
     app = main.create_app()
 

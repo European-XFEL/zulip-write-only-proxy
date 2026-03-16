@@ -6,8 +6,8 @@ import pytest
 from pydantic import SecretStr
 from pydantic_core import Url
 
-from zulip_write_only_proxy.models import ScopedClient
-from zulip_write_only_proxy.repositories import BaseRepository
+from zwop.models import ScopedClient
+from zwop.repositories import BaseRepository
 
 
 @pytest.mark.asyncio
