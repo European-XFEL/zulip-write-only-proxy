@@ -10,9 +10,22 @@ zwop-contracts = { workspace = true }
 
 [dependency-groups]
 dev = [
+    "poethepoet>=0.37.0",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
     "pytest-cov>=7.0.0",
     "ruff>=0.13.0",
     "vcrpy>=8.1.1",
 ]
+
+[tool.poe.tasks]
+serve = "uv run --package zwop-service -m zwop.main"
+test = "uv run --package zwop-service pytest packages/zwop-service/tests"
+lint = "uv run --package zwop-service ruff check packages/zwop-service/src packages/zwop-service/tests"
+format = "uv run --package zwop-service ruff format packages/zwop-service/src packages/zwop-service/tests"
+css = "pnpm --dir packages/zwop-service run build-css"
+css-watch = "pnpm --dir packages/zwop-service run watch-css"
+htmx = "pnpm --dir packages/zwop-service run fetch-htmx"
+docker = "docker compose -p zwop-dev -f ./compose.yml up --build --watch"
+staging = "docker build . --tag zwop:staging && docker compose -p zwop-staging -f ./compose.staging.yml up -d"
+prod = "docker compose -p zwop -f ./compose.prod.yml up -d"

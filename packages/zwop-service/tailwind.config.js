@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./packages/zwop-service/src/zwop/frontend/templates/**.html",
-    "./packages/zwop-service/src/zwop/frontend/templates/*/**.html"
+    "./src/zwop/frontend/templates/**.html",
+    "./src/zwop/frontend/templates/*/**.html"
   ],
   theme: {
     extend: {},
