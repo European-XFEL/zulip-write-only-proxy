@@ -5,7 +5,6 @@ from pathlib import Path
 from pydantic import (
     AnyUrl,
     DirectoryPath,
-    FilePath,
     HttpUrl,
     SecretStr,
     field_validator,
@@ -54,10 +53,11 @@ class MyMdCCredentials(BaseSettings):
 
 
 class TokenWriter(BaseSettings):
-    ssh_destination: str = "xdana@max-exfl.desy.de"
-    ssh_private_key: FilePath = REPO_ROOT / "config/id_ed25519"
-    ssh_known_hosts: FilePath = REPO_ROOT / "config/known_hosts"
+    url: HttpUrl = HttpUrl("https://token-writer:8443")
     zwop_url: HttpUrl = HttpUrl("https://exfldadev01.desy.de/zwop")
+    cert_file: Path = Path("/certs/client.crt")
+    key_file: Path = Path("/certs/client.key")
+    ca_file: Path = Path("/certs/ca.crt")
 
 
 class Settings(BaseSettings):

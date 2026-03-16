@@ -23,7 +23,7 @@ class FileWriteResult(BaseModel):
 
 class FileWriteSummary(BaseModel):
     proposal: int
-    results: list[FileWriteResult]
+    result: FileWriteResult
     status_code: int
 
 

@@ -10,7 +10,7 @@ ENV \
   UV_LINK_MODE=copy \
   UV_CACHE_DIR=/opt/uv-cache/
 
-RUN apt update && apt install -y openssh-client wget git && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y wget git && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml uv.lock .python-version ./
 COPY packages/zwop-contracts/pyproject.toml ./packages/zwop-contracts/pyproject.toml
