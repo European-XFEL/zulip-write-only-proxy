@@ -50,7 +50,7 @@ def create_app():
     return app
 
 
-if __name__ == "__main__":  # pragma: no cover
+def main():
     import uvicorn
 
     from . import _logging, get_logger
@@ -87,3 +87,7 @@ if __name__ == "__main__":  # pragma: no cover
         forwarded_allow_ips=settings.forwarded_allow_ips,
         factory=True,
     )
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

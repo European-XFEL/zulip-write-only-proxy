@@ -4,8 +4,7 @@ requires-python = ">=3.13"
 
 [manifest]
 members = [
-    "zwop-contracts",
-    "zwop-service",
+    "zwop",
     "zwop-token-writer",
 ]
 
@@ -17,6 +16,8 @@ dev = [
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "ruff", specifier = ">=0.13.0" },
     { name = "vcrpy", specifier = ">=8.1.1" },
+    { name = "zwop", editable = "packages/zwop" },
+    { name = "zwop-token-writer", editable = "packages/token-writer" },
 ]
 
 [[package]]
@@ -922,20 +923,9 @@ wheels = [
 ]
 
 [[package]]
-name = "zwop-contracts"
+name = "zwop"
 version = "0.1.0"
-source = { editable = "packages/zwop-contracts" }
-dependencies = [
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "pydantic", specifier = ">=2.12.5" }]
-
-[[package]]
-name = "zwop-service"
-version = "0.1.0"
-source = { editable = "packages/zwop-service" }
+source = { editable = "packages/zwop" }
 dependencies = [
     { name = "authlib" },
     { name = "fastapi" },
@@ -949,7 +939,7 @@ dependencies = [
     { name = "structlog" },
     { name = "uvicorn" },
     { name = "zulip" },
-    { name = "zwop-contracts" },
+    { name = "zwop-token-writer" },
 ]
 
 [package.metadata]
@@ -966,19 +956,18 @@ requires-dist = [
     { name = "structlog", specifier = ">=25.5.0" },
     { name = "uvicorn", specifier = ">=0.40.0" },
     { name = "zulip", specifier = ">=0.9.1" },
-    { name = "zwop-contracts", editable = "packages/zwop-contracts" },
+    { name = "zwop-token-writer", editable = "packages/token-writer" },
 ]
 
 [[package]]
 name = "zwop-token-writer"
 version = "0.1.0"
-source = { editable = "packages/zwop-token-writer" }
+source = { editable = "packages/token-writer" }
 dependencies = [
     { name = "fastapi" },
     { name = "orjson" },
     { name = "pydantic-settings" },
     { name = "uvicorn" },
-    { name = "zwop-contracts" },
 ]
 
 [package.metadata]
@@ -987,5 +976,4 @@ requires-dist = [
     { name = "orjson", specifier = ">=3.11.7" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "uvicorn", specifier = ">=0.40.0" },
-    { name = "zwop-contracts", editable = "packages/zwop-contracts" },
 ]

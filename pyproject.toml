@@ -1,12 +1,12 @@
 [tool.uv.workspace]
 members = [
-    "packages/zwop-contracts",
-    "packages/zwop-service",
-    "packages/zwop-token-writer",
+    "packages/zwop",
+    "packages/token-writer",
 ]
 
 [tool.uv.sources]
-zwop-contracts = { workspace = true }
+zwop = { workspace = true }
+zwop-tws = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -16,6 +16,8 @@ dev = [
     "pytest-cov>=7.0.0",
     "ruff>=0.13.0",
     "vcrpy>=8.1.1",
+    "zwop",
+    "zwop-tws",
 ]
 
 [tool.poe.tasks]

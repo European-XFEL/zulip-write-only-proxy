@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Annotated
 
 import fastapi
-import zwop_contracts
+import zwop_tws as tws
 from fastapi.security import APIKeyHeader
 
 from .. import __version__, __version_tuple__, logger, models, mymdc, services
@@ -144,12 +144,10 @@ def get_me(
     return client
 
 
-@router.post("/write_tokens", response_model=zwop_contracts.FileWriteSummary)
+@router.post("/write_tokens")
 async def write_tokens(
-    summary: Annotated[
-        zwop_contracts.FileWriteSummary, fastapi.Depends(services.write_tokens)
-    ],
-) -> zwop_contracts.FileWriteSummary:
+    summary: Annotated[tws.FileWriteSummary, fastapi.Depends(services.write_tokens)],
+) -> tws.FileWriteSummary:
     return summary
 
 

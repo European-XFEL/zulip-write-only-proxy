@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 import fastapi
 import httpx
 import zulip
-import zwop_contracts
+import zwop_tws as tws
 from pydantic import HttpUrl, SecretStr
 
 from . import logger, models, mymdc, repositories
@@ -202,7 +202,7 @@ async def write_tokens(
     overwrite: bool = False,
     dry_run: bool = False,
     created_by: str = "write_tokens",
-) -> zwop_contracts.FileWriteSummary:
+) -> tws.FileWriteSummary:
     client = await CLIENT_REPO.get(proposal_no, by="proposal_no")
     if client is None:
         client = await create_client(
@@ -214,7 +214,7 @@ async def write_tokens(
         k: asyncio.create_task(
             TOKEN_WRITER_CLIENT.post(
                 "/v1/write",
-                content=zwop_contracts.FileWriteRequest(
+                content=tws.FileWriteRequest(
                     proposal_no=proposal_no,
                     kind=k,
                     key=client.token.get_secret_value(),
@@ -230,11 +230,11 @@ async def write_tokens(
 
     await asyncio.wait(tasks.values())
 
-    results: list[zwop_contracts.FileWriteResult] = []
+    results: list[tws.FileWriteResult] = []
     status_code = 200
     for task in tasks.values():
         resp = task.result()
-        result = zwop_contracts.FileWriteResult.model_validate(resp.json())
+        result = tws.FileWriteResult.model_validate(resp.json())
         results.append(result)
         if result.status_code != 200:
             status_code = result.status_code
@@ -248,7 +248,7 @@ async def write_tokens(
             },
         )
 
-    return zwop_contracts.FileWriteSummary(
+    return tws.FileWriteSummary(
         proposal=proposal_no,
         results=results,
         status_code=status_code,

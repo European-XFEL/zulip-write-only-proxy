@@ -4,12 +4,12 @@ from pathlib import Path
 
 from anyio import Path as APath
 from fastapi import FastAPI, HTTPException
-from zwop_contracts import (
+
+from .models import (
     FileWriteRequest,
     FileWriteResult,
     TokenKind,
 )
-
 from .settings import settings
 
 app = FastAPI(title="zwop-token-writer")
