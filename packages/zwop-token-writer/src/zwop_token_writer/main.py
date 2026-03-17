@@ -7,7 +7,6 @@ from fastapi import FastAPI, HTTPException
 from zwop_contracts import (
     FileWriteRequest,
     FileWriteResult,
-    FileWriteSummary,
     TokenKind,
 )
 
@@ -71,8 +70,8 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/v1/write", response_model=FileWriteSummary)
-async def write_file(request: FileWriteRequest) -> FileWriteSummary:
+@app.post("/v1/write")
+async def write_file(request: FileWriteRequest) -> FileWriteResult:
     proposal_path = await _find_proposal_path(request.proposal_no)
     zwop_url = str(request.zwop_url)
     key = request.key
@@ -102,11 +101,7 @@ async def write_file(request: FileWriteRequest) -> FileWriteSummary:
             0o660,
         )
 
-    return FileWriteSummary(
-        proposal=request.proposal_no,
-        result=result,
-        status_code=result.status_code,
-    )
+    return result
 
 
 def run() -> None:

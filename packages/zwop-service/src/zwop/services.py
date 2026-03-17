@@ -234,10 +234,10 @@ async def write_tokens(
     status_code = 200
     for task in tasks.values():
         resp = task.result()
-        summary = zwop_contracts.FileWriteSummary.model_validate(resp.json())
-        results.extend(summary.results)
-        if summary.status_code != 200:
-            status_code = summary.status_code
+        result = zwop_contracts.FileWriteResult.model_validate(resp.json())
+        results.append(result)
+        if result.status_code != 200:
+            status_code = result.status_code
 
     if status_code != 200:
         raise fastapi.HTTPException(
