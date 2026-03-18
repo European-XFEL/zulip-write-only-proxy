@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import datetime
 import ssl
+from http.client import OK
 from typing import Annotated, Literal
 
 import fastapi
@@ -19,17 +20,19 @@ ZULIPRC_REPO: repositories.BaseRepository[models.BotConfig] = None  # type: igno
 TOKEN_WRITER_CLIENT: httpx.AsyncClient = None  # type: ignore[assignment]
 
 
-async def configure(settings: Settings, _: fastapi.FastAPI | None):
+async def configure(s: Settings, _: fastapi.FastAPI | None):
     """Set up repositories and the mTLS HTTP client for the token-writer service."""
-    global CLIENT_REPO, ZULIPRC_REPO, TOKEN_WRITER_CLIENT
+    global CLIENT_REPO, ZULIPRC_REPO, TOKEN_WRITER_CLIENT, settings
+
+    settings = s
 
     ZULIPRC_REPO = repositories.BaseRepository(
-        file=settings.config_dir / "zuliprc.json",
+        file=s.config_dir / "zuliprc.json",
         model=models.BotConfig,
     )
 
     CLIENT_REPO = repositories.BaseRepository(
-        file=settings.config_dir / "clients.json",
+        file=s.config_dir / "clients.json",
         model=models.ScopedClient,
     )
 
@@ -40,16 +43,17 @@ async def configure(settings: Settings, _: fastapi.FastAPI | None):
     await CLIENT_REPO.load()
     await ZULIPRC_REPO.load()
 
-    ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    ssl_ctx.load_verify_locations(cafile=str(settings.token_writer.ca_file))
-    ssl_ctx.load_cert_chain(
-        certfile=str(settings.token_writer.cert_file),
-        keyfile=str(settings.token_writer.key_file),
+    ctx = ssl.create_default_context(cafile=str(s.token_writer.ca_file.absolute()))
+    ctx.load_cert_chain(
+        certfile=str(s.token_writer.cert_file.absolute()),
+        keyfile=str(s.token_writer.key_file.absolute()),
     )
+
     TOKEN_WRITER_CLIENT = httpx.AsyncClient(
-        base_url=str(settings.token_writer.url),
-        verify=ssl_ctx,
+        verify=ctx, base_url=str(s.token_writer.url)
     )
+
+    logger.info("Configured token writer service", **s.token_writer.model_dump())
 
 
 async def get_or_create_bot(
@@ -231,15 +235,15 @@ async def write_tokens(
     await asyncio.wait(tasks.values())
 
     results: list[tws.FileWriteResult] = []
-    status_code = 200
+    status_code = OK
     for task in tasks.values():
         resp = task.result()
         result = tws.FileWriteResult.model_validate(resp.json())
         results.append(result)
-        if result.status_code != 200:
+        if result.status_code != OK:
             status_code = result.status_code
 
-    if status_code != 200:
+    if status_code != OK:
         raise fastapi.HTTPException(
             status_code=status_code,
             detail={
