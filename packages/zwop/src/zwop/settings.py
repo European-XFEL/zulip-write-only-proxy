@@ -5,6 +5,7 @@ from pathlib import Path
 from pydantic import (
     AnyUrl,
     DirectoryPath,
+    FilePath,
     HttpUrl,
     SecretStr,
     field_validator,
@@ -53,11 +54,11 @@ class MyMdCCredentials(BaseSettings):
 
 
 class TokenWriter(BaseSettings):
-    url: HttpUrl = HttpUrl("https://token-writer:8443")
+    url: HttpUrl = HttpUrl("https://localhost:8443")
     zwop_url: HttpUrl = HttpUrl("https://exfldadev01.desy.de/zwop")
-    cert_file: Path = Path("/certs/client.crt")
-    key_file: Path = Path("/certs/client.key")
-    ca_file: Path = Path("/certs/ca.crt")
+    cert_file: FilePath = Path("./certs/client.crt")
+    key_file: FilePath = Path("./certs/client.key")
+    ca_file: FilePath = Path("./certs/ca.crt")
 
 
 class Settings(BaseSettings):
@@ -78,6 +79,7 @@ class Settings(BaseSettings):
         env_prefix="ZWOP_",
         env_file=[".env"],
         env_nested_delimiter="__",
+        extra="ignore",
     )
 
     @field_validator("proxy_root")

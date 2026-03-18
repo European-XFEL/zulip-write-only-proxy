@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 from pydantic import SecretStr
-
-from zwop import services
 from zwop.models import ScopedClient, ScopedClientCreate
 from zwop.mymdc import MyMdCResponseError
+
+from zwop import services
 
 
 @pytest.mark.asyncio

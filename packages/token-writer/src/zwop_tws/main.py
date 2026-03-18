@@ -2,6 +2,7 @@ import shutil
 import ssl
 from pathlib import Path
 
+import uvicorn
 from anyio import Path as APath
 from fastapi import FastAPI, HTTPException
 
@@ -105,14 +106,12 @@ async def write_file(request: FileWriteRequest) -> FileWriteResult:
 
 
 def run() -> None:
-    import uvicorn
-
     uvicorn.run(
-        "zwop_token_writer.main:app",
+        "zwop_tws.main:app",
         host=settings.host,
         port=settings.port,
         ssl_keyfile=str(settings.mtls.key_file),
         ssl_certfile=str(settings.mtls.cert_file),
-        ssl_ca_certs=str(settings.mtls.client_ca_file),
+        ssl_ca_certs=str(settings.mtls.ca_file),
         ssl_cert_reqs=ssl.CERT_REQUIRED,
     )

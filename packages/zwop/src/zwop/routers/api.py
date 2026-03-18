@@ -152,7 +152,15 @@ async def write_tokens(
 
 
 @router.get("/health")
-def healthcheck(request: fastapi.Request):
+async def healthcheck(request: fastapi.Request):
+
+    tws = False
+    try:
+        await services.TOKEN_WRITER_CLIENT.get("/health")
+        tws = True
+    except Exception as e:
+        logger.warning("TWS health check failed", error=str(e))
+
     return {
         "status": "OK",
         "dirty": "dirty" in __version__,
@@ -160,4 +168,5 @@ def healthcheck(request: fastapi.Request):
         "version": __version__,
         "version_tuple": __version_tuple__,
         "root_path": request.scope.get("root_path"),
+        "tws": tws,
     }
