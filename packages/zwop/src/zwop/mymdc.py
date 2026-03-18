@@ -50,7 +50,7 @@ class MyMdCAuth(httpx.Auth, MyMdCCredentials):
                 "grant_type": "client_credentials",
                 "client_id": self.id,
                 "client_secret": self.secret.get_secret_value(),
-                "scope": "public",
+                "scope": self.scope,
             }
 
             response = await client.post(str(self.token_url), data=data)

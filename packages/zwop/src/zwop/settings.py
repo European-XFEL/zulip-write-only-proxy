@@ -1,6 +1,7 @@
 import datetime as dt
 import os
 from pathlib import Path
+from typing import Literal
 
 from pydantic import (
     AnyUrl,
@@ -41,6 +42,7 @@ class MyMdCCredentials(BaseSettings):
     secret: SecretStr
     email: str
     token_url: HttpUrl
+    scope: Literal[""] | Literal["public"] = "public"
 
     _access_token: str = ""
     _expires_at: dt.datetime = dt.datetime.fromisocalendar(1970, 1, 1).astimezone(
