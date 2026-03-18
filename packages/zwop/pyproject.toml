@@ -37,10 +37,10 @@ fallback-version = "0.0.0.dev0"
 [tool.hatch.build.hooks.vcs]
 version-file = "../_version.py"
 
-[tool.hatch.build.targets.wheel]
-artifacts = ["src/zwop/frontend/static/**"]
+[tool.hatch.build.targets.sdist.hooks.custom]
 
-[tool.hatch.build.hooks.custom]
+[tool.hatch.build.targets.sdist]
+artifacts = ["src/zwop/frontend/static/"]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

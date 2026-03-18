@@ -6,7 +6,7 @@
     "tailwindcss": "^3.4.1"
   },
   "scripts": {
-    "build:htmx": "cd src/zwop/frontend/static && wget -N https://unpkg.com/htmx.org@1.9.10/dist/htmx.js && wget -N https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js",
+    "build:htmx": "mkdir -p src/zwop/frontend/static && cd src/zwop/frontend/static && wget -N https://unpkg.com/htmx.org@1.9.10/dist/htmx.js && wget -N https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js",
     "build:css": "tailwindcss -o src/zwop/frontend/static/main.css",
     "build": "pnpm run '/^build:.*/'"
   },

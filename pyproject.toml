@@ -21,6 +21,6 @@ dev = [
 ]
 
 [tool.poe.tasks]
-test = "uv run pytest ./tests"
+test = "uv run pytest ./tests --cov-report term --cov-report xml --cov zwop --cov zwop_tws"
 lint = "uv run ruff check --fix"
 format = "uv run ruff format"
