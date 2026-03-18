@@ -6,4 +6,3 @@ include:
 services:
   server:
     image: ghcr.io/european-xfel/zulip-write-only-proxy:stable
-    pull_policy: "every_10m"

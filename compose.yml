@@ -1,8 +1,11 @@
 services:
   server:
-    build: .
+    build:
+      context: .
+      target: zwop
     volumes:
-      - ./config:/config
+      - ./config:/app/config
+      - ./certs:/app/certs
     env_file:
       - .env
     environment:

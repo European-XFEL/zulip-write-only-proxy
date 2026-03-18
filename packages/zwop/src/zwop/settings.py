@@ -16,8 +16,6 @@ from . import get_logger
 
 logger = get_logger(__name__)
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-
 
 def configure() -> "Settings":
     zwop_dotenv_file = Path(os.getenv("ZWOP_DOTENV_FILE", ".env")).absolute()
@@ -66,7 +64,7 @@ class Settings(BaseSettings):
     proxy_headers: bool = True
     forwarded_allow_ips: str | None = None
     session_secret: SecretStr
-    config_dir: DirectoryPath = REPO_ROOT / "config"
+    config_dir: DirectoryPath = Path.cwd() / "config"
 
     auth: Auth
     mymdc: MyMdCCredentials

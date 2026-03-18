@@ -31,7 +31,7 @@ openssl x509 -req \
   -out "$CERT_DIR/server.crt" \
   -days 825 \
   -sha256 \
-  -extfile <(printf "subjectAltName=DNS:localhost,DNS:max-exfl463.desy.de,IP:127.0.0.1\nextendedKeyUsage=serverAuth\n")
+  -extfile <(printf "subjectAltName=DNS:localhost,DNS:tws,DNS:max-exfl463.desy.de,IP:127.0.0.1\nextendedKeyUsage=serverAuth\n")
 
 openssl genrsa -out "$CERT_DIR/client.key" 2048
 openssl req -new \

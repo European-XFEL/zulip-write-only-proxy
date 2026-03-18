@@ -1,29 +1,20 @@
-
 name: zwop-dev
 
 services:
   server:
     environment:
       - "ZWOP_TOKEN_WRITER__ZWOP_URL=http://localhost:8000/${COMPOSE_PROJECT_NAME}"
-    develop:
-      watch:
-        - action: sync
-          path: ./packages/zwop-service/src/zwop
-          target: /app/packages/zwop-service/src/zwop
-          ignore:
-            - __pycache__/
-            - "*.pyc"
-            - ".pytest_cache/"
-        - action: sync+restart
-          path: ./pyproject.toml
-          target: /app/pyproject.toml
-        - action: sync+restart
-          path: ./packages/zwop-service/pyproject.toml
-          target: /app/packages/zwop-service/pyproject.toml
-        - action: sync+restart
-          path: ./packages/zwop-service/src/zwop/main.py
-          target: /app/packages/zwop-service/src/zwop/main.py
-    restart: never
+      - "ZWOP_TOKEN_WRITER__URL=https://tws:8443/"
+      - "ZWOP_ADDRESS=http://0.0.0.0:8000"
+
+  tws:
+    build:
+      context: .
+      target: zwop-tws
+    volumes:
+      - ./certs:/app/certs
+    env_file:
+      - .env
 
   traefik:
     image: "traefik:latest"
