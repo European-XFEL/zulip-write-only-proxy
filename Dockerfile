@@ -2,8 +2,13 @@
 FROM python:3.13-slim AS base
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+ARG APP_VERSION=0.0.0.dev0
+
+WORKDIR /app
+
 ENV \
   PYTHONOPTIMIZE=2 \
+  SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION} \
   UV_CACHE_DIR=/opt/uv-cache/ \
   UV_COMPILE_BYTECODE=1 \
   UV_LINK_MODE=copy
@@ -20,11 +25,9 @@ ENV \
   PATH="/pnpm:$PATH"
 
 RUN apt update && \
-  apt install -y git node-corepack --no-install-recommends && \
+  apt install -y node-corepack --no-install-recommends && \
   corepack enable && \
   rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
 
 COPY --link ./pyproject.toml ./uv.lock ./.python-version /app/
 
@@ -38,14 +41,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store cd packages/zwop \
   pnpm install --frozen-lockfile
 
 RUN --mount=type=cache,target=/opt/uv-cache/ \
-    --mount=type=bind,source=.git,target=/app/.git \
   uv sync --locked
 
 
 FROM dev AS build
 
 RUN --mount=type=cache,target=/opt/uv-cache/ \
-    --mount=type=bind,source=.git,target=/app/.git \
   uv build --package zwop && \
   uv build --package zwop-tws
 

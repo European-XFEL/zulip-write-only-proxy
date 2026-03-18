@@ -32,6 +32,7 @@ zwop = "zwop.main:main"
 [tool.hatch.version]
 source = "vcs"
 raw-options = { root = "../.." }
+fallback-version = "0.0.0.dev0"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "../_version.py"
