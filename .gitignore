@@ -1,5 +1,3 @@
-id_ed25519
-id_ed25519.pub
 migration
 *.zuliprc
 .env
@@ -7,8 +5,9 @@ migration
 clients.json
 zuliprc.json
 node_modules
-packages/zwop-service/src/zwop/_version.py
-packages/zwop-service/src/zwop/frontend/static
+certs
+packages/_version.py
+packages/zwop/src/zwop/frontend/static
 zuliprc
 
 # Byte-compiled / optimized / DLL files
