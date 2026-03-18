@@ -8,4 +8,10 @@ from hatchling.builders.hooks.plugin.interface import (  # pyright: ignore[repor
 class CustomBuildHook(BuildHookInterface):
     def initialize(self, version, build_data):  # noqa: ARG002
 
+        subprocess.run(
+            ["pnpm", "install", "--frozen-lockfile"],  # noqa: S607
+            check=False,
+            cwd=self.root,
+        )
+
         subprocess.run(["pnpm", "build"], check=True, cwd=self.root)  # noqa: S607

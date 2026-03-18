@@ -47,8 +47,8 @@ RUN --mount=type=cache,target=/opt/uv-cache/ \
 FROM dev AS build
 
 RUN --mount=type=cache,target=/opt/uv-cache/ \
-  uv build --package zwop && \
-  uv build --package zwop-tws
+    --mount=type=cache,id=pnpm,target=/pnpm/store \
+  uv build --all-packages
 
 
 FROM base AS zwop-tws
