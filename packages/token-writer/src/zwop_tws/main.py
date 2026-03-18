@@ -52,7 +52,12 @@ async def _write_file(
         )
     await target.write_text(content)
     await target.chmod(mode)
-    shutil.chown(target, user=user, group=group)
+
+    try:
+        shutil.chown(target, user=user, group=group)
+    except Exception as e:
+        print(e)
+
     return FileWriteResult(
         kind=kind, target=str(target), status_code=200, msg="wrote config file"
     )
