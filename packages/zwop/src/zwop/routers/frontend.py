@@ -139,7 +139,7 @@ async def client_create_post(request: Request):
         logger.error("Error creating client", exc_info=e)
         return TEMPLATES.TemplateResponse(
             "fragments/alert.html",
-            {"request": request, "message": e.__repr__(), "level": "error"},
+            {"request": request, "message": repr(e), "level": "error"},
         )
 
 
@@ -164,7 +164,7 @@ async def client_delete(request: Request):
     except Exception as e:
         raise exceptions.ZwopException(
             status_code=500,
-            detail=f"{e.__repr__()}",
+            detail=f"{e!r}",
         ) from e
 
 
@@ -179,7 +179,7 @@ async def client_messages(request: Request):
     client = await services.get_client(client_key)
 
     if request.headers.get("HX-Current-URL", "").endswith("/client/messages"):
-        _messages = client.get_messages()
+        messages_ = client.get_messages()
         if messages := [
             models.Message(
                 topic=m["subject"],
@@ -187,7 +187,7 @@ async def client_messages(request: Request):
                 content=m["content"],
                 timestamp=m["timestamp"],
             )
-            for m in _messages["messages"]
+            for m in messages_["messages"]
         ]:
             return TEMPLATES.TemplateResponse(
                 "fragments/list-messages-rows.html",
