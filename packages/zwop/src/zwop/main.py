@@ -10,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from . import _logging, get_logger, routers
 from ._logging import RequestLoggingMiddleware
+from .mymdc import configure as configure_mymdc
 from .services import configure as configure_services
 from .settings import configure as configure_settings
 
@@ -24,6 +25,8 @@ def create_app():
         app.state.settings = settings
 
         await configure_services(app)
+
+        await configure_mymdc(app)
 
         frontend_dir = Path(__file__).parent / "frontend"
         app.mount(
