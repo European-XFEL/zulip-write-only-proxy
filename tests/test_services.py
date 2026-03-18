@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import HTTPException
 from pydantic import SecretStr
-from zwop.models import ScopedClient, ScopedClientCreate
-from zwop.mymdc import MyMdCResponseError
 
 from zwop import services
+from zwop.models import ScopedClient, ScopedClientCreate
+from zwop.mymdc import MyMdCResponseError
 
 
 @pytest.mark.asyncio
@@ -50,7 +50,9 @@ async def test_create_client_no_bot(client_repo, zuliprc_repo):
         httpx.Response(status_code=403, json="{}")
     )
     mock_mymdc.get_proposal_id.return_value = 111234
-    result = await services.create_client(client, "bar", client_repo, zuliprc_repo, mock_mymdc)
+    result = await services.create_client(
+        client, "bar", client_repo, zuliprc_repo, mock_mymdc
+    )
 
     assert isinstance(result, ScopedClient)
     assert result.bot_id is None

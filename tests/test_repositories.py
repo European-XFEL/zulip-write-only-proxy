@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from pydantic import HttpUrl, SecretStr
+
 from zwop.models import ScopedClient
 from zwop.repositories import BaseRepository
 

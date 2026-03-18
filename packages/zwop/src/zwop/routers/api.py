@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING, Annotated
 
 import fastapi
-import zwop_tws as tws
 from fastapi.security import APIKeyHeader
 
+import zwop_tws as tws
 from .. import (
     __version__,
     __version_tuple__,
@@ -51,7 +51,9 @@ async def get_client_zulip(
 ) -> models.ScopedClient:
     if client.bot_id is None or client.bot_site is None:
         logger.warning("Client missing bot", client=client)
-        bot = await services.get_or_create_bot(client.proposal_no, zuliprc_repo, mymdc_client)
+        bot = await services.get_or_create_bot(
+            client.proposal_no, zuliprc_repo, mymdc_client
+        )
         if bot:
             client.bot_id = bot.id
             client.bot_site = bot.site

@@ -8,10 +8,10 @@ from typing import Annotated, Literal
 import fastapi
 import httpx
 import zulip
-import zwop_tws as tws
 from authlib.integrations.starlette_client import OAuth
 from pydantic import HttpUrl, SecretStr
 
+import zwop_tws as tws
 from . import logger, models, mymdc, repositories
 from .models.client import NoBotForClientError
 from .settings import Settings

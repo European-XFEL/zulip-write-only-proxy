@@ -129,7 +129,9 @@ async def client_delete(request: Request):
         )
 
     try:
-        deleted = await services.delete_client(client_key, request.app.state.client_repo)
+        deleted = await services.delete_client(
+            client_key, request.app.state.client_repo
+        )
         return JSONResponse({"detail": f"Deleted {deleted}"})
     except KeyError as e:
         raise exceptions.ZwopException(

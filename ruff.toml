@@ -48,7 +48,7 @@ select = [
 extend-ignore = ["B018", "B019", "RUF067"]
 
 [lint.per-file-ignores]
-"packages/*/tests/*" = ["S101"]
+"tests/**/*.py" = ["S101"]
 
 [lint.isort]
-known-local-folder = ["src"]
+known-local-folder = ["src", "zwop", "zwop_tws"]

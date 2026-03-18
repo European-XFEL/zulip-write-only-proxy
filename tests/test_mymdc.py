@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import Request, Response
 from pydantic import SecretStr
+
 from zwop.mymdc import (
     MyMdCAuth,
     MyMdCClient,

@@ -7,6 +7,7 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from pydantic import HttpUrl, SecretStr
+
 from zwop.models import BotConfig, ScopedClient
 
 
