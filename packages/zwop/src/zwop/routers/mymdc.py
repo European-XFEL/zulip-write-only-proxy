@@ -9,8 +9,10 @@ from .api import get_client
 ScopedClient = Annotated[models.ScopedClient, Depends(get_client)]
 
 
-async def proxy_request(mymdc_path: str, params) -> Response:
-    res = await mymdc.CLIENT.get(mymdc_path, params=params)
+async def proxy_request(
+    mymdc_client: mymdc.MyMdCClient, mymdc_path: str, params
+) -> Response:
+    res = await mymdc_client.get(mymdc_path, params=params)
 
     return Response(
         content=res.content,
@@ -28,6 +30,7 @@ async def check_and_proxy_request(
     req_proposal_no: int | None = None,
     req_proposal_id: int | None = None,
 ) -> Response:
+    mymdc_client: mymdc.MyMdCClient = request.app.state.mymdc_client
     mymdc_path = request.scope["path"].replace(
         f"{request.scope.get('root_path')}/api/mymdc", "/api"
     )
@@ -57,7 +60,7 @@ async def check_and_proxy_request(
             status_code=403, detail="Client not scoped to this proposal"
         )
 
-    res = await proxy_request(mymdc_path, params)
+    res = await proxy_request(mymdc_client, mymdc_path, params)
     content = orjson.loads(res.body)
 
     # Use first item if content is a list, e.g. for paginated responses

@@ -5,26 +5,25 @@ MyMdC client package is created this can be removed and replaced with calls to t
 
 import datetime as dt
 from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import httpx
+from fastapi import Request
 
 from . import logger
 from .exceptions import ZwopException
-from .settings import MyMdCCredentials, Settings
-
-if TYPE_CHECKING:  # pragma: no cover
-    from fastapi import FastAPI
+from .settings import MyMdCCredentials
 
 
-CLIENT: "MyMdCClient" = None  # type: ignore[assignment]
+def get_mymdc_client(request: Request) -> "MyMdCClient":
+    return request.app.state.mymdc_client
 
 
-def configure(settings: Settings, _: "FastAPI"):
-    global CLIENT
-    logger.info("Configuring MyMdC client", settings=settings.mymdc)
+async def configure(app):  # noqa: RUF029
+    settings = app.state.settings
+
     auth = MyMdCAuth.model_validate(settings.mymdc, from_attributes=True)
-    CLIENT = MyMdCClient(auth=auth)
+    app.state.mymdc_client = MyMdCClient(auth=auth)
 
 
 class MyMdCAuth(httpx.Auth, MyMdCCredentials):

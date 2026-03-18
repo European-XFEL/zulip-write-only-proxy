@@ -1,36 +1,8 @@
-from pathlib import Path
-from typing import TYPE_CHECKING
-
 import fastapi
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 from .. import exceptions, logger, models, services
-
-if TYPE_CHECKING:  # pragma: no-cover
-    from ..settings import Settings
-
-TEMPLATES: Jinja2Templates = None  # type: ignore[assignment]
-
-
-def configure(settings: "Settings", app: fastapi.FastAPI):
-    global TEMPLATES
-    frontend_dir = Path(__file__).parent.parent / "frontend"
-    static_dir = frontend_dir / "static"
-    templates_dir = frontend_dir / "templates"
-
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
-    TEMPLATES = Jinja2Templates(directory=templates_dir)
-
-    logger.info(
-        "Configured static files and Jinja2 templates",
-        proxy_root=settings.proxy_root,
-        static_dir=static_dir.relative_to(Path.cwd()),
-        templates_dir=templates_dir.relative_to(Path.cwd()),
-        env=TEMPLATES.env.globals,
-    )
 
 
 class AuthException(exceptions.ZwopException):
@@ -60,7 +32,7 @@ async def check_auth(request: Request):  # noqa: RUF029
 
 async def auth_redirect(request: Request, exc: AuthException):  # noqa: RUF029
     logger.info("Redirecting to login", status_code=exc.status_code, detail=exc.detail)
-    return TEMPLATES.TemplateResponse(
+    return request.app.state.templates.TemplateResponse(
         "login.html",
         {"request": request, "message": exc.detail},
         headers={
@@ -81,14 +53,14 @@ router = fastapi.APIRouter(
 @router.get("/", name="root")
 async def client_list(request: Request):
     if request.headers.get("HX-Current-URL", "").endswith("/client/list"):
-        clients = await services.list_clients()
-        return TEMPLATES.TemplateResponse(
+        clients = await services.list_clients(request.app.state.client_repo)
+        return request.app.state.templates.TemplateResponse(
             "fragments/list-table-rows.html",
             {"request": request, "clients": clients},
             headers={"HX-Retarget": "#rows"},
         )
 
-    return TEMPLATES.TemplateResponse(
+    return request.app.state.templates.TemplateResponse(
         "list.html",
         {"request": request},
         headers={"HX-Replace-Url": str(request.url_for("client_list"))},
@@ -100,7 +72,7 @@ async def client_create(request: Request):
     schema = models.ScopedClientCreate.model_json_schema()
     optional = schema["properties"]
     required = {field: optional.pop(field) for field in schema["required"]}
-    return TEMPLATES.TemplateResponse(
+    return request.app.state.templates.TemplateResponse(
         "create.html",
         {"request": request, "required": required, "optional": optional},
     )
@@ -112,16 +84,19 @@ async def client_create_post(request: Request):
     try:
         new_client = models.ScopedClientCreate(**request.query_params)  # type: ignore[arg-type]
         client = await services.create_client(
-            new_client, created_by=user.get("email", "none")
+            new_client,
+            user.get("email", "none"),
+            request.app.state.client_repo,
+            request.app.state.zuliprc_repo,
+            request.app.state.mymdc_client,
         )
         dump = client.model_dump()
         dump["token"] = client.token.get_secret_value()
-        bot = await services.get_bot(client._bot_key)
-
+        bot = await services.get_bot(client._bot_key, request.app.state.zuliprc_repo)
         if bot is None:
             logger.warning("Bot not found")
 
-        return TEMPLATES.TemplateResponse(
+        return request.app.state.templates.TemplateResponse(
             "fragments/create-success.html",
             {
                 "request": request,
@@ -131,13 +106,13 @@ async def client_create_post(request: Request):
         )
     except exceptions.ZwopException as e:
         logger.warning("Could not create client", exc_info=e)
-        return TEMPLATES.TemplateResponse(
+        return request.app.state.templates.TemplateResponse(
             "fragments/alert.html",
             {"request": request, "message": e.detail, "level": "error"},
         )
     except Exception as e:
         logger.error("Error creating client", exc_info=e)
-        return TEMPLATES.TemplateResponse(
+        return request.app.state.templates.TemplateResponse(
             "fragments/alert.html",
             {"request": request, "message": repr(e), "level": "error"},
         )
@@ -154,7 +129,7 @@ async def client_delete(request: Request):
         )
 
     try:
-        deleted = await services.delete_client(client_key)
+        deleted = await services.delete_client(client_key, request.app.state.client_repo)
         return JSONResponse({"detail": f"Deleted {deleted}"})
     except KeyError as e:
         raise exceptions.ZwopException(
@@ -176,7 +151,11 @@ async def client_messages(request: Request):
             status_code=400,
             detail="Bad Request - missing X-API-Key header",
         )
-    client = await services.get_client(client_key)
+    client = await services.get_client(
+        client_key,
+        request.app.state.client_repo,
+        request.app.state.zuliprc_repo,
+    )
 
     if request.headers.get("HX-Current-URL", "").endswith("/client/messages"):
         messages_ = client.get_messages()
@@ -189,13 +168,13 @@ async def client_messages(request: Request):
             )
             for m in messages_["messages"]
         ]:
-            return TEMPLATES.TemplateResponse(
+            return request.app.state.templates.TemplateResponse(
                 "fragments/list-messages-rows.html",
                 {"request": request, "messages": messages},
                 headers={"HX-Retarget": "#rows"},
             )
 
-        return TEMPLATES.TemplateResponse(
+        return request.app.state.templates.TemplateResponse(
             "fragments/alert.html",
             {
                 "request": request,
@@ -208,7 +187,7 @@ async def client_messages(request: Request):
             headers={"HX-Reswap": "afterend", "HX-Retarget": "#table"},
         )
 
-    return TEMPLATES.TemplateResponse(
+    return request.app.state.templates.TemplateResponse(
         "messages.html",
         {"request": request, "client": client},
         headers={"HX-Retarget": "#content"},

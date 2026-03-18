@@ -17,15 +17,12 @@ from . import get_logger
 logger = get_logger(__name__)
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-settings: "Settings" = None  # type: ignore[assignment]
 
 
-def configure():
-    global settings
+def configure() -> "Settings":
     zwop_dotenv_file = Path(os.getenv("ZWOP_DOTENV_FILE", ".env")).absolute()
     logger.info("Configuring settings", zwop_dotenv_file=zwop_dotenv_file)
-    settings = Settings(_env_file=zwop_dotenv_file)  # type: ignore[call-arg]
-    return settings
+    return Settings(_env_file=zwop_dotenv_file)  # type: ignore[call-arg]
 
 
 class Auth(BaseSettings):

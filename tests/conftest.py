@@ -86,61 +86,61 @@ def a_zuliprc():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def _services(settings, a_zuliprc, a_scoped_client):
-    from zwop import services
+    from zwop import models, repositories
 
-    with (
-        patch("zwop.services.httpx.AsyncClient", new_callable=MagicMock),
-        patch("ssl.SSLContext.load_verify_locations"),
-        patch("ssl.SSLContext.load_cert_chain"),
-    ):
-        await services.configure(settings, None)
-
-        await services.CLIENT_REPO.insert(a_scoped_client)
-
-        await services.ZULIPRC_REPO.insert(a_zuliprc)
-
-
-@pytest.fixture(scope="session")
-def client_repo(_services):
-    from zwop import services
-
-    return services.CLIENT_REPO
+    zuliprc_repo = repositories.BaseRepository(
+        file=settings.config_dir / "zuliprc.json",
+        model=models.BotConfig,
+    )
+    client_repo = repositories.BaseRepository(
+        file=settings.config_dir / "clients.json",
+        model=models.ScopedClient,
+    )
+    await client_repo.load()
+    await zuliprc_repo.load()
+    await client_repo.insert(a_scoped_client)
+    await zuliprc_repo.insert(a_zuliprc)
+    return {"client_repo": client_repo, "zuliprc_repo": zuliprc_repo}
 
 
 @pytest.fixture(scope="session")
-def zuliprc_repo(_services):
-    from zwop import services
+def client_repo(fastapi_client):
+    return fastapi_client.app.state.client_repo
 
-    return services.ZULIPRC_REPO
+
+@pytest.fixture(scope="session")
+def zuliprc_repo(fastapi_client):
+    return fastapi_client.app.state.zuliprc_repo
+
+
+@pytest.fixture(scope="session")
+def mock_mymdc_client():
+    mock = AsyncMock()
+    mock.get_zulip_bot_credentials.return_value = {
+        "logbook_name": None,
+        "proposal_number": None,
+        "bot_email": "email@email.com",
+        "bot_key": "key",
+        "name": None,
+        "url": None,
+        "bot_id": None,
+        "status": None,
+    }
+    mock.get_proposal_id.return_value = 9999
+    mock.get_zulip_stream_name.return_value = "Test Stream"
+    return mock
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mymdc_client():
-    with patch("zwop.mymdc.CLIENT", new_callable=AsyncMock) as mock_class:
-        mock_class.return_value = mock_class
-        mock_class.get_zulip_bot_credentials.return_value = {
-            "logbook_name": None,
-            "proposal_number": None,
-            "bot_email": "email@email.com",
-            "bot_key": "key",
-            "name": None,
-            "url": None,
-            "bot_id": None,
-            "status": None,
-        }
-        yield mock_class
-
-
-@pytest.fixture(scope="session", autouse=True)
-def fastapi_client(_services, a_scoped_client, zulip_client):
+def fastapi_client(_services, mock_mymdc_client):
     from zwop import main
 
     app = main.create_app()
 
     with (
-        patch("zwop.services.httpx.AsyncClient", new_callable=MagicMock),
         patch("ssl.SSLContext.load_verify_locations"),
         patch("ssl.SSLContext.load_cert_chain"),
         TestClient(app, headers={"X-API-key": "secret"}) as client,
     ):
+        app.state.mymdc_client = mock_mymdc_client
         yield client

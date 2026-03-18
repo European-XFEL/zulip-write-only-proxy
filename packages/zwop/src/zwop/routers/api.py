@@ -4,7 +4,15 @@ import fastapi
 import zwop_tws as tws
 from fastapi.security import APIKeyHeader
 
-from .. import __version__, __version_tuple__, logger, models, mymdc, services
+from .. import (
+    __version__,
+    __version_tuple__,
+    logger,
+    models,
+    mymdc,
+    repositories,
+    services,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from tempfile import SpooledTemporaryFile
@@ -18,22 +26,38 @@ api_key_header = APIKeyHeader(name="X-API-key", auto_error=False)
 
 async def get_client(
     key: Annotated[str, fastapi.Security(api_key_header)],
+    client_repo: Annotated[
+        repositories.BaseRepository[models.ScopedClient],
+        fastapi.Depends(services.get_client_repo),
+    ],
+    zuliprc_repo: Annotated[
+        repositories.BaseRepository[models.BotConfig],
+        fastapi.Depends(services.get_zuliprc_repo),
+    ],
 ) -> models.ScopedClient:
-    return await services.get_client(key)
+    return await services.get_client(key, client_repo, zuliprc_repo)
 
 
 async def get_client_zulip(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    zuliprc_repo: Annotated[
+        repositories.BaseRepository[models.BotConfig],
+        fastapi.Depends(services.get_zuliprc_repo),
+    ],
+    mymdc_client: Annotated[
+        mymdc.MyMdCClient,
+        fastapi.Depends(mymdc.get_mymdc_client),
+    ],
 ) -> models.ScopedClient:
     if client.bot_id is None or client.bot_site is None:
         logger.warning("Client missing bot", client=client)
-        bot = await services.get_or_create_bot(client.proposal_no)
+        bot = await services.get_or_create_bot(client.proposal_no, zuliprc_repo, mymdc_client)
         if bot:
             client.bot_id = bot.id
             client.bot_site = bot.site
 
     if client.stream is None:
-        client.stream = await mymdc.CLIENT.get_zulip_stream_name(client.proposal_no)
+        client.stream = await mymdc_client.get_zulip_stream_name(client.proposal_no)
 
     if client.bot_id is None or client.bot_site is None:
         raise fastapi.HTTPException(
@@ -156,7 +180,7 @@ async def healthcheck(request: fastapi.Request):
 
     tws = False
     try:
-        await services.TOKEN_WRITER_CLIENT.get("/health")
+        await request.app.state.token_writer_client.get("/health")
         tws = True
     except Exception as e:
         logger.warning("TWS health check failed", error=str(e))

@@ -1,33 +1,44 @@
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+import fastapi
+import uvicorn
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
+
+from . import _logging, get_logger, routers
+from ._logging import RequestLoggingMiddleware
+from .services import configure as configure_services
+from .settings import configure as configure_settings
+
+
 def create_app():
-    from contextlib import asynccontextmanager
-
-    import fastapi
-    from fastapi.middleware.gzip import GZipMiddleware
-    from starlette.middleware.sessions import SessionMiddleware
-
-    from . import routers, services
-    from ._logging import RequestLoggingMiddleware
-    from .settings import configure as configure_settings
-
     settings = configure_settings()
 
     @asynccontextmanager
     async def lifespan(app: fastapi.FastAPI):
-        from . import _logging, mymdc
-
         _logging.configure(debug=app.debug, add_call_site_parameters=True)
 
-        await services.configure(settings, app)
+        app.state.settings = settings
 
-        mymdc.configure(settings, app)
+        await configure_services(app)
+
+        frontend_dir = Path(__file__).parent / "frontend"
+        app.mount(
+            "/static",
+            StaticFiles(directory=frontend_dir / "static"),
+            name="static",
+        )
+        app.state.templates = Jinja2Templates(directory=frontend_dir / "templates")
 
         for module in [routers.api, routers.auth, routers.frontend, routers.mymdc]:
             app.include_router(module.router)
 
-            if hasattr(module, "configure"):
-                module.configure(settings, app)
-
         yield
+
+        await app.state.token_writer_client.aclose()
 
     app = fastapi.FastAPI(
         title="Zulip Write Only Proxy",
@@ -51,11 +62,6 @@ def create_app():
 
 
 def main():
-    import uvicorn
-
-    from . import _logging, get_logger
-    from .settings import configure as configure_settings
-
     settings = configure_settings()
 
     _logging.configure(settings.debug, add_call_site_parameters=False)
