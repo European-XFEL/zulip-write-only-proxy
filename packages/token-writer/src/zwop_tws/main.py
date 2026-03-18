@@ -26,15 +26,7 @@ async def _find_proposal_path(proposal_no: int) -> APath:
     if not paths:
         raise HTTPException(status_code=404, detail=f"Proposal {proposal_no} not found")
 
-    proposal_path = paths[0]
-
-    if not await (proposal_path / "usr/Shared/amore").exists():
-        raise HTTPException(
-            status_code=404,
-            detail=f"No amore directory for proposal {proposal_no}",
-        )
-
-    return proposal_path
+    return paths[0]
 
 
 async def _write_file(
