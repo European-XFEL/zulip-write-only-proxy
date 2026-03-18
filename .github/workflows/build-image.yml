@@ -51,9 +51,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=ref,event=pr
+            type=raw,value=${{ steps.version.outputs.app_version }}
             type=raw,value=staging,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
             type=raw,value=stable,enable=${{ github.event_name == 'release' }}
 
@@ -77,9 +76,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-tws
           tags: |
             type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=ref,event=pr
+            type=raw,value=${{ steps.version.outputs.app_version }}
             type=raw,value=staging,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
             type=raw,value=stable,enable=${{ github.event_name == 'release' }}
 
