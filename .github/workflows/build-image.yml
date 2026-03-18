@@ -6,6 +6,9 @@ on:
       - main
   release:
     types: [published]
+  pull_request:
+    branches:
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -21,6 +24,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Resolve version
+        id: version
+        working-directory: ./packages/zwop
+        run: echo "app_version=$(uvx hatch version)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -32,25 +44,52 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - name: Extract metadata (tags, labels) for zwop
+        id: meta_zwop
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=ref,event=pr
+            type=raw,value=${{ steps.version.outputs.app_version }}
             type=raw,value=staging,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
             type=raw,value=stable,enable=${{ github.event_name == 'release' }}
 
-      - name: Build and push Docker image
+      - name: Build zwop image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          target: zwop
+          push: true # ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_zwop.outputs.tags }}
+          labels: ${{ steps.meta_zwop.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.app_version }}
+
+      - name: Extract metadata (tags, labels) for zwop-tws
+        id: meta_zwop_tws
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-tws
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=${{ steps.version.outputs.app_version }}
+            type=raw,value=staging,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+            type=raw,value=stable,enable=${{ github.event_name == 'release' }}
+
+      - name: Build zwop-tws image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: zwop-tws
+          push: true # ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_zwop_tws.outputs.tags }}
+          labels: ${{ steps.meta_zwop_tws.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.app_version }}

@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 import orjson
 import pydantic
@@ -19,7 +19,7 @@ class EntryExistsException(exceptions.ZwopException):
 
 
 @dataclass
-class BaseRepository(Generic[T]):
+class BaseRepository[T: Base]:
     file: Path
     model: type[T]
 
@@ -30,9 +30,9 @@ class BaseRepository(Generic[T]):
 
     @staticmethod
     def _serialize_pydantic(obj):
-        if type(obj) is pydantic.AnyUrl:
+        if isinstance(obj, pydantic.AnyUrl):
             return str(obj)
-        if type(obj) is pydantic.SecretStr:
+        if isinstance(obj, pydantic.SecretStr):
             return obj.get_secret_value()
         if issubclass(obj.__class__, Base):
             return obj.model_dump()
@@ -86,14 +86,14 @@ class BaseRepository(Generic[T]):
         if item is None:
             raise KeyError(by or "key", key)
 
-        _key = item._key
+        key_ = item._key
 
         self._data.remove(item)
-        del self.data[_key]
+        del self.data[key_]
 
         await self.write()
 
-        return _key
+        return key_
 
     async def insert(self, item: T):
         if item._key in self.data:

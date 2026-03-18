@@ -3,11 +3,10 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from pydantic import SecretStr
-from pydantic_core import Url
+from pydantic import HttpUrl, SecretStr
 
-from zulip_write_only_proxy.models import ScopedClient
-from zulip_write_only_proxy.repositories import BaseRepository
+from zwop.models import ScopedClient
+from zwop.repositories import BaseRepository
 
 
 @pytest.mark.asyncio
@@ -53,7 +52,7 @@ async def test_insert_delete_scoped_client(client_repo):
         proposal_id=15678,
         stream="Another Test Stream",
         bot_id=1,
-        bot_site=Url("http://a-site.com"),
+        bot_site=HttpUrl("http://a-site.com"),
         token=SecretStr("secret"),
         created_by="foo",
         created_at=datetime.fromisoformat("2021-01-01Z00:00:00"),

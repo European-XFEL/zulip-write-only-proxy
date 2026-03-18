@@ -1,6 +1,7 @@
 import datetime as dt
 import os
 from pathlib import Path
+from typing import Literal
 
 from pydantic import (
     AnyUrl,
@@ -16,15 +17,11 @@ from . import get_logger
 
 logger = get_logger(__name__)
 
-settings: "Settings" = None  # type: ignore[assignment]
 
-
-def configure():
-    global settings
-    zwop_dotenv_file = os.getenv("ZWOP_DOTENV_FILE", ".env")
+def configure() -> "Settings":
+    zwop_dotenv_file = Path(os.getenv("ZWOP_DOTENV_FILE", ".env")).absolute()
     logger.info("Configuring settings", zwop_dotenv_file=zwop_dotenv_file)
-    settings = Settings(_env_file=zwop_dotenv_file)  # type: ignore[call-arg]
-    return settings
+    return Settings(_env_file=zwop_dotenv_file)  # type: ignore[call-arg]
 
 
 class Auth(BaseSettings):
@@ -45,6 +42,7 @@ class MyMdCCredentials(BaseSettings):
     secret: SecretStr
     email: str
     token_url: HttpUrl
+    scope: Literal[""] | Literal["public"] = "public"
 
     _access_token: str = ""
     _expires_at: dt.datetime = dt.datetime.fromisocalendar(1970, 1, 1).astimezone(
@@ -53,14 +51,11 @@ class MyMdCCredentials(BaseSettings):
 
 
 class TokenWriter(BaseSettings):
-    ssh_destination: str = "xdana@max-exfl.desy.de"
-    ssh_private_key: FilePath = (
-        Path(__file__).parent.parent.parent / "config/id_ed25519"
-    )
-    ssh_known_hosts: FilePath = (
-        Path(__file__).parent.parent.parent / "config/known_hosts"
-    )
+    url: HttpUrl = HttpUrl("https://localhost:8443")
     zwop_url: HttpUrl = HttpUrl("https://exfldadev01.desy.de/zwop")
+    cert_file: FilePath = Path("./certs/client.crt")
+    key_file: FilePath = Path("./certs/client.key")
+    ca_file: FilePath = Path("./certs/ca.crt")
 
 
 class Settings(BaseSettings):
@@ -71,7 +66,7 @@ class Settings(BaseSettings):
     proxy_headers: bool = True
     forwarded_allow_ips: str | None = None
     session_secret: SecretStr
-    config_dir: DirectoryPath = Path(__file__).parent.parent.parent / "config"
+    config_dir: DirectoryPath = Path.cwd() / "config"
 
     auth: Auth
     mymdc: MyMdCCredentials
@@ -81,6 +76,7 @@ class Settings(BaseSettings):
         env_prefix="ZWOP_",
         env_file=[".env"],
         env_nested_delimiter="__",
+        extra="ignore",
     )
 
     @field_validator("proxy_root")

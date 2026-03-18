@@ -1,14 +1,18 @@
 services:
   server:
-    build: .
+    build:
+      context: .
+      target: zwop
     volumes:
-      - ./config:/config
+      - ./config:/app/config
+      - ./certs:/app/certs
     env_file:
       - .env
     environment:
       - "ZWOP_PROXY_ROOT=/${COMPOSE_PROJECT_NAME}"
       - "ZWOP_PROXY_HEADERS=true"
       - "ZWOP_FORWARDED_ALLOW_IPS=*"
+      - "ZWOP_ADDRESS=http://0.0.0.0:8000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.${COMPOSE_PROJECT_NAME}-stripprefix.stripprefix.prefixes=/${COMPOSE_PROJECT_NAME}"

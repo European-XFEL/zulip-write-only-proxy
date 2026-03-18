@@ -3,9 +3,16 @@ from typing import TYPE_CHECKING, Annotated
 import fastapi
 from fastapi.security import APIKeyHeader
 
-from zulip_write_only_proxy import mymdc
-
-from .. import __version__, __version_tuple__, logger, models, services
+import zwop_tws as tws
+from .. import (
+    __version__,
+    __version_tuple__,
+    logger,
+    models,
+    mymdc,
+    repositories,
+    services,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from tempfile import SpooledTemporaryFile
@@ -19,22 +26,40 @@ api_key_header = APIKeyHeader(name="X-API-key", auto_error=False)
 
 async def get_client(
     key: Annotated[str, fastapi.Security(api_key_header)],
+    client_repo: Annotated[
+        repositories.BaseRepository[models.ScopedClient],
+        fastapi.Depends(services.get_client_repo),
+    ],
+    zuliprc_repo: Annotated[
+        repositories.BaseRepository[models.BotConfig],
+        fastapi.Depends(services.get_zuliprc_repo),
+    ],
 ) -> models.ScopedClient:
-    return await services.get_client(key)
+    return await services.get_client(key, client_repo, zuliprc_repo)
 
 
 async def get_client_zulip(
     client: Annotated[models.ScopedClient, fastapi.Depends(get_client)],
+    zuliprc_repo: Annotated[
+        repositories.BaseRepository[models.BotConfig],
+        fastapi.Depends(services.get_zuliprc_repo),
+    ],
+    mymdc_client: Annotated[
+        mymdc.MyMdCClient,
+        fastapi.Depends(mymdc.get_mymdc_client),
+    ],
 ) -> models.ScopedClient:
     if client.bot_id is None or client.bot_site is None:
         logger.warning("Client missing bot", client=client)
-        bot = await services.get_or_create_bot(client.proposal_no)
+        bot = await services.get_or_create_bot(
+            client.proposal_no, zuliprc_repo, mymdc_client
+        )
         if bot:
             client.bot_id = bot.id
             client.bot_site = bot.site
 
     if client.stream is None:
-        client.stream = await mymdc.CLIENT.get_zulip_stream_name(client.proposal_no)
+        client.stream = await mymdc_client.get_zulip_stream_name(client.proposal_no)
 
     if client.bot_id is None or client.bot_site is None:
         raise fastapi.HTTPException(
@@ -75,7 +100,7 @@ def send_message(
 
         result = client.upload_file(f)
 
-        content += f"\n\n[]({result["uri"]})"
+        content += f"\n\n[]({result['uri']})"
 
     return client.send_message(topic, content)
 
@@ -146,14 +171,22 @@ def get_me(
 
 
 @router.post("/write_tokens")
-def write_tokens(
-    res: Annotated[bool, fastapi.Depends(services.write_tokens)],
-):
-    return res
+async def write_tokens(
+    summary: Annotated[tws.FileWriteSummary, fastapi.Depends(services.write_tokens)],
+) -> tws.FileWriteSummary:
+    return summary
 
 
 @router.get("/health")
-def healthcheck(request: fastapi.Request):
+async def healthcheck(request: fastapi.Request):
+
+    tws = False
+    try:
+        await request.app.state.token_writer_client.get("/health")
+        tws = True
+    except Exception as e:
+        logger.warning("TWS health check failed", error=str(e))
+
     return {
         "status": "OK",
         "dirty": "dirty" in __version__,
@@ -161,4 +194,5 @@ def healthcheck(request: fastapi.Request):
         "version": __version__,
         "version_tuple": __version_tuple__,
         "root_path": request.scope.get("root_path"),
+        "tws": tws,
     }
