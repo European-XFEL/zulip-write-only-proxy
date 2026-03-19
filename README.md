@@ -132,6 +132,9 @@ After setting the required configurations in `.env` you can:
 
 ```bash
 docker compose up --build
+
+# or explicit build to inject 'correct' version no
+docker compose build --build-arg APP_VERSION=(uvx --directory ./packages/zwop hatch version)
 ```
 
 This will start:
