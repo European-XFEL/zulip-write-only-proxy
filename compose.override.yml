@@ -3,8 +3,8 @@ name: zwop-dev
 services:
   server:
     environment:
-      - "ZWOP_TOKEN_WRITER__ZWOP_URL=http://localhost:8000/${COMPOSE_PROJECT_NAME}"
-      - "ZWOP_TOKEN_WRITER__URL=https://tws:8443/"
+      - "ZWOP_TWS__ZWOP_URL=http://localhost:8000/${COMPOSE_PROJECT_NAME}"
+      - "ZWOP_TWS__URL=https://tws:8443/"
       - "ZWOP_ADDRESS=http://0.0.0.0:8000"
 
   tws:

@@ -10,7 +10,7 @@ networks:
 services:
   server:
     environment:
-      - "ZWOP_TOKEN_WRITER__ZWOP_URL=https://exfldadev01.desy.de/${COMPOSE_PROJECT_NAME}"
+      - "ZWOP_TWS__ZWOP_URL=https://exfldadev01.desy.de/${COMPOSE_PROJECT_NAME}"
     networks:
       - proxy
     restart: unless-stopped

@@ -41,7 +41,7 @@ class MyMdCCredentials(BaseSettings):
     id: str
     secret: SecretStr
     email: str
-    token_url: HttpUrl
+    token_url: HttpUrl = HttpUrl("https://in.xfel.eu/metadata/oauth/token")
     scope: Literal[""] | Literal["public"] = "public"
 
     _access_token: str = ""
@@ -70,7 +70,7 @@ class Settings(BaseSettings):
 
     auth: Auth
     mymdc: MyMdCCredentials
-    token_writer: TokenWriter = TokenWriter()
+    tws: TokenWriter = TokenWriter()
 
     model_config = SettingsConfigDict(
         env_prefix="ZWOP_",
