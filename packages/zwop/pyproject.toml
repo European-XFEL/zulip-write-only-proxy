@@ -35,7 +35,7 @@ raw-options = { root = "../.." }
 fallback-version = "0.0.0.dev0"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "../_version.py"
+version-file = "./src/zwop/_version.py"
 
 [tool.hatch.build.targets.sdist.hooks.custom]
 
