@@ -92,33 +92,55 @@ Note that admin tokens can only create clients, they cannot post to a stream as 
 
 ## Development
 
-### Setup
+### Local
 
-For development you can either use docker or install the package locally via Poetry.
+`uv` is used as the package/project manager. The repository is set up as a uv workspace, with two packages: `zwop` (`packages/zwop`) and `zwop-tws` (`packages/token-writer`).
 
-For docker:
+Useful commands for development:
 
-```sh
-# Build the image:
-docker build . --tag zwop:dev
+```bash
+uv sync  # installs entire workspace
 
-# Start the server, with the current directory mounted as a volume:
-docker run -it --rm -v $(PWD):/app -p 8000:8000 zwop:dev
+bash ./scripts/generate-mtls.sh  # create mtls certs
 
-# Or use make, which does the same thing:
-make dev-docker
+uv run zwop  # start main zwop service
+
+uv run zwop-tws  # start token writer service
 ```
 
-For a direct install with Poetry:
+You will need to create a `.env` file with the following:
 
-```sh
-# Install and activate
-poetry install
-poetry shell
+```bash
+# can be left blank - only required for web frontend
+ZWOP_SESSION_SECRET=  # openssl rand -base64 32
+ZWOP_AUTH__CLIENT_ID=
+ZWOP_AUTH__CLIENT_SECRET=
 
-# Start the server using poe, see next section for more details on poe tasks
-poe serve
+# required for MyMdC queries
+ZWOP_MYMDC__ID=
+ZWOP_MYMDC__SECRET=
+ZWOP_MYMDC__EMAIL=
 ```
+
+The default configuration is set up for local development, so the two services will try and communicate over `localhost`.
+
+### Compose
+
+A compose stack is defined to start up a more 'realistic' development environment, which includes traefik in front of zwop.
+
+After setting the required configurations in `.env` you can:
+
+```bash
+docker compose up --build
+```
+
+This will start:
+
+- <http://localhost:8080/dashboard/> - Traefik dashboard
+- <http://localhost:8000/zwop-dev/> - zwop
+- <http://localhost:8000/zwop-dev/docs> - zwop api docs
+
+Which allows for testing functionality in a similar environment to the deployment environment, e.g. path prefix behaviour.
 
 ### Debugging
 
@@ -184,14 +206,9 @@ List available commands with `poe`:
 $ poe
 
 CONFIGURED TASKS
-  serve
   test
   lint
   format
-  ruff
-  black
-  mypy
-  pyright
 ```
 
 Run a task with `poe <task>`:
