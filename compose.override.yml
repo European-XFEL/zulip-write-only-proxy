@@ -2,6 +2,8 @@ name: zwop-dev
 
 services:
   server:
+    volumes:
+      - ./packages:/app/packages:ro
     environment:
       - "ZWOP_TWS__ZWOP_URL=http://localhost:8000/${COMPOSE_PROJECT_NAME}"
       - "ZWOP_TWS__URL=https://tws:8443/"
@@ -13,6 +15,7 @@ services:
       target: zwop-tws
     volumes:
       - ./certs:/app/certs
+      - ./packages:/app/packages:ro
     env_file:
       - .env
 
