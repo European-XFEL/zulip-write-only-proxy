@@ -6,6 +6,7 @@ import uvicorn
 from anyio import Path as APath
 from fastapi import FastAPI, HTTPException
 
+from . import __version__, __version_tuple__
 from .models import (
     FileWriteRequest,
     FileWriteResult,
@@ -64,8 +65,13 @@ async def _write_file(
 
 
 @app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health():
+    return {
+        "status": "OK",
+        "dev": "+" in __version__,
+        "version": __version__,
+        "version_tuple": __version_tuple__,
+    }
 
 
 @app.post("/v1/write")

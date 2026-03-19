@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import fastapi
 from fastapi.security import APIKeyHeader
+from httpx import AsyncClient
 
 import zwop_tws as tws
 from .. import (
@@ -178,21 +179,25 @@ async def write_tokens(
 
 
 @router.get("/health")
-async def healthcheck(request: fastapi.Request):
-
-    tws = False
-    try:
-        await request.app.state.token_writer_client.get("/health")
-        tws = True
-    except Exception as e:
-        logger.warning("TWS health check failed", error=str(e))
+async def healthcheck(
+    request: fastapi.Request,
+    client: Annotated[AsyncClient, fastapi.Depends(services.get_tws_client)],
+):
+    tws_response = await client.get("/health")
+    # Include response contents if present, else status code + reason
+    if tws_response.content:
+        tws_response = tws_response.json()
+    else:
+        tws_response = {
+            "status_code": tws_response.status_code,
+            "reason": tws_response.reason_phrase,
+        }
 
     return {
         "status": "OK",
-        "dirty": "dirty" in __version__,
         "dev": "+" in __version__,
         "version": __version__,
         "version_tuple": __version_tuple__,
         "root_path": request.scope.get("root_path"),
-        "tws": tws,
+        "tws": tws_response,
     }
