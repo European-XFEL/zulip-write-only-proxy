@@ -134,6 +134,36 @@ async def get_proposals_runs(
     )
 
 
+@router.get("/experiments")
+async def get_experiments_by_proposal_id(
+        request: Request,
+        client: ScopedClient,
+        experiment_number: int | None = None,
+        name: str | None = None,
+        id: int | None = None,
+        doi: str | None = None,
+        experiment_type_id: int | None = None,
+        proposal_id: int | None = None,
+        page_size: int = 100,
+        page: int = 1
+):
+    return await check_and_proxy_request(
+        request,
+        client,
+        {
+            "experiment_number": experiment_number,
+            "name": name,
+            "id": id,
+            "doi": doi,
+            "experiment_type_id": experiment_type_id,
+            "proposal_id": proposal_id,
+            "page_size": page_size,
+            "page": page
+        },
+        req_proposal_id=proposal_id,
+    )
+
+
 @router.get("/samples/{id}")
 @router.get("/experiments/{id}")
 @router.get("/runs/{id}")
