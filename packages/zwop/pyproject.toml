@@ -1,8 +1,6 @@
 [project]
 name = "zwop"
 dynamic = ["version"]
-description = "Add your description here"
-readme = "README.md"
 authors = [
     { name = "Robert Rosca", email = "32569096+RobertRosca@users.noreply.github.com" },
 ]

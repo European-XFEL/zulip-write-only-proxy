@@ -34,7 +34,6 @@ COPY --link ./pyproject.toml ./uv.lock ./.python-version /app/
 RUN --mount=type=cache,target=/opt/uv-cache/ \
   uv sync --frozen --no-install-workspace
 
-COPY --link README.md ./
 COPY --link packages ./packages
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store cd packages/zwop \
