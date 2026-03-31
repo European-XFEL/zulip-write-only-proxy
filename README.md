@@ -92,33 +92,58 @@ Note that admin tokens can only create clients, they cannot post to a stream as 
 
 ## Development
 
-### Setup
+### Local
 
-For development you can either use docker or install the package locally via Poetry.
+`uv` is used as the package/project manager. The repository is set up as a uv workspace, with two packages: `zwop` (`packages/zwop`) and `zwop-tws` (`packages/token-writer`).
 
-For docker:
+Useful commands for development:
 
-```sh
-# Build the image:
-docker build . --tag zwop:dev
+```bash
+uv sync  # installs entire workspace
 
-# Start the server, with the current directory mounted as a volume:
-docker run -it --rm -v $(PWD):/app -p 8000:8000 zwop:dev
+bash ./scripts/generate-mtls.sh  # create mtls certs
 
-# Or use make, which does the same thing:
-make dev-docker
+uv run zwop  # start main zwop service
+
+uv run zwop-tws  # start token writer service
 ```
 
-For a direct install with Poetry:
+You will need to create a `.env` file with the following:
 
-```sh
-# Install and activate
-poetry install
-poetry shell
+```bash
+# can be left blank - only required for web frontend
+ZWOP_SESSION_SECRET=  # openssl rand -base64 32
+ZWOP_AUTH__CLIENT_ID=
+ZWOP_AUTH__CLIENT_SECRET=
 
-# Start the server using poe, see next section for more details on poe tasks
-poe serve
+# required for MyMdC queries
+ZWOP_MYMDC__ID=
+ZWOP_MYMDC__SECRET=
+ZWOP_MYMDC__EMAIL=
 ```
+
+The default configuration is set up for local development, so the two services will try and communicate over `localhost`.
+
+### Compose
+
+A compose stack is defined to start up a more 'realistic' development environment, which includes traefik in front of zwop.
+
+After setting the required configurations in `.env` you can:
+
+```bash
+docker compose up --build
+
+# or explicit build to inject 'correct' version no
+docker compose build --build-arg APP_VERSION=(uvx --directory ./packages/zwop hatch version)
+```
+
+This will start:
+
+- <http://localhost:8080/dashboard/> - Traefik dashboard
+- <http://localhost:8000/zwop-dev/> - zwop
+- <http://localhost:8000/zwop-dev/docs> - zwop api docs
+
+Which allows for testing functionality in a similar environment to the deployment environment, e.g. path prefix behaviour.
 
 ### Debugging
 
@@ -184,14 +209,9 @@ List available commands with `poe`:
 $ poe
 
 CONFIGURED TASKS
-  serve
   test
   lint
   format
-  ruff
-  black
-  mypy
-  pyright
 ```
 
 Run a task with `poe <task>`:
@@ -202,11 +222,115 @@ poe lint  # Run linters - only checks, no code changes
 poe format  # Run formatters - changes files in place
 
 poe test  # Run tests
-
-poe serve  # Run the server
 ```
 
-### Todo
+## Deployment and Maintenance
+
+### ZWOP
+
+Production deployments of ZWOP run on the DA dev server and use the container images built by the GitHub CI. When a new release is made, that image is tagged as `stable`, which is the image that will be used by the production compose (`compose.prod.yml`).
+
+<details>
+<summary>Docker Context/Services Account</summary>
+
+To docker containers/services on the da dev server you can switch to the `services` account, or use your own account while in the central (system daemon) context.
+
+```shell
+# if this shows an endpoint using /run/docker.sock then you are using the
+# system context by default
+$ docker context inspect
+
+# otherwise check what contexts you have, you may have both 'default' and 'rootless'
+$ docker context ls
+
+NAME         DESCRIPTION                               DOCKER ENDPOINT                      ERROR
+default      Current DOCKER_HOST based configuration   unix:///var/run/docker.sock
+rootless *   Rootless mode                             unix:///run/user/33392/docker.sock
+
+# if you do then use `docker --context default ...` for all commands
+
+# alternatively use env vars to set the context
+
+$ DOCKER_SOCK=/run/docker.sock DOCKER_HOST=unix:///run/docker.sock docker ...
+```
+
+See docker docs for more info - <https://docs.docker.com/engine/manage-resources/contexts/>
+
+</details>
+
+Useful commands are:
+
+```bash
+# production repo is in this directory
+cd /srv/zwop/prod
+
+# to update after a new release:
+## update checkout
+git pull
+git checkout ${TAG}  # e.g. v0.4.1
+
+## fetch newest image
+docker compose -f compose.prod.yml pull
+
+## (re)start the container
+docker compose -f compose.prod.yml up -d
+
+# troubleshooting:
+## restart without update
+docker compose -f compose.prod.yml restart
+
+## view logs
+docker compose -f compose.prod.yml logs
+```
+
+Note that the certificates in `./certs` should be in sync with those on the TWS host.
+
+### ZWOP - Token Writer Service
+
+TWS is a service running on Maxwell which ZWOP contacts to write tokens to GPFS.
+
+Check the production configuration (`/srv/zwop/prod/.env`) to see where ZWOP expects to contact the TWS at (e.g. `https://max-exfl463.desy.de:8443/`). The following assumes you're on the node specified above as `xdana`.
+
+The service runs in a podman container managed by podman's systemd ('quadlet') integration. The configuration for the container is at `~/.config/containers/systemd/zwop-tws.container`:
+
+```ini
+[Unit]
+Description=ZWOP Token Writer Service
+
+[Container]
+Image=ghcr.io/european-xfel/zulip-write-only-proxy-tws:latest
+PublishPort=8443:8443
+Volume=/home/xdana/work/github.com/European-XFEL/zulip-write-only-proxy/certs:/app/certs
+Volume=/gpfs:/gpfs
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+The important configurable options are:
+
+- `PublishPort` - should match the config in ZWOP
+- `Volume` mount for the certificates - certs should match ZWOP client certs
+
+The service can be managed via user systemd commands and/or podman, e.g:
+
+```bash
+# to update after a new release:
+## fetch newest image
+podman pull ghcr.io/european-xfel/zulip-write-only-proxy-tws:latest
+
+## restart the container
+podman restart systemd-zwop-tws  # systemctl --user restart zwop-tws.service
+
+# troubleshooting:
+## view logs
+podman logs systemd-zwop-tws  # systemctl --user status zwop-tws.service
+```
+
+## Todo
 
 Tentative list of things to do in the future:
 
@@ -216,22 +340,3 @@ Tentative list of things to do in the future:
 - [ ] Set up dependabot
 - [ ] Add test step to build-image workflow
 - [ ] Allow for configuring zulip bots to use per client
-
-## Deployment
-
-Deployment is similar to development with `docker compose`, but instead a docker stack is used to allow for better scaling and update configuration.
-
-There are two required environment variables, the port to run on (`PORT`), and the tag to use for the image (`TAG`). These should be set in an `.env` file:
-
-```env
-PORT=8089
-TAG=0.1.0
-```
-
-To quickly bring the service up or down run `make up` or `make down`.
-
-To update, bump up the tag run `make up` again. This will pull in the latest image and perform a rolling restart of the service, which will first start the new container, wait for a successful health check, and then stop the old container.
-
-For development use there is an additional variable `IMAGE` which can be set to the name of a local image to use instead of pulling from the registry. This is useful for testing changes. If you recently used `make dev-docker` that would have build an image tagged `zwop:dev` which you could then use by setting `IMAGE=zwop:dev` in the `.env` file (note that this will not reflect code changes since the last image build).
-
-NB: There is an outstanding issue with `docker stack deploy` where it [does not load `.env` files](https://github.com/moby/moby/issues/29133) in the same way that `docker compose up` does. This is solved by running `docker compose config` to generate a compose-compliant file (with env vars substituted), making a few changes via `sed`, and piping that to `docker stack deploy -`. Check the `Makefile` to see the exact command.

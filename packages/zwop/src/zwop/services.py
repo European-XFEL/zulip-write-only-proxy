@@ -40,15 +40,13 @@ async def configure_repo(app):
 
 async def configure_tws(app):  # noqa: RUF029
     settings = app.state.settings
-    ctx = ssl.create_default_context(
-        cafile=str(settings.token_writer.ca_file.absolute())
-    )
+    ctx = ssl.create_default_context(cafile=str(settings.tws.ca_file.absolute()))
     ctx.load_cert_chain(
-        certfile=str(settings.token_writer.cert_file.absolute()),
-        keyfile=str(settings.token_writer.key_file.absolute()),
+        certfile=str(settings.tws.cert_file.absolute()),
+        keyfile=str(settings.tws.key_file.absolute()),
     )
-    app.state.token_writer_client = httpx.AsyncClient(
-        verify=ctx, base_url=str(settings.token_writer.url)
+    app.state.tws_client = httpx.AsyncClient(
+        verify=ctx, base_url=str(settings.tws.url)
     )
 
 
@@ -83,8 +81,8 @@ def get_zuliprc_repo(
     return request.app.state.zuliprc_repo
 
 
-def get_token_writer_client(request: fastapi.Request) -> httpx.AsyncClient:
-    return request.app.state.token_writer_client
+def get_tws_client(request: fastapi.Request) -> httpx.AsyncClient:
+    return request.app.state.tws_client
 
 
 def get_settings(request: fastapi.Request) -> Settings:
@@ -269,9 +267,9 @@ async def write_tokens(
         mymdc.MyMdCClient,
         fastapi.Depends(mymdc.get_mymdc_client),
     ],
-    token_writer_client: Annotated[
+    tws_client: Annotated[
         httpx.AsyncClient,
-        fastapi.Depends(get_token_writer_client),
+        fastapi.Depends(get_tws_client),
     ],
     settings: Annotated[Settings, fastapi.Depends(get_settings)],
     overwrite: bool = False,
@@ -290,13 +288,13 @@ async def write_tokens(
 
     tasks = {
         k: asyncio.create_task(
-            token_writer_client.post(
+            tws_client.post(
                 "/v1/write",
                 content=tws.FileWriteRequest(
                     proposal_no=proposal_no,
                     kind=k,
                     key=client.token.get_secret_value(),
-                    zwop_url=settings.token_writer.zwop_url,
+                    zwop_url=settings.tws.zwop_url,
                     overwrite=overwrite,
                     dry_run=dry_run,
                 ).model_dump_json(),

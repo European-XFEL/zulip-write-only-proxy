@@ -41,7 +41,7 @@ def create_app():
 
         yield
 
-        await app.state.token_writer_client.aclose()
+        await app.state.tws_client.aclose()
 
     app = fastapi.FastAPI(
         title="Zulip Write Only Proxy",

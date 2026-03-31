@@ -19,7 +19,7 @@ raw-options = { root = "../.." }
 fallback-version = "0.0.0.dev0"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "../_version.py"
+version-file = "./src/zwop_tws/_version.py"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
