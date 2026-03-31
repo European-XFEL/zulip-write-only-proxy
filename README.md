@@ -230,6 +230,34 @@ poe test  # Run tests
 
 Production deployments of ZWOP run on the DA dev server and use the container images built by the GitHub CI. When a new release is made, that image is tagged as `stable`, which is the image that will be used by the production compose (`compose.prod.yml`).
 
+<details>
+<summary>Docker Context/Services Account</summary>
+
+To docker containers/services on the da dev server you can switch to the `services` account, or use your own account while in the central (system daemon) context.
+
+```shell
+# if this shows an endpoint using /run/docker.sock then you are using the
+# system context by default
+$ docker context inspect
+
+# otherwise check what contexts you have, you may have both 'default' and 'rootless'
+$ docker context ls
+
+NAME         DESCRIPTION                               DOCKER ENDPOINT                      ERROR
+default      Current DOCKER_HOST based configuration   unix:///var/run/docker.sock
+rootless *   Rootless mode                             unix:///run/user/33392/docker.sock
+
+# if you do then use `docker --context default ...` for all commands
+
+# alternatively use env vars to set the context
+
+$ DOCKER_SOCK=/run/docker.sock DOCKER_HOST=unix:///run/docker.sock docker ...
+```
+
+See docker docs for more info - <https://docs.docker.com/engine/manage-resources/contexts/>
+
+</details>
+
 Useful commands are:
 
 ```bash
