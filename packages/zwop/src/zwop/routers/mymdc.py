@@ -65,7 +65,10 @@ async def check_and_proxy_request(
 
     # Use first item if content is a list, e.g. for paginated responses
     if isinstance(content, list):
-        content = content[0]
+        if len(content) > 0:
+            content = content[0]
+        else:
+            content = {}
 
     res_proposal_id = (
         content.get("proposal_id")
@@ -147,19 +150,20 @@ async def get_experiments_by_proposal_id(
         page_size: int = 100,
         page: int = 1
 ):
+    params = {
+        "experiment_number": experiment_number,
+        "name": name,
+        "id": id,
+        "doi": doi,
+        "experiment_type_id": experiment_type_id,
+        "proposal_id": proposal_id,
+        "page_size": page_size,
+        "page": page
+    }
     return await check_and_proxy_request(
         request,
         client,
-        {
-            "experiment_number": experiment_number,
-            "name": name,
-            "id": id,
-            "doi": doi,
-            "experiment_type_id": experiment_type_id,
-            "proposal_id": proposal_id,
-            "page_size": page_size,
-            "page": page
-        },
+        {k: v for k, v in params.items() if v is not None},
         req_proposal_id=proposal_id,
     )
 
