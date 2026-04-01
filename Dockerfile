@@ -49,11 +49,20 @@ RUN --mount=type=cache,target=/opt/uv-cache/ \
     --mount=type=cache,id=pnpm,target=/pnpm/store \
   uv build --all-packages
 
+# Export pinned versions
+RUN \
+  uv export --frozen --no-dev --no-emit-workspace --package zwop-tws \
+      -o ./dist/req-zwop-tws.txt && \
+  uv export --frozen --no-dev --no-emit-workspace --package zwop \
+      -o ./dist/req-zwop.txt
 
 FROM base AS zwop-tws
 RUN --mount=type=bind,from=build,source=/app/dist,target=/dist \
     --mount=type=cache,target=/opt/uv-cache/ \
-  uv pip install --system /dist/zwop_tws-*.whl
+  uv pip install --system \
+    -r /dist/req-zwop-tws.txt \
+    --find-links /dist \
+    zwop-tws
 
 CMD ["zwop-tws"]
 
@@ -61,10 +70,15 @@ CMD ["zwop-tws"]
 FROM base AS zwop
 RUN --mount=type=bind,from=build,source=/app/dist,target=/dist \
     --mount=type=cache,target=/opt/uv-cache/ \
-  uv pip install --system /dist/zwop-*.whl /dist/zwop_tws-*.whl
+  uv pip install --system \
+    -r /dist/req-zwop.txt \
+    --find-links /dist \
+    zwop zwop-tws
 
 CMD ["zwop"]
 
 
 # Use dev as base so that default target is dev
 FROM dev
+
+CMD ["uv", "run", "zwop"]
