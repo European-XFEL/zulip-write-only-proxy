@@ -9,6 +9,9 @@ networks:
 
 services:
   server:
+    build:
+      context: .
+      target: zwop
     environment:
       - "ZWOP_TWS__ZWOP_URL=https://exfldadev01.desy.de/${COMPOSE_PROJECT_NAME}"
     networks:

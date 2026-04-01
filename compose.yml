@@ -1,8 +1,6 @@
 services:
   server:
-    build:
-      context: .
-      target: zwop
+    build: .
     volumes:
       - ./config:/app/config
       - ./certs:/app/certs
