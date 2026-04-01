@@ -1,3 +1,4 @@
+_version.py
 migration
 *.zuliprc
 .env
