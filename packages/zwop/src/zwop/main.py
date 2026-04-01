@@ -18,6 +18,8 @@ from .settings import configure as configure_settings
 def create_app():
     settings = configure_settings()
 
+    logger = get_logger()
+
     @asynccontextmanager
     async def lifespan(app: fastapi.FastAPI):
         _logging.configure(debug=app.debug, add_call_site_parameters=True)
@@ -28,15 +30,23 @@ def create_app():
 
         await configure_mymdc(app)
 
-        frontend_dir = Path(__file__).parent / "frontend"
-        app.mount(
-            "/static",
-            StaticFiles(directory=frontend_dir / "static"),
-            name="static",
-        )
-        app.state.templates = Jinja2Templates(directory=frontend_dir / "templates")
+        active_routers = [routers.api, routers.auth, routers.mymdc]
 
-        for module in [routers.api, routers.auth, routers.frontend, routers.mymdc]:
+        frontend_dir = Path(__file__).parent / "frontend"
+
+        try:
+            app.mount(
+                "/static",
+                StaticFiles(directory=frontend_dir / "static"),
+                name="static",
+            )
+            app.state.templates = Jinja2Templates(directory=frontend_dir / "templates")
+
+            active_routers.append(routers.frontend)
+        except Exception as e:
+            logger.error("Could not mount static files, disabling frontend endpoints", exc_info=e)
+
+        for module in active_routers:
             app.include_router(module.router)
 
         yield
