@@ -22,6 +22,10 @@ async def proxy_request(
     )
 
 
+def drop_none_params(params: dict[str, object]) -> dict[str, object]:
+    return {k: v for k, v in params.items() if v is not None}
+
+
 async def check_and_proxy_request(
     request: Request,
     client: ScopedClient,
@@ -137,18 +141,48 @@ async def get_proposals_runs(
     )
 
 
+@router.get("/runs")
+async def get_runs(
+    request: Request,
+    client: ScopedClient,
+    run_number: int | None = None,
+    id: int | None = None,
+    experiment_id: int | None = None,
+    sample_id: int | None = None,
+    run_alias: str | None = None,
+    proposal_id: int | None = None,
+    page_size: int = 100,
+    page: int = 1,
+):
+    params = {
+        "run_number": run_number,
+        "id": id,
+        "experiment_id": experiment_id,
+        "sample_id": sample_id,
+        "run_alias": run_alias,
+        "page_size": page_size,
+        "page": page,
+    }
+    return await check_and_proxy_request(
+        request,
+        client,
+        drop_none_params(params),
+        req_proposal_id=proposal_id,
+    )
+
+
 @router.get("/experiments")
-async def get_experiments_by_proposal_id(
-        request: Request,
-        client: ScopedClient,
-        experiment_number: int | None = None,
-        name: str | None = None,
-        id: int | None = None,
-        doi: str | None = None,
-        experiment_type_id: int | None = None,
-        proposal_id: int | None = None,
-        page_size: int = 100,
-        page: int = 1
+async def get_experiments(
+    request: Request,
+    client: ScopedClient,
+    experiment_number: int | None = None,
+    name: str | None = None,
+    id: int | None = None,
+    doi: str | None = None,
+    experiment_type_id: int | None = None,
+    proposal_id: int | None = None,
+    page_size: int = 100,
+    page: int = 1,
 ):
     params = {
         "experiment_number": experiment_number,
@@ -158,12 +192,12 @@ async def get_experiments_by_proposal_id(
         "experiment_type_id": experiment_type_id,
         "proposal_id": proposal_id,
         "page_size": page_size,
-        "page": page
+        "page": page,
     }
     return await check_and_proxy_request(
         request,
         client,
-        {k: v for k, v in params.items() if v is not None},
+        drop_none_params(params),
         req_proposal_id=proposal_id,
     )
 
